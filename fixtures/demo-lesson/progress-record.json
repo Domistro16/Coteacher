@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "lessonId": "light-and-refraction",
+  "studentId": "student-a1b2c3d4",
+  "exportedAt": "2026-10-08T12:15:00Z",
+  "simulated": true,
+  "events": [
+    {
+      "type": "pause",
+      "timestamp": "2026-10-08T12:01:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction"
+    },
+    {
+      "type": "replay",
+      "timestamp": "2026-10-08T12:02:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction"
+    },
+    {
+      "type": "explain-again",
+      "timestamp": "2026-10-08T12:03:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction"
+    },
+    {
+      "type": "variant-viewed",
+      "timestamp": "2026-10-08T12:04:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction",
+      "variantId": "refraction-short"
+    },
+    {
+      "type": "tryit-completed",
+      "timestamp": "2026-10-08T12:05:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction",
+      "variantId": "refraction-tryit"
+    },
+    {
+      "type": "question-matched",
+      "timestamp": "2026-10-08T12:06:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction",
+      "questionId": "question-bent",
+      "matcherScore": 0.91
+    },
+    {
+      "type": "question-no-match",
+      "timestamp": "2026-10-08T12:07:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction",
+      "questionId": "queued-sky",
+      "matcherScore": 0.22
+    },
+    {
+      "type": "quiz-answered",
+      "timestamp": "2026-10-08T12:08:00Z",
+      "conceptId": "refraction",
+      "quizId": "quiz-bent",
+      "correctness": true
+    },
+    {
+      "type": "tryit-follow-up",
+      "timestamp": "2026-10-08T12:09:00Z",
+      "timelineStepId": "step-refraction",
+      "conceptId": "refraction",
+      "variantId": "refraction-tryit",
+      "text": "Will the pencil still be straight when I take it out?",
+      "questionId": "queued-pencil"
+    }
+  ],
+  "queuedQuestions": [
+    {
+      "id": "queued-sky",
+      "text": "Why is the sky blue?",
+      "askedAt": "2026-10-08T12:07:00Z",
+      "timelineStepId": "step-refraction",
+      "answered": false
+    },
+    {
+      "id": "queued-pencil",
+      "text": "Will the pencil still be straight when I take it out?",
+      "askedAt": "2026-10-08T12:09:00Z",
+      "timelineStepId": "step-refraction",
+      "answered": true,
+      "answer": "Yes. In this activity the pencil stays straight; its apparent bend comes from the direction change of light at the water-air boundary.",
+      "sourceRefs": [
+        "notes-light",
+        "notes-activity"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/player-state.schema.json",
+  "title": "PlayerState",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["timelineIndex", "variantId", "activity"],
+  "properties": {
+    "timelineIndex": {"type": "integer", "minimum": 0},
+    "variantId": {"type": "string", "minLength": 1},
+    "activity": {"anyOf": [
+      {"type": "null"},
+      {"type": "object", "additionalProperties": false, "required": ["phase", "instructionIndex"], "properties": {
+        "phase": {"enum": ["intro", "steps", "why"]},
+        "instructionIndex": {"type": "integer", "minimum": 0}
+      }}
+    ]}
+  }
+}
