@@ -20,6 +20,11 @@ export {
 export type { ValidationIssue, ValidationResult } from './validation';
 export * from './transfer';
 export * from './sprint';
+export * from './publication';
+export * from './presentation';
+export * from './recording';
+export * from './personalized-replay';
+export * from './opus-container';
 export * from './matcher';
 export * from './narration-content';
 export type { PlayerState } from './generated/player-state';

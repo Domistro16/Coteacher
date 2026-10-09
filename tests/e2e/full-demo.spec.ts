@@ -15,6 +15,7 @@ async function ask(page: Page, text: string) {
 async function fit(page: Page) { expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true); }
 
 test('complete school collection, offline study, two learners, teacher insights, and simulated answer return', async ({ page, context }, info) => {
+  test.setTimeout(90_000);
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.addInitScript(() => {
@@ -31,13 +32,15 @@ test('complete school collection, offline study, two learners, teacher insights,
   await expect(teacher.getByRole('button', { name: 'Export Student A package' })).toBeDisabled();
   await teacher.getByRole('checkbox').check();
   await teacher.getByRole('button', { name: 'Approve lesson', exact: true }).click();
+  await teacher.screenshot({ path: info.outputPath('teacher-preparation.png'), fullPage: true });
+  await teacher.getByRole('button', { name: 'Teach / projector' }).click();
+  await teacher.getByRole('button', { name: 'Start presentation' }).click();
+  await teacher.getByRole('button', { name: 'Next visual' }).click();
+  await expect(teacher.getByRole('heading', { name: 'Refraction at the water surface' })).toBeVisible();
+  await teacher.getByRole('button', { name: 'Prepare lesson', exact: true }).click();
   const packageDownload = teacher.waitForEvent('download');
   await teacher.getByRole('button', { name: 'Export Student A package' }).click();
   const packagePath = (await packageDownload).path();
-  await teacher.screenshot({ path: info.outputPath('teacher-preparation.png'), fullPage: true });
-  await teacher.getByRole('button', { name: 'Teach / projector' }).click();
-  await teacher.getByRole('button', { name: 'Next visual' }).click();
-  await expect(teacher.getByRole('heading', { name: 'Refraction at the water surface' })).toBeVisible();
   await teacher.getByRole('button', { name: 'Class insights' }).click();
   await expect(teacher.getByText('12 / 18 learners paused or asked an unmatched question')).toBeVisible();
 

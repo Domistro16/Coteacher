@@ -19,6 +19,13 @@ bundled collection. Student application network APIs are blocked in the main
 journey and legacy player tests. Browser requests for cached assets are expected
 during offline navigation; those assets must be served by the worker.
 
+Presentation tests block teacher speech APIs, record actual forward/backward
+display visits, verify the projector view and persistent position, compare
+approved content before/after teaching, export both learner routes with identical
+classroom records, and open the exact recorded concept with networking disabled.
+The source explanation, diagram, lesson ID, concept ID and timeline step all match.
+Save failures and reapproval invalidation are covered as well.
+
 Dedicated help tests also block student network APIs. They cover the brief's
 natural wording, unseen text rotation, manual/refresher viewing history,
 exhaustion actions, suffix matches/no-match queues, question near-misses, offline
@@ -48,3 +55,19 @@ contracts, generation, matcher, speech, encryption, and progress merge checks.
 
 Mobile Chromium emulation is not a physical low-end Android performance or
 installation test. That check remains explicitly unverified without a device.
+
+Recording tests enable Chromium's fake microphone and permission dialog flags:
+the real getUserMedia → AudioWorklet → streaming WebCodecs → Ogg Opus → native audio playback path runs with
+simulated input. No physical microphone or people are recorded. Checks cover
+pause/mute and active sample time, manual transitions and exact IDs, draft restore,
+native seeking/synchronized playback, separate review approval, both encrypted
+exports, rejected unreviewed learner audio and offline replay/exact concept study.
+The permission rejection is injected as NotAllowedError because the fake dialog
+auto-allows; quota failures are injected only at IndexedDB writes. Existing voice
+tests still exercise the separately cached generic narration clips. The recording
+journey now reviews both personalized visual sequences, plays both profiles,
+checks one shared encrypted media row, blocks incomplete collection, disconnects,
+resumes after restart and restores missing/damaged audio without losing progress.
+The Opus test bundles the actual encoder module using Vite's esbuild dependency,
+feeds 121 seconds of simulated sine-wave PCM through the native codec, decodes it
+and plays/seeks using native browser audio. No speech or media-clock mocks are used.

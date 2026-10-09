@@ -4,16 +4,66 @@
   "title": "PlayerState",
   "type": "object",
   "additionalProperties": false,
-  "required": ["timelineIndex", "variantId", "activity"],
+  "required": [
+    "timelineIndex",
+    "variantId",
+    "activity"
+  ],
   "properties": {
-    "timelineIndex": {"type": "integer", "minimum": 0},
-    "variantId": {"type": "string", "minLength": 1},
-    "activity": {"anyOf": [
-      {"type": "null"},
-      {"type": "object", "additionalProperties": false, "required": ["phase", "instructionIndex"], "properties": {
-        "phase": {"enum": ["intro", "steps", "why"]},
-        "instructionIndex": {"type": "integer", "minimum": 0}
-      }}
-    ]}
+    "timelineIndex": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "variantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "activity": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "phase",
+            "instructionIndex"
+          ],
+          "properties": {
+            "phase": {
+              "enum": [
+                "intro",
+                "steps",
+                "why"
+              ]
+            },
+            "instructionIndex": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    },
+    "recording": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recordingId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "positionMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 21600000
+        }
+      },
+      "required": [
+        "recordingId",
+        "positionMs"
+      ]
+    }
   }
 }

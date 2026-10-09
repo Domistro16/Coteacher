@@ -2,6 +2,7 @@
 
 export type Id = string;
 export type Text = string;
+export type Timestamp = string;
 export type StudentId = string;
 /**
  * @minItems 1
@@ -16,6 +17,18 @@ export interface LessonPackage {
   lessonId: Id;
   title: Text;
   subject: Text;
+  topic: Text;
+  classLevel: Text;
+  contentOrigin: "manually-prepared-demo";
+  publication:
+    | {
+        status: "draft";
+      }
+    | {
+        status: "approved";
+        approvedAt: Timestamp;
+        approvalKind: "teacher-review" | "seeded-demo";
+      };
   language: Text;
   simulated: boolean;
   studentId: StudentId;
@@ -38,6 +51,8 @@ export interface LessonPackage {
    * @minItems 1
    */
   timeline: [TimelineStep, ...TimelineStep[]];
+  classroomTimeline?: ClassroomTimeline;
+  recording?: LessonRecording;
   /**
    * @minItems 0
    */
@@ -84,6 +99,247 @@ export interface LessonPackage {
   matcher: {
     confidenceThreshold: Score;
     noMatchMessage: Text;
+  };
+  /**
+   * @minItems 1
+   * @maxItems 20
+   */
+  visualAssets?:
+    | [VisualAsset]
+    | [VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset]
+    | [VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset, VisualAsset]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ]
+    | [
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset,
+        VisualAsset
+      ];
+  playback?: {
+    recordingId: Id;
+    studentId: StudentId;
+    simulated: true;
+    method: "demo-history-rules-v1";
+    catalogVersion: "refraction-visuals-v1";
+    reason: string;
+    /**
+     * @minItems 1
+     * @maxItems 1000
+     */
+    sequence: [
+      {
+        cueIndex: number;
+        offsetMs: number;
+        conceptId: Id;
+        timelineStepId: Id;
+        visualAssetId: Id;
+        sourceRefs: SourceRefs;
+      },
+      ...{
+        cueIndex: number;
+        offsetMs: number;
+        conceptId: Id;
+        timelineStepId: Id;
+        visualAssetId: Id;
+        sourceRefs: SourceRefs;
+      }[]
+    ];
   };
 }
 export interface Source {
@@ -146,6 +402,94 @@ export interface TimelineStep {
   defaultVariantId: Id;
   sourceRefs: SourceRefs;
 }
+export interface ClassroomTimeline {
+  sessionId: Id;
+  approvedAt: Timestamp;
+  startedAt: Timestamp;
+  currentStepId: Id;
+  /**
+   * @minItems 1
+   */
+  visits: [
+    {
+      timelineStepId: Id;
+      conceptId: Id;
+      presentedAt: Timestamp;
+    },
+    ...{
+      timelineStepId: Id;
+      conceptId: Id;
+      presentedAt: Timestamp;
+    }[]
+  ];
+}
+export interface LessonRecording {
+  id: Id;
+  lessonId: Id;
+  classroomSessionId: Id;
+  lessonApprovedAt: Timestamp;
+  startedAt: Timestamp;
+  durationMs: number;
+  origin: "teacher-microphone";
+  audio:
+    | {
+        mimeType: "audio/wav";
+        sampleRate: 16000;
+        channels: 1;
+        dataBase64: string;
+        mediaKey?: string;
+      }
+    | {
+        sampleRate: 16000 | 48000;
+        channels: 1;
+        mediaKey: string;
+        mimeType: "audio/ogg;codecs=opus";
+        dataBase64: string;
+      }
+    | {
+        sampleRate: 16000 | 48000;
+        channels: 1;
+        mediaKey: string;
+        mimeType: "audio/wav" | "audio/ogg;codecs=opus";
+        mediaId: Id;
+        byteLength: number;
+      };
+  /**
+   * @minItems 1
+   * @maxItems 1000
+   */
+  cues: [
+    {
+      offsetMs: number;
+      timelineStepId: Id;
+      conceptId: Id;
+      sourceRefs: SourceRefs;
+    },
+    ...{
+      offsetMs: number;
+      timelineStepId: Id;
+      conceptId: Id;
+      sourceRefs: SourceRefs;
+    }[]
+  ];
+  review:
+    | {
+        status: "draft";
+      }
+    | {
+        status: "approved";
+        reviewedAt: Timestamp;
+      };
+  visualReview?:
+    | {
+        status: "draft";
+      }
+    | {
+        status: "approved";
+        reviewedAt: Timestamp;
+        catalogVersion: "refraction-visuals-v1";
+      };
+}
 export interface Question {
   id: Id;
   question: Text;
@@ -171,4 +515,27 @@ export interface QuizItem {
   conceptId: Id;
   misconception: Text;
   sourceRefs: SourceRefs;
+}
+export interface VisualAsset {
+  id: Id;
+  conceptId: Id;
+  title: string;
+  sourceRefs: SourceRefs;
+  /**
+   * @minItems 1
+   * @maxItems 40
+   */
+  layers: [VisualLayer, ...VisualLayer[]];
+}
+export interface VisualLayer {
+  kind: "path" | "rect" | "circle" | "text";
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  d: string;
+  text: string;
+  fill: string;
+  stroke: string;
+  emphasis: boolean;
 }

@@ -9,15 +9,26 @@ simulated and visibly labelled.
 1. In the teacher workspace, load the reviewed demo materials or upload
    fixtures/demo-lesson/teacher-notes.md and activity-notes.md. Generate the
    simulated draft, inspect variants/questions/quiz/activity safety, acknowledge
-   review, approve, and export Student A's encrypted package.
-2. Open Teach / projector. Advance visuals with a tap; demonstrate the refraction
-   moment and its sources. Open Class insights to show the 18 seeded learners,
-   variant observations, and previous-cohort nudge.
+   review and approve.
+   Check the subject, topic, simulated class level and shared objective. Expand
+   each source preview and concept understanding check. Reload a draft: it remains
+   unavailable for export. Approve, close/reopen the teacher tab: sources, concepts
+   and approval remain available. Regeneration or changing a source requires review
+   again. The learner rejects an encrypted draft even if supplied outside the UI.
+2. Open Teach / projector and Start presentation. Advance visuals with a tap;
+   demonstrate the refraction moment and its sources, step backward and forward,
+   and expand projector view. Reload/reopen: the same current concept and classroom
+   visits restore. Return to Prepare lesson and export Student A's encrypted
+   package after teaching to include the recorded classroom timeline. Open Class
+   insights to show the 18 seeded learners, variant observations and nudge.
 3. In the student app, choose Student A, unlock with 111111, import the personal
    file, and wait for Saved on this device and Ready offline. Enable narration
    once after unlocking; captions remain visible with Play/Pause/Replay/Speed.
 4. Disable the connection. Reload or close/reopen the student app. It asks for a
-   PIN and restores the lesson. Advance to refraction and type
+   PIN and restores the lesson. Expand Revisit the classroom timeline and choose
+   the refraction moment: its original explanation, visual, source and teacher's
+   words match the classroom step. Return to the first moment and advance to
+   refraction, then type
    "Pause here. I understand this part, but I don't understand this" or tap
    Pause here / explain again. The different explanation shows its source and
    original lesson moment. "put it another way" and "explain that again" show the next
@@ -48,6 +59,33 @@ simulated and visibly labelled.
 11. Unlock A and import returned answers. The sourced answer appears in saved
     questions without losing newer local progress. Connection alone never implies
     that a file was transferred.
+
+## Teacher recording journey
+
+Prepare/approve the lesson and start its presentation. Confirm the microphone is
+off, enable capture of the teacher only, and Start audio recording. Grant browser
+permission and verify the visible live status. Advance a visual, Pause recording,
+move back while paused, then Resume recording and advance again. The paused period
+must neither lengthen saved audio nor separate equal-time paused/resume cues.
+Stop releases the microphone and saves a private review draft. Refresh: audio and
+all stable step/concept/source references restore. Replay, seek backward/forward,
+and verify visuals follow audio time. Pending audio prevents export. After playing
+and acknowledging accuracy/privacy review, approve the recording separately.
+Export stays blocked until both personalized visual sequences have also been
+reviewed and approved. A receives concrete ray/pencil diagrams; B receives ordered
+annotated ray diagrams. Both use the same complete recorded voice, cues and objective.
+Collect a file in the learner app, wait for offline readiness, disconnect and reopen.
+Play the actual saved audio with synchronized SVGs, seek to refraction, and Study
+this exact concept. The player's step ID must be step-refraction, not a topic page.
+Permission denial leaves manual presentation available; failed saves retain a
+replayable in-memory draft with retry and block export until saved/reviewed.
+Native streaming Opus tests encode/decode 121 seconds, verify audible signal,
+finite duration, seeking past 120 seconds, compression and corrupted-page rejection.
+The complete browser journey plays A then B, verifies one encrypted local audio row,
+independent positions, offline audible playback and exact-concept help/activity/quiz/
+questions, then reloads and resumes. Media quota failure commits neither profile nor
+audio and cannot show Ready offline. Missing/damaged media can be recollected without
+losing either profile's progress. Static source-only fixtures are labelled honestly.
 
 ## Second journey: bundled collection and sharing one device
 
@@ -80,6 +118,23 @@ confusion such as "The bit with the water still makes no sense" is passed intact
 as matcher context. On no-match it is saved and a sourced unseen explanation is
 offered as related material. Exhaustion offers an activity
 only where a safe Try it exists, and the typing action focuses the question box.
+
+Teacher preparation tests exercise source previews, every concept's diagram,
+original/alternative explanations and understanding checks, persistent draft and
+approval state, both encrypted exports, same-objective routes, rejected draft
+collection, review revocation, regeneration/source replacement, storage failure,
+and corrupt-state recovery. The longer full demo explicitly allows 90 seconds
+for its multiple encrypted transfers and offline reloads.
+
+Presentation acceptance records forward/backward classroom visits, checks approval
+gating, manual keyboard controls and projector layout, compares content before/
+after presentation, restores the last teacher moment across reload/tab reopening,
+exports the identical classroom record to both learners, and reopens the exact
+concept offline with matching step/concept IDs, explanation, diagram and sources.
+Unit tests also distinguish repeated timeline steps belonging to one concept.
+Save failures keep the previously saved moment visible; revoking/reapproving
+clears stale presentation state. Teacher speech APIs are blocked in the browser
+test and no recognition/transcription path is added.
 
 npm run test:e2e builds both apps and runs the main journey, bundled offline
 reopening, profile/file/source/storage error cases, narrow layouts, keyboard/touch

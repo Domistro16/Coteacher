@@ -62,13 +62,14 @@ steps; offline lesson navigation should still be fast because it runs locally.
 | Quiz from pause/struggle points, common objective | Existing sourced questions are selected by confused concepts; both packages share the objective | Matches sprint behavior |
 | Queued questions answered after reconnection | Manual school-file loop returns a prepared answer to one supported question; others stay pending | Accepted bounded simulation; not automatic online answering |
 | Teacher heatmap, variant comparisons, next-lesson reminder | Imported progress updates aggregates; variant counts are descriptive; nudge is fixed seeded content | Fits seeded demo, with limits |
-| Different visual aid versions | Text variants differ, but each concept uses the same diagram across variants | Partial; explanation comparisons, not visual-version comparisons |
+| Different visual aid versions | Reviewed recorded packages assign concrete diagrams to A and ordered ray annotations to B; SVG assets and choices are stored offline | Native teacher-to-two-profile playback, offline seek/resume and shared audio verified; rules and histories are explicitly simulated |
 | Voice input/output and captions | Local-only input with typing fallback; cached MP3 output, local synthesis fallback, captions and playback/speed controls | Actual offline clip playback verified; physical-device input/synthesis/accent suitability unverified |
 | Low-end Android use | Mobile/narrow Chromium layouts and offline behavior verified | Physical device installation/performance not verified |
 
-Teacher drafts/imports are memory-only and disappear on refresh. For the demo,
-keep the teacher tab open and explicitly disclose this limit. Seeded nudges do
-not change with imported records. Citation validation checks source references;
+Teacher sources, drafts and publication approval now persist on the device;
+progress imports remain session-only. See teacher-preparation-verification.md for
+the approval gate, refresh/reopening evidence and limits. Seeded nudges do not
+change with imported records. Citation validation checks source references;
 factual grounding rests on the curated content and teacher review.
 
 ## Verification evidence and presentation guidance
