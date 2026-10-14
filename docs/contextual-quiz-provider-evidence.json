@@ -1,0 +1,86 @@
+{
+  "scope": "Two real configured Responses API check-generation calls using reviewed excerpts and explicitly simulated learner evidence; provider-level text only, no human microphone/speaker or live UI proof.",
+  "startedAt": "2026-10-14T16:56:11.126Z",
+  "result": "PASS",
+  "requests": [
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_32cb3f27bfcf4269a4ccb64d00f2df56",
+      "responseId": "resp_06c92c4d1b845fae016acfb42c2e4887d28b7694dfa97cd01b",
+      "durationMs": 2726
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_588c485381454e9bb4c865b2fe08e07a",
+      "responseId": "resp_0e43b6d68d35a8e3016acfb42dfc7087d28eb417ff94193029",
+      "durationMs": 1491
+    }
+  ],
+  "checks": [
+    {
+      "question": "How does a curved lens bend light like water?",
+      "simulated": true,
+      "personalization": {
+        "mode": "standard",
+        "evidenceEventIds": [],
+        "visualAssetId": null,
+        "reason": "A short check of the question you asked; there is not enough recent check evidence to change the support."
+      },
+      "generated": {
+        "supported": true,
+        "confident": true,
+        "safe": true,
+        "prompt": "What does a lens do to light, similar to light bending at water's surface?",
+        "options": [
+          "A lens bends light passing through it, similar to light changing direction at a boundary between materials.",
+          "A lens blocks light completely so nothing passes through it."
+        ],
+        "correctIndex": 0,
+        "explanation": "The NASA excerpt says: 'A lens, just like in eyeglasses, bends light passing through it.' This matches the explanation that light changes direction (bends) at the angled boundary between water and air, making the pencil appear bent.",
+        "sourceIds": [
+          "nasa-spaceplace-lenses",
+          "notes-light:refraction-original"
+        ],
+        "quotes": [
+          "A lens, just like in eyeglasses, bends light passing through it.",
+          "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent."
+        ]
+      },
+      "sourceValidation": true
+    },
+    {
+      "question": "Is the pencil itself bending in water, or is the light changing direction?",
+      "simulated": true,
+      "personalization": {
+        "mode": "guided",
+        "evidenceEventIds": [
+          "simulated-check-mistake"
+        ],
+        "visualAssetId": null,
+        "reason": "A shorter question with a small hint, based on your recent attempts or requests for another explanation."
+      },
+      "generated": {
+        "supported": true,
+        "confident": true,
+        "safe": true,
+        "prompt": "Why does the pencil look bent in water?",
+        "options": [
+          "The pencil stays straight; light changes direction at the water surface.",
+          "The pencil physically bends where it touches the water."
+        ],
+        "correctIndex": 0,
+        "explanation": "The pencil remains straight. Light changes direction when it passes at an angle from water to air, making the pencil look bent. This is called refraction.",
+        "sourceIds": [
+          "notes-light:refraction-short"
+        ],
+        "quotes": [
+          "The pencil stays straight. Light changes direction on its way from water to air, so the pencil looks bent."
+        ]
+      },
+      "sourceValidation": true
+    }
+  ],
+  "finishedAt": "2026-10-14T16:56:15.349Z"
+}

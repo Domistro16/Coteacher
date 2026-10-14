@@ -1,3 +1,4 @@
+import { openPreparedCompatibility } from './compatibility';
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
 import { activityCaptions, demoLessons, quizCaption, quizFeedback } from '@coteacher/shared';
 
@@ -6,6 +7,7 @@ async function unlock(page: Page, profile = 'student-a1b2c3d4', pin = '111111') 
   await page.getByLabel('Your profile').selectOption(profile);
   await page.getByLabel('Six-digit PIN').fill(pin);
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
 }
 async function ask(page: Page, text: string) {
   await page.getByLabel('Type your question').fill(text);
@@ -20,8 +22,12 @@ async function setup(page: Page, context: BrowserContext) {
     for (const key of ['fetch', 'XMLHttpRequest', 'WebSocket']) Object.defineProperty(window, key, { value: () => { attempts.push(key); throw new Error('Forbidden student network API'); } });
   });
   await page.goto('/'); await unlock(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await expect(page.getByText('Prepared-content demo ready offline', { exact: true })).toBeVisible();
+  // The connected home discovers publications. From complete collection onward,
+  // narration and all study interactions must make zero application API calls.
+  await page.evaluate(() => (window as any).__voiceNetwork.splice(0));
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => navigator.serviceWorker.controller ? undefined : new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }))));
   await context.setOffline(true);
   return async () => {
@@ -90,6 +96,7 @@ test('real clips speak explanations, questions, quiz and each activity instructi
   await page.getByRole('button', { name: 'Lock / switch learner' }).click();
   await expect(page.locator('[data-narration-audio]')).toHaveCount(0);
   await unlock(page, 'student-b1c2d3e4', '222222');
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
   await expect(page.locator('[data-narration-audio]')).toHaveJSProperty('paused', true);
   await expect(page.getByRole('button', { name: 'Enable narration', exact: true })).toBeVisible();

@@ -35,3 +35,25 @@ by exact timeline step, plus the currently displayed variant. Initial and manual
 views, navigation, activity returns and opened optional refreshers count.
 Try it is offered separately. Exhaustion preserves current content and offers
 a specific question or an available safe activity. No schema extension is needed.
+
+## Recorded player questions
+
+The contextual typed-question form bypasses the legacy command detector. It
+matches the original text directly, including words such as replay or this,
+against prepared questions belonging to the captured concept. It retains
+punctuation, whitespace and newlines in matched events and the unmatched queue.
+A match is labelled a prepared offline answer with sources; no-match stays
+pending, separate from any related explanation. Native playback time and the
+original cue are saved with every new recorded question. See
+docs/offline-questions-verification.md for persistence and return behaviour.
+# Recorded companion routing
+
+The new recorded companion first handles only unambiguous whole-phrase procedural
+responses (confirmation, another explanation, check, return and exact quiz option).
+A question containing those words is passed unchanged to the existing scoped
+question matcher. Its threshold/unknown-term guard stays intact; “seems crooked”
+and the existing “looks bent” share explicit meaning aliases. This is prepared
+deterministic matching, not neural semantic search or generative reasoning.
+Supported answers carry sources and prepared audio; unsupported originals retain
+the captured native timestamp and stable context in the encrypted pending queue.
+See companion-verification.md for speech, privacy and target-device limitations.

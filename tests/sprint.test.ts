@@ -29,7 +29,10 @@ describe('bounded generation and simulated data', () => {
       expect(await runGenerationCli(args.slice(0,-1),output)).toBe(2);
       expect(await runGenerationCli(args,output)).toBe(0);
       const encrypted = JSON.parse(await readFile(join(directory,'lesson-student-a1b2c3d4.json'),'utf8'));
-      expect(validateLessonPackage(await decryptPayload(encrypted,'111111')).valid).toBe(true);
+      const lesson = await decryptPayload(encrypted,'111111');
+      const result = validateLessonPackage(lesson);
+      expect(result.valid).toBe(true);
+      if (result.valid) expect(result.data.publication).toMatchObject({ status: 'approved', approvalKind: 'teacher-review' });
       expect(await runGenerationCli(args,output)).toBe(1);
     } finally { await rm(directory,{recursive:true,force:true}); }
   });

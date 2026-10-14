@@ -4,7 +4,9 @@ import type { ErrorObject } from 'ajv';
 import lessonSchema from '../../../schemas/lesson-package.schema.json' with { type: 'json' };
 import progressSchema from '../../../schemas/progress-record.schema.json' with { type: 'json' };
 import type { LessonPackage, Variant } from './generated/lesson-package';
-import type { ProgressRecord } from './generated/progress-record';
+import type { ProgressRecord, RecordedQuestionContext } from './generated/progress-record';
+import { checkRecordingAudio, recordingCueAt } from './recording';
+import { checkPersonalizedReplay } from './personalized-replay';
 
 export interface ValidationIssue {
   stage: 'schema' | 'integrity';
@@ -134,6 +136,63 @@ function lessonIntegrity(lesson: LessonPackage): ValidationIssue[] {
     reference(index.concepts, step.conceptId, 'concept', `/timeline/${i}/conceptId`, issues);
     checkVariant(index, step.defaultVariantId, step.conceptId, `/timeline/${i}/defaultVariantId`, issues);
   });
+  const classroom = lesson.classroomTimeline;
+  if (classroom) {
+    if (lesson.publication.status !== 'approved' || classroom.approvedAt !== lesson.publication.approvedAt) {
+      issue(issues, 'classroom.approval', '/classroomTimeline/approvedAt', 'Classroom presentation must belong to this approved lesson revision');
+    }
+    reference(index.timeline, classroom.currentStepId, 'timeline-step', '/classroomTimeline/currentStepId', issues);
+    let previous = Date.parse(classroom.startedAt);
+    if (lesson.publication.status === 'approved' && previous < Date.parse(lesson.publication.approvedAt)) {
+      issue(issues, 'classroom.time', '/classroomTimeline/startedAt', 'Presentation cannot precede lesson approval');
+    }
+    classroom.visits.forEach((visit, i) => {
+      const path = `/classroomTimeline/visits/${i}`;
+      reference(index.concepts, visit.conceptId, 'concept', `${path}/conceptId`, issues);
+      checkStep(index, visit.timelineStepId, visit.conceptId, `${path}/timelineStepId`, issues);
+      const time = Date.parse(visit.presentedAt);
+      if (time < previous || (i === 0 && time !== previous)) {
+        issue(issues, 'classroom.time', `${path}/presentedAt`, 'Presentation visits must start at startedAt and remain chronological');
+      }
+      previous = time;
+    });
+    if (classroom.currentStepId !== classroom.visits.at(-1)!.timelineStepId) {
+      issue(issues, 'classroom.position', '/classroomTimeline/currentStepId', 'Presentation position must match its last visit');
+    }
+  }
+  const recording = lesson.recording;
+  if (recording) {
+    if (recording.lessonId !== lesson.lessonId || lesson.publication.status !== 'approved'
+      || recording.lessonApprovedAt !== lesson.publication.approvedAt
+      || !classroom || recording.classroomSessionId !== classroom.sessionId) {
+      issue(issues, 'recording.revision', '/recording', 'Audio must belong to this lesson and approved presentation revision');
+    }
+    if ((lesson.publication.status === 'approved' && Date.parse(recording.startedAt) < Date.parse(lesson.publication.approvedAt))
+      || (recording.review.status === 'approved' && Date.parse(recording.review.reviewedAt) < Date.parse(recording.startedAt))) {
+      issue(issues, 'recording.time', '/recording/startedAt', 'Capture and review must follow lesson approval');
+    }
+    if (!checkRecordingAudio(recording)) issue(issues, 'recording.audio', '/recording/audio', 'Expected complete WAV or checksummed Opus audio with matching duration');
+    if ('mediaUrl' in recording.audio && !recording.audio.mediaUrl.startsWith(`/api/recorded-lessons/${recording.audio.sha256}/audio?key=`)) {
+      issue(issues, 'recording.remote-identity', '/recording/audio/mediaUrl', 'Delivered audio must address its declared checksum');
+    }
+    if (recording.visualReview?.status === 'approved' && Date.parse(recording.visualReview.reviewedAt) < Date.parse(recording.startedAt)) {
+      issue(issues, 'recording.visual-review', '/recording/visualReview', 'Visual review must follow recording');
+    }
+    let previous = 0;
+    recording.cues.forEach((cue, i) => {
+      const path = `/recording/cues/${i}`;
+      checkStep(index, cue.timelineStepId, cue.conceptId, `${path}/timelineStepId`, issues);
+      const step = index.timeline.get(cue.timelineStepId);
+      if (step && JSON.stringify(cue.sourceRefs) !== JSON.stringify(step.sourceRefs)) {
+        issue(issues, 'recording.sources', `${path}/sourceRefs`, 'Recorded visuals retain the approved moment source references');
+      }
+      if ((i === 0 && cue.offsetMs !== 0) || cue.offsetMs < previous || cue.offsetMs > recording.durationMs) {
+        issue(issues, 'recording.timeline', `${path}/offsetMs`, 'Audio cues must begin at zero and remain ordered within the audio');
+      }
+      previous = cue.offsetMs;
+    });
+  }
+  if (!checkPersonalizedReplay(lesson)) issue(issues, 'playback.assets', '/playback', 'Personal visual assets and sequence must match the reviewed catalog, learner and recording cues');
   lesson.questionBank.forEach((question, i) => {
     reference(index.concepts, question.conceptId, 'concept', `/questionBank/${i}/conceptId`, issues);
     checkStep(index, question.timelineStepId, question.conceptId, `/questionBank/${i}/timelineStepId`, issues);
@@ -185,6 +244,29 @@ export function validateLessonPackage(value: unknown): ValidationResult<LessonPa
 function progressIntegrity(progress: ProgressRecord, lesson?: LessonPackage): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const queued = indexById(progress.queuedQuestions, '/queuedQuestions', issues);
+  const eventIds = new Set<string>();
+  progress.events.forEach((event, index) => {
+    if (!event.eventId) return; // Existing saved ledgers remain readable.
+    if (eventIds.has(event.eventId)) issue(issues, 'duplicate.event', `/events/${index}/eventId`, 'Event IDs must be unique within this learner lesson ledger');
+    eventIds.add(event.eventId);
+  });
+  function checkQuestionContext(context: RecordedQuestionContext | undefined, stepId: string, path: string) {
+    if (!context) return; // Older saved questions have no recoverable audio time.
+    if (context.studentId !== progress.studentId || context.lessonId !== progress.lessonId) {
+      issue(issues, 'identity.question', path, 'Question belongs to a different learner or lesson');
+    }
+    if (lesson) {
+      const recording = lesson.recording;
+      const cue = recording && context.positionMs <= recording.durationMs ? recordingCueAt(recording, context.positionMs) : undefined;
+      if (!recording || context.recordingId !== recording.id || cue?.conceptId !== context.conceptId || cue?.timelineStepId !== stepId) {
+        issue(issues, 'context.recorded-question', path, 'Question must retain its exact recorded concept and position');
+      }
+    }
+  }
+  progress.queuedQuestions.forEach((question, i) => checkQuestionContext(question.recordedContext, question.timelineStepId, `/queuedQuestions/${i}/recordedContext`));
+  progress.events.forEach((event, i) => {
+    if (event.type === 'question-matched') checkQuestionContext(event.recordedContext, event.timelineStepId, `/events/${i}/recordedContext`);
+  });
   progress.events.forEach((event, i) => {
     if (event.type === 'question-no-match' || (event.type === 'tryit-follow-up' && event.questionId !== undefined)) {
       const question = reference(queued, event.questionId!, 'queued-question', `/events/${i}/questionId`, issues);
@@ -227,6 +309,23 @@ function progressIntegrity(progress: ProgressRecord, lesson?: LessonPackage): Va
     if (event.type === 'quiz-answered') {
       const quiz = reference(index.quiz, event.quizId, 'quiz', `${path}/quizId`, issues);
       if (quiz && quiz.conceptId !== event.conceptId) issue(issues, 'context.quiz-concept', `${path}/quizId`, 'Quiz and event have different concepts');
+      if (quiz && event.selectedIndex !== undefined && (event.selectedIndex >= quiz.options.length || event.correctness !== (event.selectedIndex === quiz.correctIndex))) {
+        issue(issues, 'context.quiz-answer', `${path}/selectedIndex`, 'Saved answer and correctness must match the prepared check');
+      }
+      if (quiz && event.sourceRefs && JSON.stringify(event.sourceRefs) !== JSON.stringify(quiz.sourceRefs)) {
+        issue(issues, 'context.quiz-sources', `${path}/sourceRefs`, 'Saved check sources must match the prepared question');
+      }
+    }
+    if (event.type === 'visual-explored') {
+      const asset = lesson.visualAssets?.find(entry => entry.id === event.visualAssetId);
+      const recording = lesson.recording;
+      if (!asset || asset.conceptId !== event.conceptId || JSON.stringify(asset.sourceRefs) !== JSON.stringify(event.sourceRefs)) {
+        issue(issues, 'context.visual', `${path}/visualAssetId`, 'Visual exploration must use the current concept and its approved sources');
+      }
+      if (!recording || recording.id !== event.recordingId || event.positionMs > recording.durationMs
+        || (recording && recordingCueAt(recording, event.positionMs).timelineStepId !== event.timelineStepId)) {
+        issue(issues, 'context.recorded-visual', `${path}/positionMs`, 'Visual exploration must belong to the exact recorded moment');
+      }
     }
   });
   return issues;

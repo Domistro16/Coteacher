@@ -1,0 +1,93 @@
+﻿/* The companion floats over the canvas; it never participates in player layout. */
+.lesson-voice-control>button { display:flex; align-items:center; gap:.5rem; }
+.immersive-player { scroll-margin-top:1rem; }
+.immersive-player.has-companion .recorded-help { margin:0; padding:0; border:0; border-radius:0; background:transparent; min-width:0; min-height:0; }
+.immersive-player.has-companion .recorded-help .replay-stage { margin:0; aspect-ratio:auto; border-radius:0; }
+.expanded-player>.recorded-help,.immersive-player:fullscreen>.recorded-help { flex:1; min-height:0; display:flex; flex-direction:column; }
+.expanded-player>.recorded-help>.replay-stage,.immersive-player:fullscreen>.recorded-help>.replay-stage { flex:1; min-height:0; display:flex; flex-direction:column; }
+.expanded-player>.recorded-help svg,.immersive-player:fullscreen>.recorded-help svg { height:0; min-height:0; flex:1; aspect-ratio:auto; object-fit:contain; }
+.companion-dock { --purple:#7040d8; position:absolute; z-index:3; right:1rem; bottom:var(--companion-bottom,9.75rem); width:300px; max-width:calc(100% - 2rem); padding:0 0 46px; color:#30243f; animation:companion-arrive .2s ease-out; }
+@keyframes companion-arrive { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.companion-dock .companion-voice { display:grid; grid-template-columns:minmax(0,1fr) 64px; gap:.5rem; align-items:end; margin:0; padding:0; max-height:none; overflow:visible; }
+.companion-dock .coteacher-avatar { grid-column:2; grid-row:1; width:64px; filter:drop-shadow(0 4px 6px #0003); }
+.companion-dock .companion-bubble { position:static; grid-column:1; grid-row:1; padding:.65rem .8rem; border-radius:16px 16px 4px 16px; background:#fffffffa; border:1px solid #e4daf7; box-shadow:0 4px 18px #0002; overflow:visible; max-height:none; }
+.companion-dock .companion-bubble::after { content:''; position:absolute; right:68px; bottom:59px; width:10px; height:10px; background:#fff; border-right:1px solid #e4daf7; border-top:1px solid #e4daf7; transform:rotate(45deg); }
+.companion-dock .companion-caption { font-size:.82rem; line-height:1.4; margin:.25rem 0 0; max-height:none; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow-wrap:anywhere; }
+.companion-dock .companion-bubble .eyebrow { display:block; font-size:.6rem; line-height:1.3; letter-spacing:.02em; margin:0; color:#6840b2; }
+/* The original speech actions share the small floating toolbar. Full text stays accessible. */
+.companion-dock .companion-audio-controls { position:absolute; left:0; bottom:0; display:flex; flex-wrap:nowrap; gap:2px; }
+.student-app .companion-dock .companion-audio-controls button { width:44px; height:44px; min-height:44px; padding:0; border:1px solid #e4daf7; border-radius:50%; font-size:0; color:#5730a7; background:#fff; box-shadow:0 2px 8px #0002; }
+.companion-dock .companion-audio-controls button::before { content:'▷'; font-size:21px; }
+.companion-dock .companion-audio-controls button[aria-label='Pause Coteacher']::before { content:'Ⅱ'; }
+.companion-dock .companion-audio-controls button:last-child::before { content:'↻'; }
+.companion-dock .companion-voice[aria-label='Coteacher live companion'] .companion-audio-controls button:last-child::before { content:'□'; }
+.companion-dock .companion-speech-status,.companion-dock .companion-bubble>p[role=status],.companion-dock .companion-bubble>small { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.companion-dock .companion-speech-status[data-status=unavailable] { position:static; width:auto; height:auto; clip-path:none; white-space:normal; font-size:.72rem; line-height:1.3; margin:.25rem 0 0; }
+.companion-dock-footer { position:absolute; right:0; bottom:0; display:flex; gap:2px; padding:0; }
+.student-app .companion-dock-footer button { display:grid; place-items:center; width:44px; height:44px; min-width:44px; min-height:44px; padding:0; border:1px solid #e4daf7; border-radius:50%; background:#fff; color:#5730a7; box-shadow:0 2px 8px #0002; }
+.student-app .companion-dock-footer button[aria-label='Return to recorded lesson'] { background:#7040d8; color:#fff; border-color:#7040d8; }
+.companion-dock-footer button:hover,.companion-dock .companion-audio-controls button:hover { transform:translateY(-1px); }
+.companion-tools-target:empty { display:none; }
+/* Existing questions, sources and checks remain inline and opt-in; no scrolling chat panel. */
+.companion-lesson-tools { margin:.75rem 0; border:1px solid #e4daf7; border-radius:16px; background:#fff; color:#30243f; }
+.companion-lesson-tools>summary { cursor:pointer; padding:.75rem 1rem; min-height:44px; font-size:.8rem; color:#5730a7; }
+.companion-input,.companion-conversation { padding:.5rem 1rem; overflow:visible; }
+.companion-lesson-tools .companion-composer { display:flex; gap:.35rem; margin:0; width:100%; min-width:0; }
+.student-app .companion-lesson-tools textarea { min-height:44px; font-size:1rem; padding:.55rem; width:100%; min-width:0; margin:0; }
+.companion-lesson-tools .companion-composer>button { min-width:44px; min-height:44px; padding:.4rem; }
+.companion-lesson-tools .companion-voice-mode { padding:0; gap:.3rem; }
+.companion-lesson-tools .companion-voice-mode>p { color:#51455f; font-size:.75rem; }
+.companion-lesson-tools .companion-replies { display:flex; flex-wrap:wrap; gap:.35rem; margin:.55rem 0; }
+.student-app .companion-lesson-tools button { min-height:44px; }
+.companion-lesson-tools .companion-answer { padding:.75rem; border:1px solid #dcefe3; background:#f2fbf6; border-radius:12px; margin:.5rem 0; overflow-wrap:anywhere; }
+.companion-lesson-tools .companion-connection,.companion-lesson-tools .companion-more { font-size:.8rem; margin:.4rem 0; }
+.companion-lesson-tools details summary { cursor:pointer; min-height:44px; padding:.5rem 0; }
+.companion-lesson-tools .companion-connection label { display:flex; align-items:center; gap:.45rem; }
+.companion-lesson-tools .companion-connection input { width:20px; height:20px; margin:0; flex-shrink:0; }
+.companion-lesson-tools .representation-choices { display:flex; flex-wrap:wrap; gap:.4rem; }
+.companion-dock :focus-visible,.companion-lesson-tools :focus-visible { outline:3px solid #ab83f1; outline-offset:2px; }
+@media (max-width:600px) {
+ .companion-dock { right:.5rem; width:250px; max-width:calc(100% - 1rem); }
+ .companion-dock .companion-voice { grid-template-columns:minmax(0,1fr) 48px; gap:.4rem; }
+ .companion-dock .coteacher-avatar { width:48px; }
+ .companion-dock .companion-caption { font-size:.75rem; -webkit-line-clamp:2; }
+ .companion-dock .companion-bubble { padding:.5rem .6rem; }
+ .companion-dock .companion-bubble::after { right:52px; }
+ .companion-input,.companion-conversation { padding:.5rem .65rem; }
+}
+@media (prefers-reduced-motion:reduce) { .companion-dock { animation:none!important; transform:none!important; } .companion-dock button:hover { transform:none; } }
+/* One composer belongs to the floating avatar; no parallel tutoring form. */
+.companion-dock .companion-input { margin:.4rem 0 0; padding:.5rem; background:#fff; border:1px solid #e4daf7; border-radius:14px; }
+.companion-dock .companion-composer { display:flex; gap:.25rem; padding:0; margin:0; min-width:0; width:100%; }
+.student-app .companion-dock .companion-composer textarea { min-height:44px; max-height:64px; width:100%; min-width:0; margin:0; font-size:.8rem; padding:.5rem; }
+.student-app .companion-dock .companion-composer button { width:44px; min-width:44px; min-height:44px; padding:.4rem; }
+.companion-dock .companion-voice-mode { display:block; padding:0; }
+.companion-dock .companion-voice-mode>p { margin:.25rem 0 0; color:#51455f; font-size:.67rem; line-height:1.3; }
+.companion-dock .companion-disclosure { font-size:.62rem!important; }
+.companion-session-actions { font-size:.72rem; color:#30243f; background:#fff; border-radius:12px; padding:.2rem .5rem; margin:.3rem 72px 0 0; }
+.companion-session-actions:empty { display:none; }
+.companion-session-actions details summary { cursor:pointer; padding:.35rem 0; }
+.companion-session-actions p { overflow-wrap:anywhere; font-size:.8rem; line-height:1.4; }
+.companion-dock .companion-replies { display:flex; flex-wrap:wrap; gap:.25rem; }
+.student-app .companion-dock .companion-replies button { min-height:44px; font-size:.72rem; padding:.3rem .5rem; }
+.companion-dock .companion-more button { display:block; max-width:100%; min-height:44px; font-size:.75rem; margin:.25rem 0; }
+.companion-dock .companion-connection { font-size:.75rem; color:#30243f; }
+.companion-dock .companion-connection label { display:flex; align-items:center; gap:.4rem; }
+.companion-dock .companion-connection input { width:20px; height:20px; margin:0; flex-shrink:0; }
+.companion-dock .companion-connection button { min-height:44px; font-size:.75rem; margin:.2rem 0; }
+.companion-dock.is-composing .companion-caption { -webkit-line-clamp:1; }
+.companion-dock.is-composing .companion-session-actions { display:none; }
+.companion-learning-task { margin:.75rem 0; padding:1rem; border:1px solid #e4daf7; border-radius:16px; background:#fff; color:#30243f; }
+@media(max-width:600px) {
+ .companion-dock.is-composing { width:290px; }
+ .companion-session-actions { margin-right:56px; }
+}
+.companion-dock.is-composing .companion-bubble { display:none; }
+.companion-dock.is-composing .companion-session-actions { display:none; }
+.companion-dock .companion-connection>p { font-size:.67rem; line-height:1.3; margin:.2rem 0; }
+.companion-dock .companion-connection>label { font-size:.7rem; line-height:1.25; margin:.3rem 0; }
+.companion-dock .companion-connection>details { font-size:.67rem; }
+.companion-answer-details[open],.companion-more[open] { max-height:10rem; overflow:auto; overscroll-behavior:contain; }
+.companion-dock:has(.companion-answer-details[open]) .companion-replies { display:none; }
+.companion-session-actions .player-questions[open],.companion-connection>details[open] { max-height:10rem; overflow:auto; overscroll-behavior:contain; }
+.companion-session-actions .player-questions .helper-note { font-size:.7rem; }

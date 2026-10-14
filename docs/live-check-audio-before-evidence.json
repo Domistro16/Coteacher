@@ -1,0 +1,58 @@
+{
+  "scope": "Production UI and encrypted persistence; mocked microphone, live transport and sourced answer provider; native bundled MP3 playback, no human audio or OpenAI",
+  "startedAt": "2026-10-14T14:18:35.723Z",
+  "result": "FAIL",
+  "checks": {
+    "windowSwitchDoesNotAutoplayDelayedLiveAnswer": "FAIL",
+    "reportedPhraseOpensApprovedCheck": "FAIL"
+  },
+  "providerQuestions": [
+    "How does the curved lens bend light like the water in this lesson?"
+  ],
+  "controls": {
+    "sent": [
+      {
+        "type": "session.instructions.append",
+        "delegation_id": null,
+        "content": "Give the short listening greeting supplied next, then wait for the student. Delegate the learner's teaching questions; do not start an explanation or invent a question before they ask."
+      },
+      {
+        "type": "session.commentary.append",
+        "delegation_id": null,
+        "content": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening."
+      },
+      {
+        "type": "session.commentary.append",
+        "delegation_id": "test-07e3ef8f-67a2-458d-aacb-61300566ada8",
+        "content": "Hmm, checking your lesson sources."
+      },
+      {
+        "type": "session.close"
+      },
+      {
+        "type": "session.instructions.append",
+        "delegation_id": null,
+        "content": "Give the short listening greeting supplied next, then wait for the student. Delegate the learner's teaching questions; do not start an explanation or invent a question before they ask."
+      },
+      {
+        "type": "session.commentary.append",
+        "delegation_id": null,
+        "content": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening."
+      },
+      {
+        "type": "session.commentary.append",
+        "delegation_id": "test-d82aac20-73d6-4fb2-9f8a-d02d83460e66",
+        "content": "Hmm, checking your lesson sources."
+      }
+    ],
+    "micStops": 2,
+    "companionPlays": [
+      "blob:http://127.0.0.1:4443/be81505d-aeab-4243-8571-8ed8a2648d47"
+    ]
+  },
+  "errors": [
+    "windowSwitchDoesNotAutoplayDelayedLiveAnswer: expect(received).toHaveLength(expected)\n\nExpected length: 0\nReceived length: 1\nReceived array:  [\"blob:http://127.0.0.1:4443/be81505d-aeab-4243-8571-8ed8a2648d47\"]",
+    "reportedPhraseOpensApprovedCheck: expect(locator).toBeVisible() failed\n\nLocator: getByRole('heading', { name: 'How does light travel in a uniform medium?', exact: true })\nExpected: visible\nTimeout: 4000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 4000ms\n  - waiting for getByRole('heading', { name: 'How does light travel in a uniform medium?', exact: true })\n"
+  ],
+  "finishedAt": "2026-10-14T14:19:07.845Z"
+}

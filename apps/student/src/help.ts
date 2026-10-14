@@ -59,7 +59,7 @@ export function nextUnseenExplanation(model: PlayerModel, player: PlayerState, p
 
 export interface StudentResponse {
   help?: { variant: Variant } | { exhausted: true };
-  question?: { text: string; refs: string[]; step?: string; related?: Variant };
+  question?: { text: string; refs: string[]; step?: string; related?: Variant; status?: 'prepared' | 'pending'; questionId?: string };
   command?: CommandIntent;
   notice?: string;
 }

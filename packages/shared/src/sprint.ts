@@ -5,10 +5,8 @@ import type { LessonPackage, QuizItem } from './generated/lesson-package';
 import type { ProgressRecord, QueuedQuestion } from './generated/progress-record';
 import { validateLessonPackage, validateProgressRecord } from './validation';
 
-export const profiles = [
-  { id: 'student-a1b2c3d4', label: 'Student A', pin: '111111', simulated: true },
-  { id: 'student-b1c2d3e4', label: 'Student B', pin: '222222', simulated: true },
-] as const;
+import { profiles } from './learner-profiles';
+export { profiles } from './learner-profiles';
 export const reviewedMaterials = materials;
 export interface LessonGenerator { generate(notes: string, activity: string): LessonPackage[] }
 const normalize = (text: string) => text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim();
@@ -19,6 +17,7 @@ export const localLessonGenerator: LessonGenerator = {
     }
     return profiles.map((profile, index) => {
       const lesson = structuredClone(fixture) as LessonPackage;
+      lesson.publication = { status: 'draft' };
       for (const concept of lesson.concepts) for (const variant of concept.variants) {
         const path = (narration.clips as Record<string, string>)[variant.content];
         if (path) variant.audioAssetPath = path;
@@ -37,7 +36,11 @@ export const localLessonGenerator: LessonGenerator = {
   },
 };
 export function demoLessons(): LessonPackage[] {
-  return localLessonGenerator.generate(materials.teacherNotes, materials.activityNotes);
+  // Bundled collection is a separately labelled, pre-approved simulated seed.
+  // Newly generated teacher drafts never inherit this approval.
+  return localLessonGenerator.generate(materials.teacherNotes, materials.activityNotes).map(lesson => ({
+    ...lesson, publication: structuredClone(fixture.publication) as LessonPackage['publication'],
+  }));
 }
 export function emptyProgress(lesson: LessonPackage): ProgressRecord {
   return { schemaVersion: '1.0.0', lessonId: lesson.lessonId, studentId: lesson.studentId,
@@ -52,15 +55,24 @@ export interface QueuedAnswerProvider { answer(question: QueuedQuestion): Queued
 export const simulatedAnswerProvider: QueuedAnswerProvider = {
   answer(question) {
     if (question.answered || normalize(question.text).toLowerCase().replace(/[?.!]+$/, '') !== queuedDemoQuestion.toLowerCase().replace('?', '')) return question;
-    return { ...question, answered: true, answer: 'Use a clear plastic cup, never glass. Ask an adult to help, and keep the water away from electrical equipment.', sourceRefs: ['notes-activity'] };
+    return { ...question, answered: true, answerOrigin: 'simulated-prepared', answer: 'Use a clear plastic cup, never glass. Ask an adult to help, and keep the water away from electrical equipment.', sourceRefs: ['notes-activity'] };
   },
 };
 export function mergeReturnedAnswers(local: ProgressRecord, returned: ProgressRecord, lesson: LessonPackage): ProgressRecord {
   if (!validateProgressRecord(returned, lesson).valid) throw new Error('The returned progress does not belong to this lesson and profile.');
   return { ...local, queuedQuestions: local.queuedQuestions.map(q => {
-    const updated = returned.queuedQuestions.find(item => item.id === q.id && item.text === q.text && item.timelineStepId === q.timelineStepId && item.askedAt === q.askedAt);
+    if (q.answered) return q; // Stale server/file data cannot replace received guidance.
+    const updated = returned.queuedQuestions.find(item => sameQuestionIdentity(item, q));
     return updated?.answered ? updated : q;
   }) };
+}
+/** Submitted question context is immutable, including after teacher resolution. */
+export function sameQuestionIdentity(a: QueuedQuestion, b: QueuedQuestion): boolean {
+  const first = a.recordedContext, second = b.recordedContext;
+  return a.id === b.id && a.text === b.text && a.timelineStepId === b.timelineStepId && a.askedAt === b.askedAt
+    && ((!first && !second) || Boolean(first && second && first.studentId === second.studentId
+      && first.lessonId === second.lessonId && first.conceptId === second.conceptId
+      && first.recordingId === second.recordingId && first.positionMs === second.positionMs));
 }
 export function seededRecords(): ProgressRecord[] {
   return Array.from({ length: 18 }, (_, i) => {

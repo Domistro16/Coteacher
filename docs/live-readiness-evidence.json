@@ -1,0 +1,20 @@
+{
+  "scope": "Actual React hook/browser and encryption, mocked HTTP transport; no microphone/audio/OpenAI calls",
+  "requests": [
+    {
+      "get": 1,
+      "status": 200
+    },
+    {
+      "get": 2,
+      "status": "aborted"
+    },
+    {
+      "get": 3,
+      "status": 200
+    }
+  ],
+  "result": "PASS",
+  "recoveredAfterPollingAbort": true,
+  "liveCalls": 1
+}

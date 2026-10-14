@@ -1,0 +1,70 @@
+{
+  "provider": "openai",
+  "model": "gpt-4.1-mini",
+  "scope": "Real configured Responses API, source checks and contextual follow-up. No microphone or speaker verification; no learner records modified.",
+  "startedAt": "2026-10-14T12:52:27.866Z",
+  "cases": [
+    {
+      "question": "I don't understand how light travels through a curved lens",
+      "answer": "Light travels straight in a uniform medium but changes direction (bends) when passing through surfaces like the curved ones in a lens. The NASA SpacePlace excerpt explains that a curved lens bends light passing through it, similar to how light changes direction at an angled water surface, but it does not go into the details of how the curve affects this bending.",
+      "sourceChecks": true,
+      "relevant": true,
+      "distinct": true,
+      "sourceRefs": [
+        "nasa-spaceplace-lenses"
+      ],
+      "visualAssetId": null,
+      "result": "PASS"
+    },
+    {
+      "question": "Does the light still travel straight while it is inside that one material?",
+      "answer": "Yes, light travels in a straight path while inside a uniform medium like the lens material. It only changes direction when it passes from one material to another, such as from air into the lens or from the lens back into air, because the speed of light changes at these boundaries.",
+      "sourceChecks": true,
+      "relevant": true,
+      "distinct": true,
+      "sourceRefs": [
+        "notes-light:light-original",
+        "notes-light:light-refresher",
+        "nasa-spaceplace-lenses"
+      ],
+      "visualAssetId": null,
+      "result": "PASS"
+    },
+    {
+      "question": "Why does the pencil in water appear bent?",
+      "answer": "The pencil in water appears bent because light from the submerged part of the pencil changes direction when it travels from water into air at an angle. This change in direction, called refraction, makes your eyes see the pencil as if it is bent, even though the pencil itself stays straight.",
+      "sourceChecks": true,
+      "relevant": true,
+      "distinct": true,
+      "sourceRefs": [
+        "notes-light:refraction-original",
+        "notes-light:refraction-short",
+        "notes-light:refraction-stepwise"
+      ],
+      "visualAssetId": "refraction-pencil",
+      "result": "PASS"
+    }
+  ],
+  "result": "PASS",
+  "providerResponses": [
+    {
+      "status": 200,
+      "requestId": "req_c4e6f16f7bae4d519d55480667f205b6",
+      "responseId": "resp_03ca507a97cd5438016acf7b0c7b3087d2bab5efbd48d80976",
+      "model": "gpt-4.1-mini-2025-04-14"
+    },
+    {
+      "status": 200,
+      "requestId": "req_8d8bbe7f62444cfa9bac7fc672751d0c",
+      "responseId": "resp_04ec91a06bbda5b3016acf7b0e216c87d2864875c06dba1362",
+      "model": "gpt-4.1-mini-2025-04-14"
+    },
+    {
+      "status": 200,
+      "requestId": "req_3a8b92e58cb844b2860ca4b9731f833f",
+      "responseId": "resp_09cd0a203bc184c9016acf7b103d0c87d288b31813964787ac",
+      "model": "gpt-4.1-mini-2025-04-14"
+    }
+  ],
+  "finishedAt": "2026-10-14T12:52:36.053Z"
+}

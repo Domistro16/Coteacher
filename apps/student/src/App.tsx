@@ -1,222 +1,59 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { activityCaptions, chooseQuiz, decryptPayload, demoLessons, downloadFile, emptyProgress, encryptPayload, mergeReturnedAnswers, profiles, quizCaption, quizFeedback, readTransferFile, validateLessonPackage, voiceMessages, type LessonPackage, type ProgressEvent, type QuizItem, type TryItVariant } from '@coteacher/shared';
-import { readStoredProfile, saveStoredProfile, type Snapshot } from './storage';
-import { Visual } from './Visual';
-import { createSpeechInput } from './speech';
-import { handleStudentRequest, type StudentResponse } from './help';
-import { Narrator, type NarratorHandle } from './Narrator';
-import type { NarrationFrame } from './narration';
-import {
-  initialPlayerState, selectedVariant, transitionPlayer, variantLabels,
-  createPlayerModel, type PlayerAction, type PlayerState,
-} from './player';
-
-function Sources({ lesson, sourceRefs }: { lesson: LessonPackage; sourceRefs: readonly string[] }) {
-  return (
-    <div className="sources" role="group" aria-label="Sources">
-      <p className="eyebrow">Sources</p>
-      <ul>{sourceRefs.map(id => {
-        const source = lesson.sources.find(item => item.id === id)!;
-        return <li key={id}><strong>{source.title}</strong><span>{source.citation}</span></li>;
-      })}</ul>
-    </div>
-  );
-}
-
-function TryIt({ variant, activity, dispatch }: {
-  variant: TryItVariant;
-  activity: NonNullable<PlayerState['activity']>;
-  dispatch: (action: PlayerAction) => void;
-}) {
-  return (
-    <div className="activity">
-      <p className="explanation">{variant.content}</p>
-      {activity.phase === 'intro' ? <>
-        <h4>What you need</h4>
-        <ul className="materials">{variant.items.map(item => <li key={item}>{item}</li>)}</ul>
-        <section className="safety" aria-label="Safety notes">
-          <h4>Before you start</h4>
-          <ul>{variant.safetyNotes.map(note => <li key={note}>{note}</li>)}</ul>
-        </section>
-        <button className="primary" type="button" onClick={() => dispatch({ type: 'start-activity' })}>Start activity</button>
-      </> : <>
-        <details className="safety">
-          <summary>Safety notes</summary>
-          <ul>{variant.safetyNotes.map(note => <li key={note}>{note}</li>)}</ul>
-        </details>
-        {activity.phase === 'steps' ? <>
-          <p className="eyebrow">Instruction {activity.instructionIndex + 1} of {variant.steps.length}</p>
-          <p className="instruction">{variant.steps[activity.instructionIndex]}</p>
-          <div className="activity-actions">
-            <button type="button" onClick={() => dispatch({ type: 'previous-instruction' })}>Previous instruction</button>
-            <button className="primary" type="button" onClick={() => dispatch({ type: 'next-instruction' })}>
-              {activity.instructionIndex + 1 === variant.steps.length ? 'See why it works' : 'Next instruction'}
-            </button>
-          </div>
-        </> : <>
-          <h4>Why it works</h4>
-          <p className="explanation">{variant.explainsWhy}</p>
-          <div className="activity-actions">
-            <button type="button" onClick={() => dispatch({ type: 'previous-instruction' })}>Previous instruction</button>
-            <button className="primary" type="button" onClick={() => dispatch({ type: 'complete-activity' })}>Done — return to teacher</button>
-          </div>
-        </>}
-      </>}
-    </div>
-  );
-}
-
-function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next: Snapshot) => void }) {
-  const { lesson, progress, player: state } = snapshot;
-  const model = useMemo(() => createPlayerModel(lesson), [lesson]);
-  const current = model.steps[state.timelineIndex];
-  const variant = selectedVariant(model, state);
-  const [draft, setDraft] = useState('');
-  const [response, setResponse] = useState<StudentResponse>({});
-  const [announcement, setAnnouncement] = useState<NarrationFrame[] | null>(null);
-  const narrator = useRef<NarratorHandle>(null);
-  const questionInput = useRef<HTMLTextAreaElement>(null);
-  const [speechStatus, setSpeechStatus] = useState('Hold to talk, or type below.');
-  const [quizOpen, setQuizOpen] = useState(false);
-  const speech = useMemo(createSpeechInput, []);
-  useEffect(() => {
-    const stop = () => speech.stop();
-    const visibility = () => { if (document.hidden) stop(); };
-    window.addEventListener('blur', stop); document.addEventListener('visibilitychange', visibility);
-    return () => { stop(); window.removeEventListener('blur', stop); document.removeEventListener('visibilitychange', visibility); };
-  }, [speech]);
-  const stamp = () => new Date().toISOString();
-  function record(events: ProgressEvent[], player = state) {
-    update({ ...snapshot, player, progress: { ...progress, events: [...progress.events, ...events] } });
-  }
-  function dispatch(action: PlayerAction) {
-    const next = transitionPlayer(model, state, action, stamp());
-    if (next.player === state) return;
-    record(next.events, next.player);
-    setResponse({});
-    setAnnouncement(null);
-  }
-  function requestHelp(text: string) {
-    const next = handleStudentRequest(model, state, progress, text, stamp(), () => 'queued-' + crypto.randomUUID());
-    if (next.response.command === 'pause') { narrator.current?.pause(); return; }
-    if (next.response.command === 'repeat' || next.response.command === 'replay') { narrator.current?.replay(); return; }
-    if (next.response.command === 'quiz') {
-      setQuizOpen(true); setAnnouncement(chooseQuiz(lesson, progress).map(item => ({ text: quizCaption(item), refs: item.sourceRefs }))); return;
-    }
-    update({ ...snapshot, player: next.player, progress: next.progress });
-    setResponse(next.response);
-    setAnnouncement(null);
-  }
-  function pauseHere() { requestHelp('explain again'); }
-  function submit() {
-    const text = draft.trim();
-    if (!text) return;
-    requestHelp(text);
-    setDraft('');
-  }
-  const activityStatus = state.activity ? state.activity.phase === 'intro' ? 'Before you start' : state.activity.phase === 'why' ? 'Why it works' : `Instruction ${state.activity.instructionIndex + 1} of ${variant.type === 'tryit' ? variant.steps.length : 0}` : '';
-  const quiz = chooseQuiz(lesson, progress);
-  const refresher = lesson.route.insertedRefreshers.find(r => r.beforeConceptId === current.concept.id);
-  const refresherVariant = refresher && lesson.concepts.find(c => c.id === refresher.conceptId)?.variants.find(v => v.id === refresher.variantId);
-  const activity = current.variants.find(v => v.type === 'tryit');
-  const answer = response.question;
-  const frames = useMemo<NarrationFrame[]>(() => {
-    if (announcement) return announcement;
-    const result: NarrationFrame[] = [];
-    const add = (text: string, refs: readonly string[] = []) => result.push({ text, refs });
-    if (response.notice) add(response.notice);
-    if (response.question) add(response.question.text, response.question.refs);
-    if (response.help && 'variant' in response.help) {
-      if (response.question && !response.question.refs.length) add(voiceMessages.related);
-      add(response.help.variant.content, response.help.variant.sourceRefs);
-    }
-    else if (response.help || (response.question && !response.question.refs.length && !response.question.related)) {
-      add(voiceMessages.exhausted); add(activity ? voiceMessages.activityOffer : voiceMessages.questionOffer);
-    }
-    if (response.question?.related && !response.help) {
-      add(voiceMessages.related); add(response.question.related.content, response.question.related.sourceRefs);
-    }
-    if (!result.length) {
-      if (variant.type === 'tryit' && state.activity) activityCaptions(variant, state.activity).forEach(text => add(text, variant.sourceRefs));
-      else add(variant.content, variant.sourceRefs);
-    }
-    return result;
-  }, [announcement, response, variant, state.activity, activity]);
-  const returnedSeen = useRef(new Set(progress.queuedQuestions.filter(q => q.answered).map(q => q.id)));
-  useEffect(() => {
-    const arrived = progress.queuedQuestions.filter(q => q.answered && !returnedSeen.current.has(q.id));
-    if (arrived.length) {
-      arrived.forEach(q => returnedSeen.current.add(q.id));
-      setAnnouncement(arrived.flatMap(q => q.answered ? [{ text: q.answer, refs: q.sourceRefs }] : []));
-    }
-  }, [progress.queuedQuestions]);
-  function speechFeedback(status: string) {
-    setSpeechStatus(status);
-    if (!status.startsWith('Listening')) { speech.stop(); setAnnouncement([{ text: status, refs: [] }]); }
-  }
-  function startSpeech() { narrator.current?.pause(); void speech.start(setDraft, speechFeedback); }
-  function toggleQuiz() {
-    setQuizOpen(!quizOpen);
-    setAnnouncement(quizOpen ? null : quiz.map(item => ({ text: quizCaption(item), refs: item.sourceRefs })));
-  }
-  function answerQuiz(item: QuizItem, index: number) {
-    const correctness = index === item.correctIndex;
-    record([{ type: 'quiz-answered', timestamp: stamp(), conceptId: item.conceptId, quizId: item.id, correctness }]);
-    setAnnouncement([{ text: quizFeedback(item, correctness), refs: item.sourceRefs }]);
-  }
-  function markRefresherViewed(open: boolean) {
-    if (!open || !refresher || !refresherVariant) return;
-    setAnnouncement([{ text: refresherVariant.content, refs: refresherVariant.sourceRefs }]);
-    const origin = model.steps.slice(0, state.timelineIndex + 1).reverse().find(entry => entry.concept.id === refresher.conceptId);
-    if (!origin || progress.events.some(e => e.type === 'variant-viewed' && e.timelineStepId === origin.step.id && e.variantId === refresherVariant.id)) return;
-    record([{ type: 'variant-viewed', timestamp: stamp(), conceptId: origin.concept.id, timelineStepId: origin.step.id, variantId: refresherVariant.id }]);
-  }
-  return <>
-    <header className="lesson-header"><p className="eyebrow">{lesson.subject} · Your classroom, again</p><h1>{lesson.title}</h1><details className="objective" onToggle={e => { if (e.currentTarget.open) setAnnouncement([{ text: lesson.objective.text, refs: [...new Set(lesson.concepts.flatMap(c => c.sourceRefs))] }]); }}><summary>What you will learn</summary><p>{lesson.objective.text}</p></details></header>
-    <Narrator ref={narrator} frames={frames} sources={refs => <Sources lesson={lesson} sourceRefs={refs}/>}/>
-    <section className="lesson-step" aria-labelledby="concept-title" data-step-id={current.step.id}>
-      <div className="step-header"><p className="eyebrow">Step {state.timelineIndex + 1} of {model.steps.length}</p><h2 id="concept-title">{current.concept.title}</h2></div>
-      <div className="step-dots" aria-label="Lesson progress">{model.steps.map((entry, index) => <span key={entry.step.id} className={index === state.timelineIndex ? 'active' : ''}>{index + 1}</span>)}</div>
-      <div className="original-action"><span>{variant.type === 'original' ? 'Following your teacher' : 'Explore another explanation'}</span><button onClick={() => dispatch({ type: 'original' })}>Teacher's original</button></div>
-      <div className="variant-choices" role="group" aria-label="Explanation choices">{current.variants.map(item => <button key={item.id} aria-pressed={variant.id === item.id} onClick={() => dispatch(item.type === 'original' ? { type: 'original' } : { type: 'select-variant', variantId: item.id })}>{variantLabels[item.type]}</button>)}</div>
-      <details className="route-reason" onToggle={e => { if (e.currentTarget.open) setAnnouncement([{ text: current.reason, refs: [] }]); }}><summary>Why these choices?</summary><p>{current.reason}</p></details>
-      {refresherVariant && <details className="refresher" onToggle={e => markRefresherViewed(e.currentTarget.open)}><summary>Optional: remember the straight light path</summary><p>{refresherVariant.content}</p><p>You can skip this and continue below.</p><Sources lesson={lesson} sourceRefs={refresherVariant.sourceRefs}/></details>}
-      <article className="content-card" aria-labelledby="variant-title" data-variant-id={variant.id}>
-        <h3 id="variant-title">{variant.type === 'tryit' ? `Try it — ${activityStatus}` : variantLabels[variant.type]}</h3>
-        <Visual conceptId={current.concept.id}/>
-        {variant.type === 'tryit' && state.activity ? <TryIt variant={variant} activity={state.activity} dispatch={dispatch}/> : <p className="explanation">{variant.content}</p>}
-        <Sources lesson={lesson} sourceRefs={variant.sourceRefs}/>
-      </article>
-      <details className="teacher-words" onToggle={e => { if (e.currentTarget.open) setAnnouncement([{ text: current.step.teacherSaid, refs: current.step.sourceRefs }]); }}><summary>Your teacher's words</summary><blockquote>{current.step.teacherSaid}</blockquote><Sources lesson={lesson} sourceRefs={current.step.sourceRefs}/></details>
-      <nav className="timeline-navigation" aria-label="Lesson timeline"><button disabled={state.timelineIndex === 0} onClick={() => dispatch({ type: 'navigate', direction: -1 })}>Previous lesson step</button><button className="primary" disabled={state.timelineIndex === model.steps.length - 1} onClick={() => dispatch({ type: 'navigate', direction: 1 })}>Next lesson step</button></nav>
-    </section>
-    <section className="question-draft" aria-labelledby="question-title"><p className="eyebrow">Another way to understand</p><h2 id="question-title">Where did you get lost?</h2><p>Ask about this moment. Your answers come from the lesson collected at school.</p>
-      <button className="primary" onClick={pauseHere}>Pause here / explain again</button>
-      <label htmlFor="question">Type your question</label><textarea ref={questionInput} id="question" maxLength={1500} rows={3} value={draft} onChange={e => setDraft(e.target.value)}/>
-      <div className="activity-actions"><button onPointerDown={e => { e.currentTarget.setPointerCapture(e.pointerId); startSpeech(); }} onPointerUp={() => speech.stop()} onPointerCancel={() => speech.stop()} onLostPointerCapture={() => speech.stop()} onBlur={() => speech.stop()} onKeyDown={e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); startSpeech(); } }} onKeyUp={e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); speech.stop(); } }}>Hold to talk</button><button disabled={!draft.trim()} onClick={submit}>Send question</button></div><p role="status">{speechStatus}</p>
-      {response.notice && <p role="status">{response.notice}</p>}
-      {response.help && <div className="answer help-response" role="status">{'variant' in response.help ? <>{answer && !answer.refs.length && <p>{voiceMessages.related}</p>}<p>{response.help.variant.content}</p><Sources lesson={lesson} sourceRefs={response.help.variant.sourceRefs}/><p>Lesson moment: {current.step.teacherSaid}</p></> : <><p>You’ve seen all the prepared explanations for this step.</p><p>{activity ? 'Try the activity, or type a specific question about this moment.' : 'Type a specific question about this moment.'}</p><div className="activity-actions">{activity && <button onClick={() => dispatch({ type: 'select-variant', variantId: activity.id })}>Try the activity</button>}<button onClick={() => questionInput.current?.focus()}>Type a question</button></div></>}</div>}
-      {answer && <div className="answer question-response" role="status"><p>{answer.text}</p>{answer.refs.length > 0 ? <><Sources lesson={lesson} sourceRefs={answer.refs}/><p>Lesson moment: {lesson.timeline.find(s => s.id === answer.step)?.teacherSaid}</p></> : response.help ? null : answer.related ? <><p>{voiceMessages.related}</p><p>{answer.related.content}</p><Sources lesson={lesson} sourceRefs={answer.related.sourceRefs}/></> : <><p>{voiceMessages.exhausted}</p><p>{activity ? voiceMessages.activityOffer : voiceMessages.questionOffer}</p><div className="activity-actions">{activity && <button onClick={() => dispatch({ type: 'select-variant', variantId: activity.id })}>Try the activity</button>}<button onClick={() => questionInput.current?.focus()}>Type a question</button></div></>}</div>}
-    </section>
-    <section className="quiz-section"><h2>A small check-in</h2><p>{progress.events.some(e => e.type === 'pause') ? 'Questions from the moments you paused.' : 'Check the lesson’s shared learning objective.'}</p><button onClick={toggleQuiz}>{quizOpen ? 'Close quiz' : 'Take my quiz'}</button>
-      {quizOpen && quiz.map(item => { const answered = [...progress.events].reverse().find(e => e.type === 'quiz-answered' && e.quizId === item.id); return <article className="content-card quiz-card" key={item.id}><h3>{item.prompt}</h3><div className="quiz-options">{item.options.map((option, index) => <button key={option} onClick={() => answerQuiz(item, index)}>{option}</button>)}</div>{answered?.type === 'quiz-answered' && <p role="status">{quizFeedback(item, answered.correctness)}</p>}<Sources lesson={lesson} sourceRefs={item.sourceRefs}/></article>; })}
-    </section>
-    {progress.queuedQuestions.length > 0 && <section className="queued"><h2>Your saved questions</h2>{progress.queuedQuestions.map(q => <article key={q.id}><h3>{q.text}</h3>{q.answered ? <><span className="badge">Simulated returned answer</span><p>{q.answer}</p><Sources lesson={lesson} sourceRefs={q.sourceRefs}/><button onClick={() => setAnnouncement([{ text: q.answer, refs: q.sourceRefs }])}>Hear this answer</button></> : <p>Pending · Bring your progress file back to school.</p>}</article>)}</section>}
-  </>;
-}
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { decryptPayload, demoLessons, downloadFile, emptyProgress, encryptPayload, identifyProgressEvents, initialTutorState, observedMemory, mergeReturnedAnswers, profiles, readTransferFile, requirePublishedLesson, validateLessonPackage, type LessonPackage } from '@coteacher/shared';
+import { MissingMediaError, readStoredProfile, saveStoredProfile, type Snapshot } from './storage';
+import { downloadRecordedLesson, openPublishedRecording, type DownloadProgress } from './lesson-delivery';
+import { createPlayerModel, initialPlayerState } from './player';
+import { StudentShell } from './StudentShell';
+import { Brand, LearningArt, Icon } from './student-ui';
+import { useProgressSync } from './useProgressSync';
+import { ConnectedTutorContext, useConnectedTutor } from './useConnectedTutor';
+const PreparedLesson = lazy(() => import('./PreparedLesson').then(module => ({ default: module.PreparedLesson })));
 
 export function App() {
   const [profileId, setProfileId] = useState<string>(profiles[0].id);
   const [pin, setPin] = useState('');
   const [session, setSession] = useState<{ id: string; pin: string } | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [catalogue, setCatalogue] = useState<LessonPackage | null>(null);
+  const [catalogueLoading, setCatalogueLoading] = useState(false);
+  const [catalogueError, setCatalogueError] = useState('');
+  const [recovery, setRecovery] = useState<{ id: string; pin: string; snapshot: Snapshot } | null>(null);
+  const snapshotRef = useRef(snapshot); snapshotRef.current = snapshot;
+  function changeSnapshot(next: Snapshot | null) {
+    if (next) {
+      const progress = identifyProgressEvents(next.progress);
+      if (progress !== next.progress) next = { ...next, progress };
+      if (next.lesson.recording) {
+        const tutor = next.tutor ?? initialTutorState(next.lesson);
+        const memory = observedMemory(next.lesson, next.progress, tutor.memory, tutor.checks, tutor.checkAttempts);
+        next = { ...next, tutor: { ...tutor, memory } };
+      }
+    }
+    snapshotRef.current = next; setSnapshot(next);
+  }
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState('');
   const [offlineReady, setOfflineReady] = useState(false);
+  const [packageReady, setPackageReady] = useState(false);
+  const [download, setDownload] = useState<DownloadProgress | null>(null);
+  const [legacyOpen, setLegacyOpen] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const saveQueue = useRef(Promise.resolve());
   const revision = useRef(0);
+  const sync = useProgressSync(session, snapshot, online, saved, changeSnapshot, snapshotRef);
+  const connected = !sync.offline && (online || sync.schoolReachable);
+  const tutor = useConnectedTutor(session, snapshot, connected, saved, changeSnapshot, snapshotRef, sync.retry);
+  useEffect(() => {
+    setCatalogue(null); setCatalogueError('');
+    if (!session || snapshot || !connected) { setCatalogueLoading(false); return; }
+    let active = true;
+    setCatalogueLoading(true);
+    openPublishedRecording(session.id, session.pin).then(lesson => { if (active) setCatalogue(lesson); })
+      .catch(error => { if (active) setCatalogueError((error as Error).message); })
+      .finally(() => { if (active) setCatalogueLoading(false); });
+    return () => { active = false; };
+  }, [session, Boolean(snapshot), connected]);
   useEffect(() => {
     const updateNetwork = () => setOnline(navigator.onLine);
     window.addEventListener('online', updateNetwork); window.addEventListener('offline', updateNetwork);
@@ -231,7 +68,7 @@ export function App() {
     const currentRevision = ++revision.current;
     setSaved('Saving on this device…');
     saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveStoredProfile(session.id, session.pin, snapshot)).then(() => {
-      if (currentRevision === revision.current) setSaved('Saved on this device');
+      if (currentRevision === revision.current) { setSaved('Saved on this device'); setPackageReady(!snapshot.lesson.recording || !('mediaUrl' in snapshot.lesson.recording.audio)); }
     }).catch((e: Error) => { if (currentRevision === revision.current) { setSaved('Not saved — retry before leaving'); setError(e.message); } });
   }, [snapshot, session]);
   useEffect(() => {
@@ -244,45 +81,99 @@ export function App() {
   }
   async function unlock() {
     const profile = profiles.find(p => p.id === profileId)!;
-    const stored = await readStoredProfile(profile.id, pin);
+    setRecovery(null);
+    let stored: Snapshot | null;
+    try { stored = await readStoredProfile(profile.id, pin); }
+    catch (error) { if (error instanceof MissingMediaError) setRecovery({ id: profile.id, pin, snapshot: error.snapshot }); throw error; }
     if (!stored && pin !== profile.pin) throw new Error('That PIN does not unlock this demo profile.');
-    setSession({ id: profile.id, pin }); setSnapshot(stored); setPin('');
+    setCatalogue(null); setCatalogueError(''); setSession({ id: profile.id, pin }); changeSnapshot(stored); setPackageReady(Boolean(stored && (!stored.lesson.recording || !('mediaUrl' in stored.lesson.recording.audio)))); setPin(''); setDownload(null); setLegacyOpen(false);
+  }
+  function selectProfile(id: string) {
+    setProfileId(id); setPin(''); setRecovery(null); setError('');
+  }
+  async function watchPublished() {
+    if (!session) return;
+    const lesson = await openPublishedRecording(session.id, session.pin);
+    const current = snapshotRef.current;
+    if (current) {
+      const content = (value: LessonPackage) => {
+        const { publication, classroomTimeline, recording, playback, visualAssets, ...instruction } = value; return JSON.stringify(instruction);
+      };
+      if (content(current.lesson) !== content(lesson) || (current.lesson.recording && current.lesson.recording.id !== lesson.recording!.id)) throw new Error('A different lesson is saved. Your existing progress has been preserved; use its complete teacher package.');
+      if (current.lesson.recording && !('mediaUrl' in current.lesson.recording.audio)) throw new Error('This teacher recording is already downloaded. Play your saved lesson below.');
+      changeSnapshot({ ...current, lesson });
+    } else {
+      const model = createPlayerModel(lesson), player = initialPlayerState(model), progress = emptyProgress(lesson);
+      changeSnapshot({ lesson, player, progress });
+    }
+    setPackageReady(false); setDownload(null);
+  }
+  async function downloadLesson() {
+    const current = snapshotRef.current;
+    if (!session || !current) return;
+    try {
+      const complete = await downloadRecordedLesson(current.lesson, setDownload);
+      window.dispatchEvent(new Event('coteacher-pause-recording'));
+      await saveQueue.current;
+      const next = { ...snapshotRef.current!, lesson: complete };
+      await saveStoredProfile(session.id, session.pin, next);
+      changeSnapshot({ ...snapshotRef.current!, lesson: complete }); setPackageReady(true);
+      setDownload(value => value && { ...value, phase: 'complete' });
+    } catch (error) { setDownload(null); throw new Error('Offline download did not complete. Your streaming lesson and progress are preserved. ' + (error as Error).message); }
   }
   function collect(lesson: LessonPackage) {
+    requirePublishedLesson(lesson);
+    if (lesson.recording && !('dataBase64' in lesson.recording.audio)) throw new Error('This transfer is missing the complete recorded audio. Recollect the original teacher package.');
     if (!session || lesson.studentId !== session.id || !lesson.simulated) throw new Error('This package belongs to a different profile or is not simulated.');
     if (snapshot) throw new Error('A lesson is already collected. Your existing progress has been preserved.');
     const model = createPlayerModel(lesson);
     const player = initialPlayerState(model);
     const progress = emptyProgress(lesson);
     progress.events.push({ type: 'variant-viewed', timestamp: new Date().toISOString(), conceptId: model.steps[0].concept.id, timelineStepId: model.steps[0].step.id, variantId: player.variantId });
-    setSnapshot({ lesson, progress, player });
+    setPackageReady(false); setLegacyOpen(!lesson.recording); changeSnapshot({ lesson, progress, player }); location.hash = lesson.recording ? "/watch" : "/prepared";
   }
   async function importFile(file: File) {
     if (!session) return;
     const value = await decryptPayload(await readTransferFile(file), session.pin);
     const lesson = validateLessonPackage(value);
     if (lesson.valid) { collect(lesson.data); return; }
+    if (value && typeof value === 'object' && 'concepts' in value) throw new Error('This lesson package is incomplete or damaged. Recollect the complete teacher package, including its audio and visual assets.');
     if (!snapshot) throw new Error('Collect your lesson before importing returned answers.');
     const progress = mergeReturnedAnswers(snapshot.progress, value as Snapshot['progress'], snapshot.lesson);
-    setSnapshot({ ...snapshot, progress });
+    changeSnapshot({ ...snapshot, progress });
   }
   async function lock() {
     window.dispatchEvent(new Event('coteacher-lock'));
     await saveQueue.current;
-    if (snapshot) await saveStoredProfile(session!.id, session!.pin, snapshot);
-    revision.current++; setSession(null); setSnapshot(null); setSaved(''); setError('');
+    if (snapshotRef.current) await saveStoredProfile(session!.id, session!.pin, snapshotRef.current);
+    revision.current++; setCatalogue(null); setCatalogueError(''); setSession(null); changeSnapshot(null); setPackageReady(false); setSaved(''); setError('');
+    setDownload(null);
   }
-  return <main className="workspace">
-    <div className="brand-row"><p className="brand">Coteacher<span>Another chance at the lesson</span></p><span className="badge">Simulated demo</span></div>
-    <div className="device-status" role="status"><span>{online ? 'Connected' : 'Offline'}</span><span>{offlineReady && snapshot && saved === 'Saved on this device' ? 'Ready offline' : import.meta.env.DEV ? 'Development preview · offline reopening requires build' : 'Collect and save your lesson for offline use'}</span></div>
-    {error && <div className="safety" role="alert">{error}{snapshot && saved.startsWith('Not saved') && <button onClick={() => setSnapshot({ ...snapshot })}>Retry save</button>}</div>}
-    {!session ? <section className="welcome content-card"><p className="eyebrow">Your place in the lesson is waiting</p><h1>Welcome back.</h1><p>Choose your profile. Each learner has their own place, questions, and progress.</p><form onSubmit={e => { e.preventDefault(); void run(unlock); }}><label htmlFor="profile">Your profile</label><select id="profile" value={profileId} onChange={e => setProfileId(e.target.value)}>{profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select><label htmlFor="pin">Six-digit PIN</label><input id="pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} value={pin} onChange={e => setPin(e.target.value)}/><button className="primary" disabled={busy}>Unlock my profile</button></form><details><summary>Demo profiles</summary><p>Student A: 111111 · Student B: 222222. These profiles and PINs are simulated.</p></details></section> : <>
-      <div className="profile-bar"><span>{profiles.find(p => p.id === session.id)?.label}</span><button disabled={busy} onClick={() => void run(lock)}>Lock / switch learner</button></div>
-      {!snapshot && <section className="welcome content-card"><p className="eyebrow">Collect at school. Learn anywhere.</p><h1>Bring your lesson with you.</h1><p>Import the package your teacher approved, or collect the reviewed simulated lesson.</p><button className="primary" disabled={busy} onClick={() => void run(async () => collect(demoLessons().find(l => l.studentId === session.id)!))}>Collect demo lesson</button></section>}
-      {snapshot && <LessonPlayer snapshot={snapshot} update={setSnapshot}/>}
-      <section className="transfer"><h2>{snapshot ? 'Bring your questions back' : 'Collect a lesson file'}</h2><p>{snapshot ? 'Export your progress at school. Import the returned file to collect any sourced answers.' : 'Choose your encrypted personal lesson file and unlock it with this profile’s PIN.'}</p><label htmlFor="import-file">{snapshot ? 'Import returned answers' : 'Import lesson file'}</label><input id="import-file" type="file" accept=".json" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void run(() => importFile(file)); }}/>
-        {snapshot && <><button disabled={busy || saved !== 'Saved on this device'} onClick={() => void run(async () => { const progress = { ...snapshot.progress, exportedAt: new Date().toISOString() }; downloadFile('progress-' + session.id + '.json', await encryptPayload(progress, session.pin)); })}>Export my progress</button><p role="status">{saved}</p></>}
-      </section>
-    </>}
-  </main>;
+  async function restoreMedia(file: File) {
+    if (!recovery) return;
+    const lesson = requirePublishedLesson(await decryptPayload(await readTransferFile(file), recovery.pin));
+    const previous = recovery.snapshot.lesson;
+    if (lesson.studentId !== recovery.id || lesson.recording?.id !== previous.recording?.id || lesson.lessonId !== previous.lessonId
+      || JSON.stringify(lesson.playback) !== JSON.stringify(previous.playback)
+      || JSON.stringify(lesson.visualAssets) !== JSON.stringify(previous.visualAssets)
+      || JSON.stringify(lesson.objective) !== JSON.stringify(previous.objective)
+      || lesson.recording?.audio.mediaKey !== previous.recording?.audio.mediaKey) throw new Error('Choose the same personal recorded package to restore media while preserving progress.');
+    const restored = { ...recovery.snapshot, lesson };
+    await saveStoredProfile(recovery.id, recovery.pin, restored);
+    setSession({ id: recovery.id, pin: recovery.pin }); changeSnapshot(restored); setPackageReady(true); setPin(''); setRecovery(null);
+  }
+  const transfer = <section className="transfer"><details open={legacyOpen}><summary>{snapshot ? 'Bring progress to school / transfer lesson' : 'Transfer lesson from school'}</summary><p>{snapshot ? 'Export your progress at school. Import the returned file to collect any sourced answers.' : 'Choose your encrypted personal lesson file and unlock it with this profile’s PIN.'}</p><label htmlFor="import-file">{snapshot ? 'Import returned answers' : 'Import lesson file'}</label><input id="import-file" type="file" accept=".json" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void run(() => importFile(file)); }}/>
+    {snapshot && <><button disabled={busy || saved !== 'Saved on this device'} onClick={() => void run(async () => { const progress = { ...snapshot.progress, exportedAt: new Date().toISOString() }; downloadFile('progress-' + session!.id + '.json', await encryptPayload(progress, session!.pin)); })}>Export my progress</button><p role="status">{saved}</p></>}
+    {!snapshot && <details className="legacy-demo"><summary>Prepared-content compatibility demo</summary><p>This older simulated fixture has notes, activities and quizzes but no classroom recording. It is available only for testing prepared content.</p><button disabled={busy} onClick={() => void run(async () => collect(demoLessons().find(l => l.studentId === session!.id)!))}>Collect demo lesson</button></details>}
+    </details></section>;
+  if (session) return <ConnectedTutorContext.Provider value={tutor}><StudentShell key={session.id} id={session.id} snapshot={snapshot} catalogue={catalogue} catalogueLoading={catalogueLoading} catalogueError={catalogueError} update={changeSnapshot} online={connected} connectionChecking={sync.connectionChecking} connectionError={sync.connectionError} busy={busy} saved={saved} syncStatus={sync.status} onSync={sync.retry} error={error} offlineReady={offlineReady} packageReady={packageReady} download={download}
+    onRefresh={() => void run(watchPublished)} onWatch={() => void run(async () => { await watchPublished(); location.hash = '/watch'; })}
+    onDownload={() => void run(async () => { if (!snapshotRef.current?.lesson.recording) await watchPublished(); await downloadLesson(); })} onLock={() => void run(lock)} onRetrySave={() => { setError(''); changeSnapshot(snapshot && { ...snapshot }); }} transfer={transfer}
+    prepared={snapshot && <details className="legacy-saved content-card" open={legacyOpen} onToggle={event => setLegacyOpen(event.currentTarget.open)}><summary>Saved prepared-content compatibility lesson</summary><p>This saved demo has no classroom audio. Its questions and progress are preserved.</p><span className="badge">Simulated demo</span><p role="status">{offlineReady && packageReady ? "Prepared-content demo ready offline" : "Saving prepared content…"}</p><Suspense fallback={<p role="status">Opening your prepared lesson…</p>}><PreparedLesson key={session.id + '-legacy'} snapshot={snapshot} update={changeSnapshot}/></Suspense>{transfer}</details>}/></ConnectedTutorContext.Provider>;
+  return <main className="student-app auth-page"><header className="auth-header"><Brand/><span className="auth-tag">Your lesson. Your pace.</span></header><div className="auth-layout"><section className="auth-art"><span className="hero-pill"><Icon name="spark" size={16}/>A world of aha! moments</span><h1>Big ideas start<br/>with a little curiosity.</h1><LearningArt/><p>Watch your teacher’s lessons. Try a new explanation.<br/>Keep learning, even without internet.</p></section><section className="auth-card"><p className="eyebrow">LET’S PICK UP WHERE YOU LEFT OFF</p><h1>Welcome back.</h1><p>Choose your space. Your lessons are waiting.</p>
+    {error && <div className="app-alert" role="alert">{error}</div>}
+    {recovery && <section className="recovery-card"><h2>Restore the complete recording</h2><p>Your saved place and questions remain on this device. Import the same teacher package to restore its audio.</p><label htmlFor="restore-media">Recollect recorded package</label><input id="restore-media" type="file" accept=".json" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void run(() => restoreMedia(file)); }}/></section>}
+    <form onSubmit={e => { e.preventDefault(); if (!busy) void run(unlock); }}><label htmlFor="profile">Your profile</label><select id="profile" value={profileId} disabled={busy} onChange={e => selectProfile(e.target.value)}>{profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select><label htmlFor="pin">Six-digit PIN</label><input id="pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} disabled={busy} value={pin} onChange={e => setPin(e.target.value)}/><button className="primary" disabled={busy}>{busy ? 'Unlocking…' : 'Unlock my profile'}<Icon name="arrow" size={18}/></button></form>
+    <details className="demo-access"><summary>Trying the demo?</summary><p>Student A: 111111 · Student B: 222222. These profiles and PINs are simulated. A PIN helps separate records; it is not complete device security.</p></details><p className="auth-offline"><span className="connection-dot">{online && !sync.offline ? 'Connected' : 'Offline'}</span> Your downloaded lessons work offline.</p>
+  </section></div></main>;
 }

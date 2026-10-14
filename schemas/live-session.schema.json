@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LiveSessionRequest", "type": "object", "additionalProperties": false,
+  "required": ["enabled", "sdp", "positionMs"],
+  "properties": {
+    "enabled": { "const": true },
+    "sdp": { "type": "string", "minLength": 20, "maxLength": 60000 },
+    "positionMs": { "type": "integer", "minimum": 0 }
+  }
+}

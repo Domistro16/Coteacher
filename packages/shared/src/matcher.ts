@@ -3,7 +3,9 @@ import type { LessonPackage, Question } from './generated/lesson-package';
 export type MatchResult = { match: Question; score: number } | { noMatch: true; score: number };
 const stop = new Set('a an the is does do why what how in on at to of for it this that me please explain can you i my'.split(' '));
 function tokens(text: string): Set<string> {
-  return new Set(text.toLowerCase().replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(t => t && !stop.has(t)).map(t => ({ broken: 'bent', shifted: 'displaced', bending: 'bent', rays: 'light', ray: 'light', travels: 'travel', looks: 'look', appears: 'look' }[t] ?? t)));
+  // A few explicit meaning equivalents, not an embedding model. Keep every
+  // unexplained term so an unrelated question still fails the confidence gate.
+  return new Set(text.toLowerCase().replace(/^co[- ]?teacher[,:]?\s+/, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(t => t && !stop.has(t)).map(t => ({ broken: 'bent', crooked: 'bent', shifted: 'displaced', bending: 'bent', rays: 'light', ray: 'light', travels: 'travel', looks: 'look', appears: 'look', seem: 'look', seems: 'look' }[t] ?? t)));
 }
 export function matchQuestion(text: string, stepId: string, lesson: LessonPackage): MatchResult {
   const query = tokens(text);

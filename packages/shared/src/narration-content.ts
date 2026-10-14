@@ -13,22 +13,29 @@ export const voiceMessages = {
   checkTranscript: 'Check the transcript before sending.',
 } as const;
 
+/** Prepared conversation prompts, not instructional answers or a live AI service. */
+export const companionMessages = {
+  understanding: 'Does that make more sense? You can ask me another question, or we can try a quick check.',
+  checkOffer: 'You said it makes more sense. Let us try one quick question before we return to your teacher.',
+  pending: 'I do not have a reliable prepared answer to that question. It will stay pending until reviewed guidance comes back. You can keep learning while you wait.',
+} as const;
+
 export function activityCaptions(variant: TryItVariant, activity: NonNullable<PlayerState['activity']>): string[] {
   if (activity.phase === 'intro') return [variant.content,
     `What you need. ${variant.items.join('. ')}.`, `Before you start. ${variant.safetyNotes.join(' ')}`];
   if (activity.phase === 'why') return [`Why it works. ${variant.explainsWhy}`];
   return [`Instruction ${activity.instructionIndex + 1} of ${variant.steps.length}. ${variant.steps[activity.instructionIndex]}`];
 }
-export function quizCaption(item: QuizItem): string {
+export function quizCaption(item: { prompt: string; options: readonly string[] }): string {
   return `${item.prompt} ${item.options.map((option, index) => `Option ${index + 1}. ${option}.`).join(' ')}`;
 }
-export function quizFeedback(item: QuizItem, correct: boolean): string {
+export function quizFeedback(item: { explanation: string }, correct: boolean): string {
   return `${correct ? 'You’ve got it. ' : 'Let’s look at why. '}${item.explanation}`;
 }
 
 /** Exact captions bind each clip to reviewed text; no generated teaching content. */
 export function preparedNarrationTexts(lesson: LessonPackage): string[] {
-  const texts = [lesson.objective.text, lesson.matcher.noMatchMessage, ...Object.values(voiceMessages)];
+  const texts = [lesson.objective.text, lesson.matcher.noMatchMessage, ...Object.values(voiceMessages), ...Object.values(companionMessages)];
   for (const concept of lesson.concepts) for (const variant of concept.variants) {
     texts.push(variant.content);
     if (variant.type === 'tryit') {

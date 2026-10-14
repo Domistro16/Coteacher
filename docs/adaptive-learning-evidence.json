@@ -1,0 +1,92 @@
+{
+  "result": "PASS",
+  "startedAt": "2026-10-14T10:30:45.953Z",
+  "fictionalProfiles": true,
+  "learnerEvents": "Actual automated interactions through the student UI; no storage injection",
+  "teacherMicrophone": "Chromium simulated input through native capture/encoding",
+  "api": [
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_1114c96047a744bb8b881c5dc198e907"
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_e2ff5178a1b640ab9e063be5ba534364"
+    }
+  ],
+  "requirements": {
+    "1": "PASS",
+    "2": "PASS",
+    "3": "PASS",
+    "4": "PASS",
+    "5": "PASS",
+    "6": "PASS",
+    "7": "PASS",
+    "8": "PASS",
+    "9": "PASS",
+    "10": "PASS"
+  },
+  "stage": "real-ai-return-acknowledged-repeat-sync-and-teacher-update",
+  "recommendations": {
+    "a": [
+      {
+        "conceptId": "refraction",
+        "visualAssetId": "refraction-pencil",
+        "reason": "An incorrect attempt was saved. Try the approved concrete representation before retrying.",
+        "evidenceEventIds": [
+          "event-9c1965f8-f893-43e3-8f45-c79162b2368d",
+          "event-c716143e-c4c5-46cf-a16e-c435bab9de7a"
+        ]
+      }
+    ],
+    "b": [
+      {
+        "conceptId": "refraction",
+        "visualAssetId": "refraction-steps",
+        "reason": "You selected this representation. Try it again before the next check.",
+        "evidenceEventIds": [
+          "event-bb4f2afb-5a98-4b91-b3f2-7572d926c223"
+        ]
+      }
+    ]
+  },
+  "returned": {
+    "question": "How does a telescope lens use the same bending of light as this water lesson?",
+    "questionId": "queued-d1343431-df0b-4a46-a010-e8ea1ab28d2d",
+    "context": {
+      "studentId": "student-a1b2c3d4",
+      "lessonId": "light-and-refraction",
+      "conceptId": "refraction",
+      "recordingId": "recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "positionMs": 1181
+    },
+    "engine": "openai",
+    "answer": "Both a telescope lens and the water surface bend light by refraction. Just as light changes direction when passing at an angle from water to air—making a straight pencil appear bent—a telescope lens bends light to focus it into an image. This bending happens because the light changes speed as it moves between materials. Would you like to try a quick concept check on refraction?",
+    "sourceRefs": [
+      "notes-light:refraction-original",
+      "nasa-spaceplace-lenses"
+    ]
+  },
+  "received": [
+    {
+      "studentId": "student-a1b2c3d4",
+      "events": 17,
+      "questionIds": [
+        "queued-d1343431-df0b-4a46-a010-e8ea1ab28d2d"
+      ]
+    },
+    {
+      "studentId": "student-b1c2d3e4",
+      "events": 12,
+      "questionIds": []
+    }
+  ],
+  "seededClass": {
+    "separate": true,
+    "learners": 18,
+    "refractionSupport": 4
+  },
+  "finishedAt": "2026-10-14T10:32:11.586Z"
+}

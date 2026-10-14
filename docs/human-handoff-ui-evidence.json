@@ -1,0 +1,20 @@
+{
+  "result": "PASS",
+  "scope": "Production UI and encrypted local storage; mocked pending permission only, no microphone audio or paid OpenAI calls",
+  "startedAt": "2026-10-14T12:41:10.645Z",
+  "schoolFolder": "D:\\Coteacher\\.task-tmp\\rehearsal-ui-axthgX",
+  "api": [
+    {
+      "method": "POST",
+      "status": 200
+    }
+  ],
+  "offerVisible": true,
+  "contextualAcceptanceOpensQuiz": true,
+  "quizAnswerSaved": true,
+  "resumeClosesPanel": true,
+  "savedConsentRequestsMicImmediately": true,
+  "abortedAcknowledgementRetried": true,
+  "pendingPermissionCancelled": true,
+  "finishedAt": "2026-10-14T12:41:56.222Z"
+}

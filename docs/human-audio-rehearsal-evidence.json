@@ -1,0 +1,255 @@
+﻿{
+    "readiness":  "PARTIAL",
+    "humanPerformanceConfirmed":  true,
+    "operatorAvailable":  true,
+    "setup":  {
+                  "backend":  "http://127.0.0.1:8787",
+                  "teacher":  "http://127.0.0.1:4174",
+                  "student":  "http://127.0.0.1:4173",
+                  "httpStatus":  200,
+                  "keyConfiguredServerSide":  true,
+                  "syntheticAudioUsed":  false,
+                  "existingAudioSha256":  "bbf03ca8efe89b0bce4d1c56bb406637f785972c8c203b850053e92bd08262ea"
+              },
+    "requirements":  {
+                         "1":  "PASS: instructions provided",
+                         "2":  "UNVERIFIED",
+                         "3":  "UNVERIFIED",
+                         "4":  "PASS: instructions provided",
+                         "5":  "UNVERIFIED",
+                         "6":  "UNVERIFIED",
+                         "7":  "PASS: actual operator failures and relevant saved records documented; post-update human retest pending",
+                         "8":  "UNVERIFIED"
+                     },
+    "diagnostics":  [
+                        {
+                            "stage":  "read-only teacher oversight preflight",
+                            "observation":  "One request with a five-second timeout expired. Repeat with 30-second allowance returned HTTP 200 in 2083 ms; direct/proxied health returned 200.",
+                            "reproducibleFailure":  false,
+                            "humanAudioTest":  false
+                        }
+                    ],
+    "operatorReports":  [
+                            {
+                                "observation":  "The live-start control was initially disabled; operator later reported it fixed.",
+                                "verification":  "Operator report; transient root cause unconfirmed"
+                            },
+                            {
+                                "observation":  "The avatar offered a quick check but did not open it after spoken acceptance.",
+                                "verification":  "Actual saved live transcript plus operator report; control-routing fix covered by mocked/control regression"
+                            },
+                            {
+                                "observation":  "Operator requested immediate microphone access with saved consent, automatic abort retry, and a spoken checking acknowledgement.",
+                                "verification":  "Updated production control test passed; updated human microphone/speaker behavior still UNVERIFIED"
+                            },
+                            {
+                                "observation":  "Downloaded explanation and understanding prompt played sequentially in different voices.",
+                                "verification":  "Operator hearing report; removed second prepared clip and combined new cached AI speech in one request; updated hearing UNVERIFIED"
+                            },
+                            {
+                                "observation":  "Live and typed questions repeatedly received the general refraction/pencil answer.",
+                                "verification":  "Saved real OpenAI answers confirmed poor relevance. Final question-specific real text API tests passed; updated human GPT-Live answer UNVERIFIED"
+                            },
+                            {
+                                "observation":  "After starting a conversation the operator remained at the microphone-on connecting/retrying status.",
+                                "verification":  "A browser hook reproduction confirmed readiness stayed false after an aborted poll followed by cached 304 responses. Fresh-state retry fix passed mocked browser control verification; updated human GPT-Live connection/audio still UNVERIFIED."
+                            },
+                            {
+                                "observation":  "Operator repeatedly could not start live conversation: Microphone on · waiting for your school connection. The school has newer or different learning records. Nothing was overwritten. Use Sync \u0026 Transfers. Your question remains on this device.",
+                                "verification":  "Reported failure occurs before live provider request. Automatic validated history recovery passed the production browser conflict regression with mocked live transport; human retest remains UNVERIFIED."
+                            },
+                            {
+                                "observation":  "Good it works now and when I said I want to try a quick check it said it wants to check my lesson sources then when i just switched to this wondow it started playing the question for the quick check and ended it with a does that make sense( I think that\u0027s the offline audio)",
+                                "verification":  "Human startup PASS by operator report, supplemented by backend successful connection and saved recognized live transcript. Actual transcript: Yeah, I would love to try a quick check. This was misrouted as a tutor question; generated answer exists. Automatic cached playback after ending live capture fits the implementation and report; corrected human hearing is UNVERIFIED."
+                            },
+                            {
+                                "observation":  "So I think it\u0027s verified that human heairing is fine now",
+                                "verification":  "PASS: human operator confirms audible student playback. This confirms hearing on the tested setup; other journey checks retain their individual statuses.",
+                                "reportedAt":  "2026-10-14T14:30:41.5593286Z"
+                            },
+                            {
+                                "observation":  "Teacher rocording/visual timing is okay too",
+                                "verification":  "PASS: operator confirms teacher recording and synchronized visual timing on the tested setup.",
+                                "reportedAt":  "2026-10-14T15:36:44.0743928Z"
+                            },
+                            {
+                                "reportedAt":  "2026-10-14T17:35:48.7086772Z",
+                                "observation":  "Operator supplied two lens question/answer turns at 18:28:40 and 18:29:30 on 14 October 2026, both at refraction pause position 34874 ms. The second answer directly distinguishes light changing direction from the lens bending.",
+                                "verification":  "PASS for relevance/context in operator-supplied transcripts. Both answers physically heard and uninterrupted same-session operation await explicit confirmation. Transcripts do not independently verify factual source coverage."
+                            },
+                            {
+                                "reportedAt":  "2026-10-14T17:36:11.5426643Z",
+                                "observation":  "I heard both answers through the speakers",
+                                "verification":  "PASS by operator confirmation of hearing both relevant answers in the guided two-turn live rehearsal; preceding transcript demonstrates contextual follow-up and preserved 34874 ms recording position."
+                            },
+                            {
+                                "reportedAt":  "2026-10-14T17:36:54.6953076Z",
+                                "observation":  "Yeah that worked too",
+                                "verification":  "PASS by operator response to the guided spoken quick-check checklist: modal, paused recording, relevant question, displayed sources/support, audible question/choices and microphone shutdown. Exact generated question/support text not provided; not an independent factual audit."
+                            },
+                            {
+                                "reportedAt":  "2026-10-14T17:37:17.2791327Z",
+                                "observation":  "It also resumed at the saved point",
+                                "verification":  "PASS by operator confirmation of saved-position return/resume after guided quiz journey; saved transcript position was 34874 ms. No additional measured resume timestamp supplied."
+                            },
+                            {
+                                "reportedAt":  "2026-10-14T17:46:48.6858824Z",
+                                "observation":  "There is no Hear saved answer button; operator says this is not important and asks about the offline experience.",
+                                "verification":  "Saved-answer playback test could not be performed through the instructed control. Button absence reported; cause uninvestigated at user request. Consistent-voice audio remains UNVERIFIED, not a confirmed audio failure."
+                            }
+                        ],
+    "updatedAt":  "2026-10-14T17:46:48.7069711Z",
+    "goalStatus":  "human-check-deprioritized-offline-experience-clarification",
+    "blocker":  "Human confirmation remains outstanding for one consistent voice in a newly generated downloaded answer.",
+    "lastCheck":  {
+                      "checkedAt":  "2026-10-14T17:15:13.910Z",
+                      "backendSessionLive":  true,
+                      "studentPreviewSessionLive":  true,
+                      "teacherPreviewSessionLive":  true,
+                      "publishedModifiedAt":  "2026-10-12T09:16:40.884Z",
+                      "receivedLiveTurns":  35,
+                      "receivedReplies":  10,
+                      "receivedLearnerAiEnabled":  true
+                  },
+    "operatorStudentRehearsalConfirmed":  true,
+    "goalStatusNote":  "Evidence status only: requested contextual quiz implemented and automated/provider checks passed. Prior human hearing and teacher recording/timing confirmations retained; remaining human voice journey is pending.",
+    "fixEvidence":  [
+                        "docs/human-handoff-ui-evidence.json",
+                        "docs/question-specific-ai-evidence.json",
+                        "docs/question-specific-ai-fix.md",
+                        "docs/live-readiness-evidence.json",
+                        "docs/live-readiness-fix.md",
+                        "docs/populated-live-ui-evidence.json",
+                        "docs/live-check-audio-fix.md",
+                        "docs/live-check-audio-evidence.json",
+                        "docs/contextual-quiz-verification.md",
+                        "docs/contextual-quiz-ui-evidence.json",
+                        "docs/contextual-quiz-provider-evidence.json",
+                        "docs/contextual-quiz-service-evidence.json"
+                    ],
+    "recoveryVerification":  {
+                                 "testedAt":  "2026-10-14T13:55:15.779Z",
+                                 "result":  "PASS",
+                                 "scenario":  "Shorter divergent device history plus two local offline events and one pending question",
+                                 "scope":  "Production app, isolated copy of existing local history and actual encrypted school sync; mocked microphone, peer controls and live transport; no audio or OpenAI",
+                                 "counts":  {
+                                                "schoolEventsBefore":  26,
+                                                "eventsAfter":  28,
+                                                "schoolQuestionsBefore":  6,
+                                                "questionsAfter":  7
+                                            },
+                                 "schoolHistoryRetained":  true,
+                                 "localOfflineWorkRetained":  true,
+                                 "stableIDsNotDuplicated":  true,
+                                 "mergedHistoryPersistedAtSchool":  true,
+                                 "originalSchoolFilesUnchanged":  true,
+                                 "servedBuild":  {
+                                                     "index":  "index-D0S3iNzD.js",
+                                                     "player":  "StudentPlayer-YvLhhvcI.js",
+                                                     "byteForByteMatch":  true
+                                                 },
+                                 "servicesHTTP200":  [
+                                                         "student:4173",
+                                                         "teacher:4174",
+                                                         "backend:8787"
+                                                     ],
+                                 "humanAudio":  "UNVERIFIED"
+                             },
+    "latestHumanChecks":  {
+                              "liveStartup":  "PASS: operator report",
+                              "spokenInputRecognized":  "PASS: matching device-reported saved transcript",
+                              "quickCheckJourney":  "PASS: operator confirmation of guided spoken acceptance, relevant sourced quiz modal, support explanation and audible quiz question/choices",
+                              "twoRelevantAudibleTurns":  "PASS: guided two-turn transcript plus operator confirmation that both answers were heard through the speakers",
+                              "microphoneShutdownAndTimestampResume":  "PASS: operator confirms microphone shutdown checklist and return/resume at saved position",
+                              "singleVoiceDownloadedAnswer":  "UNVERIFIED: operator reports Hear saved answer button absent; playback test unperformed and investigation deprioritized by user",
+                              "humanTeacherRecordingAndVisualTiming":  "PASS: operator confirms teacher recording/visual timing",
+                              "studentAudiblePlayback":  "PASS: operator hearing confirmation after the corrected build handoff",
+                              "microphoneShutdown":  "PASS: operator confirms guided quiz-opening microphone shutdown check"
+                          },
+    "quickCheckVerification":  {
+                                   "testedAt":  "2026-10-14T14:25:23.238Z",
+                                   "result":  "PASS",
+                                   "scope":  "Production UI and encrypted persistence; mocked microphone, live transport and sourced answer provider; native bundled MP3 playback, no human audio or OpenAI",
+                                   "checks":  {
+                                                  "windowSwitchDoesNotAutoplayDelayedLiveAnswer":  "PASS",
+                                                  "savedAnswerStillPlaysOnExplicitRequest":  "PASS",
+                                                  "reportedPhraseOpensApprovedCheck":  "PASS",
+                                                  "quizSavesAndResumesOriginalRecording":  "PASS"
+                                              },
+                                   "regression":  {
+                                                      "focusedUnitTests":  "28 PASS",
+                                                      "typecheck":  "PASS",
+                                                      "studentBuild":  "PASS",
+                                                      "teacherBuild":  "PASS",
+                                                      "desktopPlayerDimensions":  "unchanged",
+                                                      "mobileWidth":  360,
+                                                      "horizontalOverflow":  false,
+                                                      "quizQuestionOnlyClip":  "PASS: native end event, no appended clip",
+                                                      "savedTimestampMs":  1935,
+                                                      "baselineEvidence":  "docs/live-check-audio-before-evidence.json",
+                                                      "servedBuild":  {
+                                                                          "checkedAt":  "2026-10-14T14:22:52.6818694Z",
+                                                                          "htmlReferencesLatest":  true,
+                                                                          "assets":  [
+                                                                                         {
+                                                                                             "asset":  "/assets/index-JpjJ3U2Q.js",
+                                                                                             "matchesLocalBuild":  true,
+                                                                                             "sha256":  "D8FA3F1FBF04D5F0F7193A2A35A0B2BE8BE00BAF545FB8DF33FF71D9C60C9681"
+                                                                                         },
+                                                                                         {
+                                                                                             "asset":  "/assets/StudentPlayer-DyprdMsw.js",
+                                                                                             "matchesLocalBuild":  true,
+                                                                                             "sha256":  "93B8B8528851BCBD660B483627EB7A6BAEFA8E18B95B4D4F68B9C908414EB5A5"
+                                                                                         }
+                                                                                     ]
+                                                                      }
+                                                  },
+                                   "humanHearing":  "PASS: operator confirms student audio is audible; quiz routing/content checks retain their separate evidence"
+                               },
+    "humanPerformanceScope":  "Operator confirmed live startup, student hearing and teacher recording/visual timing; remaining specific student journey checks retain individual statuses.",
+    "continuationServiceCheck":  {
+                                     "checkedAt":  "2026-10-14T15:37:41.8381831Z",
+                                     "studentHTTPStatus":  200,
+                                     "teacherHTTPStatus":  200,
+                                     "backendHealthHTTPStatus":  200,
+                                     "servicesRestarted":  false,
+                                     "applicationCodeChanged":  false
+                                 },
+    "contextualQuiz":  {
+                           "implementation":  "PASS",
+                           "browser":  "PASS",
+                           "browserScope":  "Production UI, native quiz dialog and recorded media, IndexedDB, encrypted local school sync. Mocked microphone/live transport and answer/check provider; browser network disabled for offline tests with an explicit offline status across reload. No human audio or OpenAI calls.",
+                           "provider":  "PASS",
+                           "providerScope":  "Two real configured Responses API check-generation calls using reviewed excerpts and explicitly simulated learner evidence; provider-level text only, no human microphone/speaker or live UI proof.",
+                           "serviceData":  "PASS",
+                           "focusedTests":  60,
+                           "generatedTypes":  "PASS",
+                           "typecheck":  "PASS",
+                           "builds":  "PASS",
+                           "studentEntry":  "index-CVFIIJos.js",
+                           "studentPlayer":  "StudentPlayer-DxRZgnbg.js",
+                           "servedAssetsMatchBuild":  true,
+                           "backendSession":  45502,
+                           "newEndpointRegistered":  true,
+                           "humanModalAndQuestionAudio":  "PASS: operator confirms guided quiz modal/audio checklist; exact quiz/support text not supplied"
+                       },
+    "guidedRehearsalPreflight":  {
+                                     "checkedAt":  "2026-10-14T17:22:05.9828698Z",
+                                     "studentHTTPStatus":  200,
+                                     "teacherHTTPStatus":  200,
+                                     "backendHealthHTTPStatus":  200,
+                                     "studentEntry":  "index-CVFIIJos.js",
+                                     "servicesRestarted":  false,
+                                     "applicationCodeChanged":  false,
+                                     "humanChecks":  "Awaiting operator observations; no new human PASS inferred from HTTP preflight"
+                                 },
+    "guidedLiveTurns":  {
+                            "recordedPositionMs":  34874,
+                            "firstReportedLocalTime":  "2026-10-14 18:28:40",
+                            "secondReportedLocalTime":  "2026-10-14 18:29:30",
+                            "transcriptRelevance":  "PASS: operator supplied relevant question and contextual follow-up answers",
+                            "physicalHearing":  "PASS: operator heard both answers through the speakers",
+                            "sameLiveSession":  "Operator followed the guided live two-turn rehearsal; no separate session reported",
+                            "sourceFactualVerification":  "Not established by transcript relevance"
+                        }
+}

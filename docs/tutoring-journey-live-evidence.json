@@ -1,0 +1,245 @@
+{
+  "result": "PASS",
+  "simulatedMicrophone": true,
+  "actualOpenAI": true,
+  "api": [
+    {
+      "path": "/v1/live/sessions",
+      "status": 201,
+      "requestId": null,
+      "durationMs": 1333
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_3af2a10ed7d44771aa57d24d79e742df",
+      "durationMs": 2233,
+      "question": "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+      "historyQuestions": []
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_71299d4de8224752b03170494af6d98f",
+      "durationMs": 1149
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_b9fe68813fce436e9519c3f3462cbdb7",
+      "durationMs": 3107,
+      "question": "How is that bending in eyeglasses connected to the change of material you just mentioned?",
+      "historyQuestions": [
+        "How can a lens in eyeglasses bend light, and how does that connect to this water lesson"
+      ]
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_d65813a7e3f94813a6e1b40124a17d39",
+      "durationMs": 1012
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_e41f617caf7e4e77aa8fc09372b51dd0",
+      "durationMs": 3267,
+      "question": "How does a telescope lens bend light like this water lesson?",
+      "historyQuestions": [
+        "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+        "How is that bending in eyeglasses connected to the change of material you just mentioned?"
+      ]
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_36d60af635f74ac5aa13a8c4ea5f75f3",
+      "durationMs": 808
+    }
+  ],
+  "uiRequests": [
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e/live",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 304
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 304
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-d0abebc1-1d47-4cf6-8797-788ac88d2e0e",
+      "status": 200
+    }
+  ],
+  "turns": [
+    {
+      "mode": "spoken",
+      "question": "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+      "answer": "A lens in eyeglasses bends light because light changes speed and direction when it passes through materials with different densities (like air to glass). This is similar to how light bends at the water surface, making a straight pencil appear bent. Light travels straight in one medium but refracts (bends) at angled boundaries. Would you like to try a quick concept check?",
+      "sourceRefs": [
+        "notes-light:refraction-original",
+        "nasa-spaceplace-lenses"
+      ],
+      "citations": [
+        {
+          "sourceId": "notes-light:refraction-original",
+          "title": "Simulated teacher notes: light and refraction",
+          "locator": "fixtures/demo-lesson/teacher-notes.md, page 1, sections 1-2 (hand-written simulated lesson notes). · approved explanation refraction-original",
+          "kind": "lesson",
+          "excerpt": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent."
+        },
+        {
+          "sourceId": "nasa-spaceplace-lenses",
+          "title": "NASA SpacePlace — How Do Telescopes Work?",
+          "locator": "https://spaceplace.nasa.gov/telescopes/en/#lenses",
+          "kind": "curated",
+          "excerpt": "A lens, just like in eyeglasses, bends light passing through it."
+        }
+      ]
+    },
+    {
+      "mode": "typed-in-same-live-session",
+      "question": "How is that bending in eyeglasses connected to the change of material you just mentioned?",
+      "answer": "Bending in eyeglasses happens because light changes speed and direction as it passes through different materials, like from air into glass. This is the same as light bending when it moves from water to air, making the pencil appear bent. Both happen due to refraction, where light travels straight in one material but bends at angled boundaries. Want to try a quick concept check?",
+      "sourceRefs": [
+        "notes-light:refraction-original",
+        "notes-light:refraction-stepwise",
+        "nasa-spaceplace-lenses"
+      ],
+      "citations": [
+        {
+          "sourceId": "notes-light:refraction-original",
+          "title": "Simulated teacher notes: light and refraction",
+          "locator": "fixtures/demo-lesson/teacher-notes.md, page 1, sections 1-2 (hand-written simulated lesson notes). · approved explanation refraction-original",
+          "kind": "lesson",
+          "excerpt": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent."
+        },
+        {
+          "sourceId": "notes-light:refraction-stepwise",
+          "title": "Simulated teacher notes: light and refraction",
+          "locator": "fixtures/demo-lesson/teacher-notes.md, page 1, sections 1-2 (hand-written simulated lesson notes). · approved explanation refraction-stepwise",
+          "kind": "lesson",
+          "excerpt": "1. Light leaves the submerged pencil. 2. It reaches the water-air boundary at an angle. 3. Its speed and direction change. 4. Your eyes receive this light and the pencil appears bent."
+        },
+        {
+          "sourceId": "nasa-spaceplace-lenses",
+          "title": "NASA SpacePlace — How Do Telescopes Work?",
+          "locator": "https://spaceplace.nasa.gov/telescopes/en/#lenses",
+          "kind": "curated",
+          "excerpt": "A lens, just like in eyeglasses, bends light passing through it."
+        }
+      ]
+    }
+  ],
+  "requirements": {
+    "1": "PASS",
+    "2": "PASS",
+    "3": "PASS",
+    "4": "PASS",
+    "5": "PASS",
+    "6": "PASS",
+    "7": "PASS",
+    "8": "PASS",
+    "9": "PASS",
+    "10": "PASS"
+  },
+  "startedAt": "2026-10-14T10:32:37.444Z",
+  "microphoneFixture": "Existing synthetic question fixture from the earlier live probe",
+  "greeting": "So, what's the problem?",
+  "greetingSpoken": true,
+  "recordingPausedAt": 1.35515,
+  "decodedAudio": {
+    "incoming": [
+      {
+        "bytes": 419297,
+        "energy": 1.2834584541896217,
+        "samplesDuration": 73.36000000000062
+      }
+    ],
+    "time": 71.27,
+    "paused": false
+  },
+  "live": {
+    "sessionIds": [
+      "live_u1_EYqZwp3oNJLJuZV5W4Q1GV2SIz97XBWr"
+    ],
+    "input": " How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+    "output": "So, what's the problem? Tell me which part you're struggling Okay, good question. Let me check that.Here's a simple way to see it. A lens in eyeglasses bends light because light changes speed and direction when it goes from air into glass. That's the same idea as the pencil in water. In each case, the light goes straight in one material but bends at the boundary. Does that make more sense? Do you want to check how that connects to the different material idea?The bending in eyeglasses happens because light changes speed and direction when it goes between materials, like air to glass. And that's the same idea as light bending at the water surface with the pencil.",
+    "errors": [],
+    "sentTypes": [
+      "session.instructions.append",
+      "session.commentary.append",
+      "session.commentary.append",
+      "session.thinking.append",
+      "session.commentary.append"
+    ],
+    "delegations": [
+      "item_EYqa7fSGJgAZbBqpr0BOF"
+    ]
+  },
+  "offline": {
+    "result": "PASS",
+    "preparedAnswer": true,
+    "actualLocalAudio": true,
+    "queuedQuestionId": "queued-cb03a1ee-e59b-44a8-85f1-3d8782bebef1",
+    "restart": true,
+    "noProviderRequests": true
+  },
+  "reconnect": {
+    "result": "PASS",
+    "acknowledged": true,
+    "returnedRealAI": true,
+    "noDuplicateQuestion": true,
+    "teacherReceived": true
+  },
+  "profileIsolation": {
+    "result": "PASS",
+    "textConsentRespected": true
+  },
+  "scope": "Actual student player + Node backend + real GPT-Live WebRTC + Responses + generated speech, first turn simulated microphone input, second turn typed in same live session. Isolated school records. Not a physical microphone test.",
+  "finishedAt": "2026-10-14T10:35:01.006Z"
+}

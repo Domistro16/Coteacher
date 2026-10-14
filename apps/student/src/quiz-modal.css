@@ -1,0 +1,17 @@
+.contextual-quiz-modal { box-sizing:border-box; width:min(600px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); padding:0; border:1px solid #e4daf7; border-radius:20px; color:#30243f; background:#fff; font-family:inherit; overflow:auto; box-shadow:0 18px 70px #211b3740; }
+.contextual-quiz-modal::backdrop { background:#13132699; }
+.contextual-quiz-modal>header { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:1rem 1.25rem; border-bottom:1px solid #eee7f6; }
+.contextual-quiz-modal h2,.contextual-quiz-modal .eyebrow { margin:.2rem 0; }
+.contextual-quiz-modal .contextual-quiz-content { padding:1.25rem; overflow-wrap:anywhere; }
+.contextual-quiz-modal>footer { display:flex; flex-wrap:wrap; gap:.5rem; padding:1rem 1.25rem; border-top:1px solid #eee7f6; }
+.contextual-quiz-modal button { min-height:44px; border:1px solid #e4daf7; border-radius:12px; padding:.65rem .85rem; color:#30243f; background:#fff; font:inherit; cursor:pointer; }
+.contextual-quiz-modal button.primary { background:#7040d8; color:#fff; }
+.contextual-quiz-modal button:focus-visible { outline:3px solid #ab86ed; outline-offset:2px; }
+.contextual-quiz-modal .quiz-options { display:grid; gap:.6rem; }
+.contextual-quiz-modal .quiz-options button { display:flex; gap:.75rem; align-items:center; text-align:left; width:100%; }
+.contextual-quiz-modal .quiz-options button[aria-pressed=true] { border:2px solid #7040d8; background:#f5efff; }
+.contextual-quiz-modal .quiz-options span { padding:.4rem; background:#eee7f8; border-radius:8px; color:#7040d8; }
+.contextual-quiz-modal .quiz-feedback { margin-top:1rem; padding:1rem; background:#f5efff; border-radius:12px; }
+.contextual-quiz-modal .helper-note { color:#6f6583; font-size:.85rem; }
+.contextual-quiz-modal details { margin-top:1rem; }
+@media(max-width:600px) { .contextual-quiz-modal { max-height:calc(100dvh - 16px); width:calc(100vw - 16px); border-radius:16px; } .contextual-quiz-modal>header,.contextual-quiz-modal .contextual-quiz-content,.contextual-quiz-modal>footer { padding:.85rem; } }

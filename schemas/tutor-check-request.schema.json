@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TutorCheckRequest", "type": "object", "additionalProperties": false,
+  "required": ["enabled", "questionId", "originalText", "positionMs"],
+  "properties": {
+    "enabled": {"const": true},
+    "questionId": {"type": "string", "minLength": 1, "maxLength": 100},
+    "originalText": {"type": "string", "minLength": 1, "maxLength": 1500},
+    "positionMs": {"type": "integer", "minimum": 0, "maximum": 21600000}
+  }
+}
