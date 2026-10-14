@@ -17,6 +17,7 @@ export interface PlayerStep {
 export interface PlayerModel { lesson: LessonPackage; steps: PlayerStep[] }
 export type PlayerAction =
   | { type: 'navigate'; direction: -1 | 1 }
+  | { type: 'revisit-step'; timelineStepId: string }
   | { type: 'select-variant'; variantId: string }
   | { type: 'original' }
   | { type: 'start-activity' }
@@ -63,10 +64,21 @@ function returnOriginal(model: PlayerModel, state: PlayerState): PlayerState {
   return selectVariant(index, model.steps[index].original);
 }
 export function reducePlayerState(model: PlayerModel, state: PlayerState, action: PlayerAction): PlayerState {
+  const next = reduceStudyState(model, state, action);
+  return state.recording && next !== state ? { ...next, recording: state.recording } : next;
+}
+function reduceStudyState(model: PlayerModel, state: PlayerState, action: PlayerAction): PlayerState {
   switch (action.type) {
     case 'navigate': {
       const index = state.timelineIndex + action.direction;
       return index < 0 || index >= model.steps.length ? state : enterStep(model, index);
+    }
+    case 'revisit-step': {
+      const index = model.steps.findIndex(entry => entry.step.id === action.timelineStepId);
+      if (index < 0) return state;
+      const entry = model.steps[index];
+      const variant = entry.concept.variants.find(item => item.id === entry.step.defaultVariantId)!;
+      return selectVariant(index, variant);
     }
     case 'select-variant': {
       const variant = model.steps[state.timelineIndex].variants.find(item => item.id === action.variantId);
@@ -106,7 +118,7 @@ export function transitionPlayer(model: PlayerModel, state: PlayerState, action:
   if (action.type === 'original') events.push({ ...context, type: 'replay' });
   const variant = selectedVariant(model, state);
   if (action.type === 'complete-activity' && variant.type === 'tryit') events.push({ ...context, type: 'tryit-completed', variantId: variant.id });
-  if (['select-variant', 'original', 'navigate', 'complete-activity'].includes(action.type)) {
+  if (['select-variant', 'original', 'navigate', 'revisit-step', 'complete-activity'].includes(action.type)) {
     const destination = model.steps[player.timelineIndex];
     events.push({ type: 'variant-viewed', timestamp, conceptId: destination.concept.id,
       timelineStepId: destination.step.id, variantId: player.variantId });

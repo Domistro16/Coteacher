@@ -17,6 +17,54 @@
     "subject": {
       "$ref": "#/$defs/text"
     },
+    "topic": {
+      "$ref": "#/$defs/text"
+    },
+    "classLevel": {
+      "$ref": "#/$defs/text"
+    },
+    "contentOrigin": {
+      "const": "manually-prepared-demo"
+    },
+    "publication": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "draft"
+            }
+          },
+          "required": [
+            "status"
+          ]
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "approved"
+            },
+            "approvedAt": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "approvalKind": {
+              "enum": [
+                "teacher-review",
+                "seeded-demo"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "approvedAt",
+            "approvalKind"
+          ]
+        }
+      ]
+    },
     "language": {
       "$ref": "#/$defs/text"
     },
@@ -67,6 +115,12 @@
         "$ref": "#/$defs/timelineStep"
       },
       "minItems": 1
+    },
+    "classroomTimeline": {
+      "$ref": "#/$defs/classroomTimeline"
+    },
+    "recording": {
+      "$ref": "#/$defs/lessonRecording"
     },
     "questionBank": {
       "type": "array",
@@ -169,6 +223,90 @@
         "confidenceThreshold",
         "noMatchMessage"
       ]
+    },
+    "visualAssets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/visualAsset"
+      },
+      "minItems": 1,
+      "maxItems": 20
+    },
+    "playback": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recordingId": {
+          "$ref": "#/$defs/id"
+        },
+        "studentId": {
+          "$ref": "#/$defs/studentId"
+        },
+        "simulated": {
+          "const": true
+        },
+        "method": {
+          "const": "demo-history-rules-v1"
+        },
+        "catalogVersion": {
+          "const": "refraction-visuals-v1"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sequence": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "cueIndex": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999
+              },
+              "offsetMs": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 21600000
+              },
+              "conceptId": {
+                "$ref": "#/$defs/id"
+              },
+              "timelineStepId": {
+                "$ref": "#/$defs/id"
+              },
+              "visualAssetId": {
+                "$ref": "#/$defs/id"
+              },
+              "sourceRefs": {
+                "$ref": "#/$defs/sourceRefs"
+              }
+            },
+            "required": [
+              "cueIndex",
+              "offsetMs",
+              "conceptId",
+              "timelineStepId",
+              "visualAssetId",
+              "sourceRefs"
+            ]
+          }
+        }
+      },
+      "required": [
+        "recordingId",
+        "studentId",
+        "simulated",
+        "method",
+        "catalogVersion",
+        "reason",
+        "sequence"
+      ]
     }
   },
   "required": [
@@ -176,6 +314,10 @@
     "lessonId",
     "title",
     "subject",
+    "topic",
+    "classLevel",
+    "contentOrigin",
+    "publication",
     "language",
     "simulated",
     "studentId",
@@ -189,6 +331,305 @@
     "matcher"
   ],
   "$defs": {
+    "lessonRecording": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "lessonId",
+        "classroomSessionId",
+        "lessonApprovedAt",
+        "startedAt",
+        "durationMs",
+        "origin",
+        "audio",
+        "cues",
+        "review"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "lessonId": {
+          "$ref": "#/$defs/id"
+        },
+        "classroomSessionId": {
+          "$ref": "#/$defs/id"
+        },
+        "lessonApprovedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "startedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 21600000
+        },
+        "origin": {
+          "const": "teacher-microphone"
+        },
+        "audio": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "mimeType",
+                "sampleRate",
+                "channels",
+                "dataBase64"
+              ],
+              "properties": {
+                "mimeType": {
+                  "const": "audio/wav"
+                },
+                "sampleRate": {
+                  "const": 16000
+                },
+                "channels": {
+                  "const": 1
+                },
+                "dataBase64": {
+                  "type": "string",
+                  "minLength": 64,
+                  "maxLength": 5120060,
+                  "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+                },
+                "mediaKey": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]{43}=$"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sampleRate": {
+                  "enum": [
+                    16000,
+                    48000
+                  ]
+                },
+                "channels": {
+                  "const": 1
+                },
+                "mediaKey": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]{43}=$"
+                },
+                "mimeType": {
+                  "const": "audio/ogg;codecs=opus"
+                },
+                "dataBase64": {
+                  "type": "string",
+                  "maxLength": 28000000,
+                  "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+                }
+              },
+              "required": [
+                "sampleRate",
+                "channels",
+                "mediaKey",
+                "mimeType",
+                "dataBase64"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sampleRate": {
+                  "enum": [
+                    16000,
+                    48000
+                  ]
+                },
+                "channels": {
+                  "const": 1
+                },
+                "mediaKey": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]{43}=$"
+                },
+                "mimeType": {
+                  "enum": [
+                    "audio/wav",
+                    "audio/ogg;codecs=opus"
+                  ]
+                },
+                "mediaId": {
+                  "$ref": "#/$defs/id"
+                },
+                "byteLength": {
+                  "type": "integer",
+                  "minimum": 45,
+                  "maximum": 20000000
+                }
+              },
+              "required": [
+                "sampleRate",
+                "channels",
+                "mediaKey",
+                "mimeType",
+                "mediaId",
+                "byteLength"
+              ]
+            }
+          ]
+        },
+        "cues": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "offsetMs",
+              "timelineStepId",
+              "conceptId",
+              "sourceRefs"
+            ],
+            "properties": {
+              "offsetMs": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 21600000
+              },
+              "timelineStepId": {
+                "$ref": "#/$defs/id"
+              },
+              "conceptId": {
+                "$ref": "#/$defs/id"
+              },
+              "sourceRefs": {
+                "$ref": "#/$defs/sourceRefs"
+              }
+            }
+          }
+        },
+        "review": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status"
+              ],
+              "properties": {
+                "status": {
+                  "const": "draft"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "reviewedAt"
+              ],
+              "properties": {
+                "status": {
+                  "const": "approved"
+                },
+                "reviewedAt": {
+                  "$ref": "#/$defs/timestamp"
+                }
+              }
+            }
+          ]
+        },
+        "visualReview": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "const": "draft"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "status": {
+                  "const": "approved"
+                },
+                "reviewedAt": {
+                  "$ref": "#/$defs/timestamp"
+                },
+                "catalogVersion": {
+                  "const": "refraction-visuals-v1"
+                }
+              },
+              "required": [
+                "status",
+                "reviewedAt",
+                "catalogVersion"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "classroomTimeline": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sessionId": {
+          "$ref": "#/$defs/id"
+        },
+        "approvedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "startedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "currentStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "visits": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "timelineStepId": {
+                "$ref": "#/$defs/id"
+              },
+              "conceptId": {
+                "$ref": "#/$defs/id"
+              },
+              "presentedAt": {
+                "$ref": "#/$defs/timestamp"
+              }
+            },
+            "required": [
+              "timelineStepId",
+              "conceptId",
+              "presentedAt"
+            ]
+          }
+        }
+      },
+      "required": [
+        "sessionId",
+        "approvedAt",
+        "startedAt",
+        "currentStepId",
+        "visits"
+      ]
+    },
     "id": {
       "type": "string",
       "minLength": 1,
@@ -527,6 +968,116 @@
         "misconception",
         "sourceRefs"
       ]
+    },
+    "visualLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "path",
+            "rect",
+            "circle",
+            "text"
+          ]
+        },
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 640
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "w": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 640
+        },
+        "h": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 360
+        },
+        "d": {
+          "type": "string",
+          "maxLength": 1000,
+          "pattern": "^[MmLlHhVvCcQqSsTtAaZz0-9., -]*$"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "fill": {
+          "type": "string",
+          "pattern": "^(none|#[0-9a-fA-F]{6})$"
+        },
+        "stroke": {
+          "type": "string",
+          "pattern": "^(none|#[0-9a-fA-F]{6})$"
+        },
+        "emphasis": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "x",
+        "y",
+        "w",
+        "h",
+        "d",
+        "text",
+        "fill",
+        "stroke",
+        "emphasis"
+      ]
+    },
+    "visualAsset": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/visualLayer"
+          },
+          "minItems": 1,
+          "maxItems": 40
+        }
+      },
+      "required": [
+        "id",
+        "conceptId",
+        "title",
+        "sourceRefs",
+        "layers"
+      ]
     }
+  },
+  "dependentRequired": {
+    "playback": [
+      "recording",
+      "visualAssets"
+    ],
+    "visualAssets": [
+      "playback"
+    ]
   }
 }

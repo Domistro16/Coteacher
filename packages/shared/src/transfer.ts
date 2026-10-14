@@ -4,10 +4,15 @@ import type { EncryptedTransfer } from './generated/encrypted-transfer';
 
 export type { EncryptedTransfer };
 const validate = new Ajv2020({ strict: true }).compile(schema);
-const bytes = (value: string) => Uint8Array.from(atob(value), c => c.charCodeAt(0));
+const bytes = (value: string) => {
+  const binary = atob(value);
+  const output = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) output[i] = binary.charCodeAt(i);
+  return output;
+};
 const base64 = (value: Uint8Array) => {
   let text = '';
-  for (const byte of value) text += String.fromCharCode(byte);
+  for (let i = 0; i < value.length; i += 8192) text += String.fromCharCode(...value.subarray(i, i + 8192));
   return btoa(text);
 };
 export function validateEncryptedTransfer(value: unknown): value is EncryptedTransfer {
@@ -46,7 +51,7 @@ export function downloadFile(name: string, value: unknown): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export async function readTransferFile(file: File): Promise<unknown> {
-  if (file.size > 3_000_000) throw new Error('File is too large. Maximum size is 3 MB.');
+  if (file.size > 48_000_000) throw new Error('File is too large. Maximum size is 48 MB.');
   try { return JSON.parse(await file.text()); }
   catch { throw new Error('Choose a valid Coteacher JSON file.'); }
 }

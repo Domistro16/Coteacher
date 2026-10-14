@@ -4,6 +4,11 @@
 .teacher-heading h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); }
 .term-label { font-size: .85rem; border: 1px solid #cbd6ca; padding: .5rem .75rem; border-radius: 2rem; white-space: nowrap; }
 .teacher-nav { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid #d7ded5; }
+.lesson-identity { margin-bottom: 2rem; }
+.lesson-identity dl { display: grid; grid-template-columns: auto 1fr; gap: .4rem 1rem; }
+.lesson-identity dt { font-weight: 600; }
+.lesson-identity dd { margin: 0; }
+.source-preview pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: .85rem; }
 .teacher-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2rem; align-items: start; }
 .prep-aside, .nudge { padding: 2rem; border-radius: 1rem; background: #e6edde; }
 .prep-aside h2, .nudge h2 { font-size: 1.9rem; line-height: 1.2; margin: .5rem 0 1.5rem; }
@@ -18,10 +23,16 @@
 .export-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1rem; }
 .cue { max-width: 55rem; margin: auto; }
 .cue h2 { font-size: 2rem; margin-bottom: 1.5rem; }
+.concept-navigation { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.concept-navigation button { flex: 1 1 12rem; text-align: left; }
+.concept-navigation button[aria-current="step"] { background: #eaf3ec; border-color: #245c47; }
+.classroom-history { margin-top: 1.5rem; border-top: 1px solid #d7ded5; padding-top: .75rem; }
+.classroom-history li { padding: .35rem 0; }
 .projector .teacher-heading, .projector .teacher-nav, .projector .future { display: none; }
 .projector .cue { max-width: 100%; }
-.projector .cue .explanation { font-size: clamp(1.4rem, 3vw, 2rem); }
-.projector .cue .lesson-visual { max-width: 50rem; margin: 0 auto 2rem; }
+.projector .cue .explanation { font-size: clamp(1.25rem, 2.3vw, 1.8rem); line-height: 1.4; margin: .75rem 0; }
+.projector .cue .lesson-visual { max-width: min(50rem, 55vh); margin: 0 auto .75rem; }
+.projector .concept-navigation, .projector .classroom-history, .projector .cue > .small { display: none; }
 .insight-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
 .insight-summary article { padding: 1.5rem; border-radius: 1rem; background: #fff; border: 1px solid #d7ded5; }
 .insight-summary strong { display: block; font-size: 2rem; }
@@ -38,4 +49,13 @@ th, td { padding: .8rem; border-bottom: 1px solid #d7ded5; }
 .import-progress > input { max-width: 30rem; }
 .import-progress details button { margin: .5rem .5rem .5rem 0; }
 .future { margin-top: 3rem; font-size: .85rem; color: #4c5b52; }
+.recording-panel { max-width: 55rem; margin: 1rem auto; }
+.recording-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.recording-controls .check { flex-basis: 100%; }
+.recording-status { font-size: .9rem; font-weight: 600; margin: .5rem; }
+.recording-status.live::before { content: '● '; color: #a53026; }
+.recording-review { margin-top: 1rem; }
+.projector .recording-panel { position: fixed; bottom: .5rem; right: .5rem; padding: .5rem; max-width: calc(100vw - 1rem); z-index: 2; box-shadow: 0 2px 8px #0002; }
+.projector .recording-controls .check { display: none; }
+.projector .recording-panel .recording-guidance, .projector .recording-review { display: none; }
 @media (max-width: 720px) { .teacher-grid, .route-preview { grid-template-columns: 1fr; } .teacher-heading { display: block; } .term-label { display: inline-block; } .insight-summary { gap: .5rem; } .insight-summary article { padding: .75rem; } .teacher-heading h1 { font-size: 2.3rem; } }

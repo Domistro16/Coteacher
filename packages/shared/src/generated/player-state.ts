@@ -7,4 +7,8 @@ export interface PlayerState {
     phase: "intro" | "steps" | "why";
     instructionIndex: number;
   };
+  recording?: {
+    recordingId: string;
+    positionMs: number;
+  };
 }

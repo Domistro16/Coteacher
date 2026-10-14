@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { activityCaptions, chooseQuiz, decryptPayload, demoLessons, downloadFile, emptyProgress, encryptPayload, mergeReturnedAnswers, profiles, quizCaption, quizFeedback, readTransferFile, validateLessonPackage, voiceMessages, type LessonPackage, type ProgressEvent, type QuizItem, type TryItVariant } from '@coteacher/shared';
-import { readStoredProfile, saveStoredProfile, type Snapshot } from './storage';
+import { activityCaptions, chooseQuiz, decryptPayload, demoLessons, downloadFile, emptyProgress, encryptPayload, mergeReturnedAnswers, profiles, quizCaption, quizFeedback, readTransferFile, requirePublishedLesson, validateLessonPackage, voiceMessages, type LessonPackage, type ProgressEvent, type QuizItem, type TryItVariant } from '@coteacher/shared';
+import { MissingMediaError, readStoredProfile, saveStoredProfile, type Snapshot } from './storage';
 import { Visual } from './Visual';
+import { RecordedLesson } from './RecordedLesson';
 import { createSpeechInput } from './speech';
 import { handleStudentRequest, type StudentResponse } from './help';
 import { Narrator, type NarratorHandle } from './Narrator';
@@ -67,6 +68,8 @@ function TryIt({ variant, activity, dispatch }: {
 }
 
 function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next: Snapshot) => void }) {
+  const latest = useRef(snapshot); latest.current = snapshot;
+  function commit(next: Snapshot) { latest.current = next; update(next); }
   const { lesson, progress, player: state } = snapshot;
   const model = useMemo(() => createPlayerModel(lesson), [lesson]);
   const current = model.steps[state.timelineIndex];
@@ -78,6 +81,7 @@ function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next:
   const questionInput = useRef<HTMLTextAreaElement>(null);
   const [speechStatus, setSpeechStatus] = useState('Hold to talk, or type below.');
   const [quizOpen, setQuizOpen] = useState(false);
+  const [teacherWordsOpen, setTeacherWordsOpen] = useState(false);
   const speech = useMemo(createSpeechInput, []);
   useEffect(() => {
     const stop = () => speech.stop();
@@ -87,12 +91,13 @@ function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next:
   }, [speech]);
   const stamp = () => new Date().toISOString();
   function record(events: ProgressEvent[], player = state) {
-    update({ ...snapshot, player, progress: { ...progress, events: [...progress.events, ...events] } });
+    commit({ ...snapshot, player, progress: { ...progress, events: [...progress.events, ...events] } });
   }
   function dispatch(action: PlayerAction) {
     const next = transitionPlayer(model, state, action, stamp());
     if (next.player === state) return;
     record(next.events, next.player);
+    setTeacherWordsOpen(action.type === 'revisit-step');
     setResponse({});
     setAnnouncement(null);
   }
@@ -103,7 +108,7 @@ function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next:
     if (next.response.command === 'quiz') {
       setQuizOpen(true); setAnnouncement(chooseQuiz(lesson, progress).map(item => ({ text: quizCaption(item), refs: item.sourceRefs }))); return;
     }
-    update({ ...snapshot, player: next.player, progress: next.progress });
+    commit({ ...snapshot, player: next.player, progress: next.progress });
     setResponse(next.response);
     setAnnouncement(null);
   }
@@ -172,9 +177,34 @@ function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next:
     record([{ type: 'variant-viewed', timestamp: stamp(), conceptId: origin.concept.id, timelineStepId: origin.step.id, variantId: refresherVariant.id }]);
   }
   return <>
+    {!lesson.recording && <p className="small">Source-only study package · classroom recording not included.</p>}
     <header className="lesson-header"><p className="eyebrow">{lesson.subject} · Your classroom, again</p><h1>{lesson.title}</h1><details className="objective" onToggle={e => { if (e.currentTarget.open) setAnnouncement([{ text: lesson.objective.text, refs: [...new Set(lesson.concepts.flatMap(c => c.sourceRefs))] }]); }}><summary>What you will learn</summary><p>{lesson.objective.text}</p></details></header>
+    {lesson.recording && <RecordedLesson lesson={lesson} recording={lesson.recording} onPlayed={() => narrator.current?.pause()}
+      positionMs={state.recording?.recordingId === lesson.recording.id ? state.recording.positionMs : 0}
+      onPosition={positionMs => { const current = latest.current; commit({ ...current, player: { ...current.player, recording: { recordingId: lesson.recording!.id, positionMs } } }); }}
+      onOpenMoment={timelineStepId => {
+        const current = latest.current;
+        const next = transitionPlayer(model, current.player, { type: 'revisit-step', timelineStepId }, stamp());
+        commit({ ...current, player: next.player, progress: { ...current.progress, events: [...current.progress.events, ...next.events] } });
+        setTeacherWordsOpen(true); setResponse({}); setAnnouncement(null);
+      }} onExplainMoment={timelineStepId => {
+        const current = latest.current;
+        const destination = transitionPlayer(model, current.player, { type: 'revisit-step', timelineStepId }, stamp());
+        const progress = { ...current.progress, events: [...current.progress.events, ...destination.events] };
+        const next = handleStudentRequest(model, destination.player, progress, 'explain again', stamp(), () => 'queued-' + crypto.randomUUID());
+        commit({ ...current, player: next.player, progress: next.progress }); setResponse(next.response); setTeacherWordsOpen(true); setAnnouncement(null);
+      }}/>}
     <Narrator ref={narrator} frames={frames} sources={refs => <Sources lesson={lesson} sourceRefs={refs}/>}/>
-    <section className="lesson-step" aria-labelledby="concept-title" data-step-id={current.step.id}>
+    <details className="lesson-timeline"><summary>{lesson.classroomTimeline ? 'Revisit the classroom timeline' : 'Revisit a lesson concept'}</summary>
+      <p>{lesson.classroomTimeline ? 'These are the moments your teacher displayed, including moments revisited in class.' : 'Choose an exact moment from your lesson.'}</p>
+      <nav aria-label="Learner concept timeline"><ol>{(lesson.classroomTimeline?.visits ?? lesson.timeline.map(step => ({ timelineStepId: step.id, conceptId: step.conceptId }))).map((entry, index) =>
+        <li key={index}><button data-timeline-step-id={entry.timelineStepId} data-concept-id={entry.conceptId}
+          aria-current={current.step.id === entry.timelineStepId ? 'step' : undefined}
+          onClick={() => dispatch({ type: 'revisit-step', timelineStepId: entry.timelineStepId })}>
+          {index + 1}. {lesson.concepts.find(concept => concept.id === entry.conceptId)!.title}
+        </button></li>)}</ol></nav>
+    </details>
+    <section className="lesson-step" aria-labelledby="concept-title" data-step-id={current.step.id} data-concept-id={current.concept.id} data-lesson-id={lesson.lessonId}>
       <div className="step-header"><p className="eyebrow">Step {state.timelineIndex + 1} of {model.steps.length}</p><h2 id="concept-title">{current.concept.title}</h2></div>
       <div className="step-dots" aria-label="Lesson progress">{model.steps.map((entry, index) => <span key={entry.step.id} className={index === state.timelineIndex ? 'active' : ''}>{index + 1}</span>)}</div>
       <div className="original-action"><span>{variant.type === 'original' ? 'Following your teacher' : 'Explore another explanation'}</span><button onClick={() => dispatch({ type: 'original' })}>Teacher's original</button></div>
@@ -187,7 +217,7 @@ function LessonPlayer({ snapshot, update }: { snapshot: Snapshot; update: (next:
         {variant.type === 'tryit' && state.activity ? <TryIt variant={variant} activity={state.activity} dispatch={dispatch}/> : <p className="explanation">{variant.content}</p>}
         <Sources lesson={lesson} sourceRefs={variant.sourceRefs}/>
       </article>
-      <details className="teacher-words" onToggle={e => { if (e.currentTarget.open) setAnnouncement([{ text: current.step.teacherSaid, refs: current.step.sourceRefs }]); }}><summary>Your teacher's words</summary><blockquote>{current.step.teacherSaid}</blockquote><Sources lesson={lesson} sourceRefs={current.step.sourceRefs}/></details>
+      <details className="teacher-words" open={teacherWordsOpen} onToggle={e => { setTeacherWordsOpen(e.currentTarget.open); if (e.currentTarget.open) setAnnouncement([{ text: current.step.teacherSaid, refs: current.step.sourceRefs }]); }}><summary>Your teacher's words</summary><blockquote>{current.step.teacherSaid}</blockquote><Sources lesson={lesson} sourceRefs={current.step.sourceRefs}/></details>
       <nav className="timeline-navigation" aria-label="Lesson timeline"><button disabled={state.timelineIndex === 0} onClick={() => dispatch({ type: 'navigate', direction: -1 })}>Previous lesson step</button><button className="primary" disabled={state.timelineIndex === model.steps.length - 1} onClick={() => dispatch({ type: 'navigate', direction: 1 })}>Next lesson step</button></nav>
     </section>
     <section className="question-draft" aria-labelledby="question-title"><p className="eyebrow">Another way to understand</p><h2 id="question-title">Where did you get lost?</h2><p>Ask about this moment. Your answers come from the lesson collected at school.</p>
@@ -210,10 +240,14 @@ export function App() {
   const [pin, setPin] = useState('');
   const [session, setSession] = useState<{ id: string; pin: string } | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [recovery, setRecovery] = useState<{ id: string; pin: string; snapshot: Snapshot } | null>(null);
+  const snapshotRef = useRef(snapshot); snapshotRef.current = snapshot;
+  function changeSnapshot(next: Snapshot | null) { snapshotRef.current = next; setSnapshot(next); }
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState('');
   const [offlineReady, setOfflineReady] = useState(false);
+  const [packageReady, setPackageReady] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
   const saveQueue = useRef(Promise.resolve());
   const revision = useRef(0);
@@ -231,7 +265,7 @@ export function App() {
     const currentRevision = ++revision.current;
     setSaved('Saving on this device…');
     saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveStoredProfile(session.id, session.pin, snapshot)).then(() => {
-      if (currentRevision === revision.current) setSaved('Saved on this device');
+      if (currentRevision === revision.current) { setSaved('Saved on this device'); setPackageReady(true); }
     }).catch((e: Error) => { if (currentRevision === revision.current) { setSaved('Not saved — retry before leaving'); setError(e.message); } });
   }, [snapshot, session]);
   useEffect(() => {
@@ -244,42 +278,63 @@ export function App() {
   }
   async function unlock() {
     const profile = profiles.find(p => p.id === profileId)!;
-    const stored = await readStoredProfile(profile.id, pin);
+    setRecovery(null);
+    let stored: Snapshot | null;
+    try { stored = await readStoredProfile(profile.id, pin); }
+    catch (error) { if (error instanceof MissingMediaError) setRecovery({ id: profile.id, pin, snapshot: error.snapshot }); throw error; }
     if (!stored && pin !== profile.pin) throw new Error('That PIN does not unlock this demo profile.');
-    setSession({ id: profile.id, pin }); setSnapshot(stored); setPin('');
+    setSession({ id: profile.id, pin }); changeSnapshot(stored); setPackageReady(Boolean(stored)); setPin('');
   }
   function collect(lesson: LessonPackage) {
+    requirePublishedLesson(lesson);
+    if (lesson.recording && !('dataBase64' in lesson.recording.audio)) throw new Error('This transfer is missing the complete recorded audio. Recollect the original teacher package.');
     if (!session || lesson.studentId !== session.id || !lesson.simulated) throw new Error('This package belongs to a different profile or is not simulated.');
     if (snapshot) throw new Error('A lesson is already collected. Your existing progress has been preserved.');
     const model = createPlayerModel(lesson);
     const player = initialPlayerState(model);
     const progress = emptyProgress(lesson);
     progress.events.push({ type: 'variant-viewed', timestamp: new Date().toISOString(), conceptId: model.steps[0].concept.id, timelineStepId: model.steps[0].step.id, variantId: player.variantId });
-    setSnapshot({ lesson, progress, player });
+    setPackageReady(false); changeSnapshot({ lesson, progress, player });
   }
   async function importFile(file: File) {
     if (!session) return;
     const value = await decryptPayload(await readTransferFile(file), session.pin);
     const lesson = validateLessonPackage(value);
     if (lesson.valid) { collect(lesson.data); return; }
+    if (value && typeof value === 'object' && 'concepts' in value) throw new Error('This lesson package is incomplete or damaged. Recollect the complete teacher package, including its audio and visual assets.');
     if (!snapshot) throw new Error('Collect your lesson before importing returned answers.');
     const progress = mergeReturnedAnswers(snapshot.progress, value as Snapshot['progress'], snapshot.lesson);
-    setSnapshot({ ...snapshot, progress });
+    changeSnapshot({ ...snapshot, progress });
   }
   async function lock() {
     window.dispatchEvent(new Event('coteacher-lock'));
     await saveQueue.current;
-    if (snapshot) await saveStoredProfile(session!.id, session!.pin, snapshot);
-    revision.current++; setSession(null); setSnapshot(null); setSaved(''); setError('');
+    if (snapshotRef.current) await saveStoredProfile(session!.id, session!.pin, snapshotRef.current);
+    revision.current++; setSession(null); changeSnapshot(null); setPackageReady(false); setSaved(''); setError('');
+  }
+  async function restoreMedia(file: File) {
+    if (!recovery) return;
+    const lesson = requirePublishedLesson(await decryptPayload(await readTransferFile(file), recovery.pin));
+    const previous = recovery.snapshot.lesson;
+    if (lesson.studentId !== recovery.id || lesson.recording?.id !== previous.recording?.id || lesson.lessonId !== previous.lessonId
+      || JSON.stringify(lesson.playback) !== JSON.stringify(previous.playback)
+      || JSON.stringify(lesson.visualAssets) !== JSON.stringify(previous.visualAssets)
+      || JSON.stringify(lesson.objective) !== JSON.stringify(previous.objective)
+      || lesson.recording?.audio.mediaKey !== previous.recording?.audio.mediaKey) throw new Error('Choose the same personal recorded package to restore media while preserving progress.');
+    const restored = { ...recovery.snapshot, lesson };
+    await saveStoredProfile(recovery.id, recovery.pin, restored);
+    setSession({ id: recovery.id, pin: recovery.pin }); changeSnapshot(restored); setPackageReady(true); setPin(''); setRecovery(null);
   }
   return <main className="workspace">
     <div className="brand-row"><p className="brand">Coteacher<span>Another chance at the lesson</span></p><span className="badge">Simulated demo</span></div>
-    <div className="device-status" role="status"><span>{online ? 'Connected' : 'Offline'}</span><span>{offlineReady && snapshot && saved === 'Saved on this device' ? 'Ready offline' : import.meta.env.DEV ? 'Development preview · offline reopening requires build' : 'Collect and save your lesson for offline use'}</span></div>
-    {error && <div className="safety" role="alert">{error}{snapshot && saved.startsWith('Not saved') && <button onClick={() => setSnapshot({ ...snapshot })}>Retry save</button>}</div>}
+    <div className="device-status" role="status"><span>{online ? 'Connected' : 'Offline'}</span><span>{offlineReady && snapshot && packageReady ? 'Ready offline' : import.meta.env.DEV ? 'Development preview · offline reopening requires build' : 'Collect and save your lesson for offline use'}</span></div>
+    {snapshot?.lesson.recording && packageReady && <p className="small" role="status">Complete classroom audio{snapshot.lesson.visualAssets ? ` and ${snapshot.lesson.visualAssets.length} selected visuals` : ' and lesson visuals'} saved locally.</p>}
+    {error && <div className="safety" role="alert">{error}{snapshot && saved.startsWith('Not saved') && <button onClick={() => { setError(''); changeSnapshot({ ...snapshot }); }}>Retry save</button>}</div>}
+    {recovery && <section className="content-card"><h2>Restore the complete recording</h2><p>Your saved place and questions remain on this device. Import the same teacher package to restore its audio.</p><label htmlFor="restore-media">Recollect recorded package</label><input id="restore-media" type="file" accept=".json" disabled={busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void run(() => restoreMedia(file)); }}/></section>}
     {!session ? <section className="welcome content-card"><p className="eyebrow">Your place in the lesson is waiting</p><h1>Welcome back.</h1><p>Choose your profile. Each learner has their own place, questions, and progress.</p><form onSubmit={e => { e.preventDefault(); void run(unlock); }}><label htmlFor="profile">Your profile</label><select id="profile" value={profileId} onChange={e => setProfileId(e.target.value)}>{profiles.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select><label htmlFor="pin">Six-digit PIN</label><input id="pin" type="password" inputMode="numeric" autoComplete="off" maxLength={6} value={pin} onChange={e => setPin(e.target.value)}/><button className="primary" disabled={busy}>Unlock my profile</button></form><details><summary>Demo profiles</summary><p>Student A: 111111 · Student B: 222222. These profiles and PINs are simulated.</p></details></section> : <>
       <div className="profile-bar"><span>{profiles.find(p => p.id === session.id)?.label}</span><button disabled={busy} onClick={() => void run(lock)}>Lock / switch learner</button></div>
-      {!snapshot && <section className="welcome content-card"><p className="eyebrow">Collect at school. Learn anywhere.</p><h1>Bring your lesson with you.</h1><p>Import the package your teacher approved, or collect the reviewed simulated lesson.</p><button className="primary" disabled={busy} onClick={() => void run(async () => collect(demoLessons().find(l => l.studentId === session.id)!))}>Collect demo lesson</button></section>}
-      {snapshot && <LessonPlayer snapshot={snapshot} update={setSnapshot}/>}
+      {!snapshot && <section className="welcome content-card"><p className="eyebrow">Collect at school. Learn anywhere.</p><h1>Bring your lesson with you.</h1><p>Import the package your teacher approved, or collect the pre-approved simulated demo. The bundled demo uses seeded approval and is separate from teacher drafts.</p><button className="primary" disabled={busy} onClick={() => void run(async () => collect(demoLessons().find(l => l.studentId === session.id)!))}>Collect demo lesson</button></section>}
+      {snapshot && <LessonPlayer snapshot={snapshot} update={changeSnapshot}/>}
       <section className="transfer"><h2>{snapshot ? 'Bring your questions back' : 'Collect a lesson file'}</h2><p>{snapshot ? 'Export your progress at school. Import the returned file to collect any sourced answers.' : 'Choose your encrypted personal lesson file and unlock it with this profile’s PIN.'}</p><label htmlFor="import-file">{snapshot ? 'Import returned answers' : 'Import lesson file'}</label><input id="import-file" type="file" accept=".json" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void run(() => importFile(file)); }}/>
         {snapshot && <><button disabled={busy || saved !== 'Saved on this device'} onClick={() => void run(async () => { const progress = { ...snapshot.progress, exportedAt: new Date().toISOString() }; downloadFile('progress-' + session.id + '.json', await encryptPayload(progress, session.pin)); })}>Export my progress</button><p role="status">{saved}</p></>}
       </section>

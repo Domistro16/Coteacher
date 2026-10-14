@@ -9,6 +9,8 @@
 - Push-to-talk with a typing fallback
 - Quiz built from the student's pause points
 - Two student profiles on one device with different routes to the same objective
+- Teacher-reviewed recorded replay with distinct prepared visual scenes for those
+  two simulated profiles, complete local audio and independent resume positions
 - One hands-on "Try it" variant linked back to the teacher's original moment
 - Progress export and import as plain files
 - Teacher view: heatmap, variant stats, and a next-lesson nudge

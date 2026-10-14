@@ -106,7 +106,14 @@ material. It is never presented as an answer to an unsupported question.
 - Teacher imports stay in memory for the current session. Seeded aggregates,
   histories, personalization, and answer return are visibly simulated.
 - Voice input requires an already available local recognizer. Otherwise typing works.
-  No speech-model downloads, network recognition, or audio recording storage.
+  No speech-model downloads, network recognition, or storage of student voice input.
+- Teacher presentation supports explicit microphone recording with pause/mute,
+  sample-timed visual cues, saved private review drafts and separate media approval.
+  Reviewed recordings play with matching visuals in offline personal packages.
+  Two simulated histories select genuinely different source-linked SVG scenes.
+  Both visual sequences require teacher review, share locally stored compressed
+  audio, and preserve separate resume positions. The two-minute cap is removed;
+  media is limited to 20 MB. See [personalized replay verification](docs/personalized-replay-verification.md).
 - No physical low-end Android device was available for verification. Mobile
   Chromium checks are automated; hardware installation, performance, and local
   speech availability require a device check.

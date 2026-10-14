@@ -299,3 +299,346 @@ Review scope: the local and remote repositories have no prior commits. Create an
 empty main-branch base, then commit the complete proof of concept on a feature
 branch so the implementation remains reviewable in a pull request. Do not merge.
 Keep temporary files and generated test artifacts on D: and outside the commit.
+
+## 24. Technical foundation audit (no feature implementation)
+
+# Goal
+
+Inspect the existing Coteacher repository and establish a reliable technical foundation for completing the hackathon sprint.
+
+# Context
+
+Coteacher is an offline-first adaptive learning platform. Teachers prepare and approve lessons, students revisit those lessons offline and receive targeted help, and the resulting learning data returns to teachers.
+
+We are building a working proof of concept using one lesson, two learner profiles, and clearly labelled simulated classroom data.
+
+# Constraints
+
+- Inspect the repository before making changes.
+- Preserve the current framework, architecture, styling, and working features.
+- Do not rewrite the application from scratch.
+- Do not introduce unnecessary dependencies.
+- Do not remove functionality simply because it is outside the immediate sprint.
+- Do not claim a feature is functional based only on its UI.
+- If the repository already supports a requirement, reuse that implementation.
+
+# Done When
+
+1. Identify the frontend, backend, database, authentication, offline storage, service worker, and AI integrations currently used.
+2. Map the existing teacher and student journeys to actual routes, components, services, and data models.
+3. Identify which sprint requirements are implemented, incomplete, missing, or unverifiable.
+4. Run available lint, type-check, build, and test commands.
+5. Identify the smallest dependency-aware implementation order for missing functionality.
+6. Produce a concise technical report with relevant file paths, important risks, and immediate blockers.
+
+Do not implement new features during this first task.
+
+## 25. Teacher preparation, source grounding and publication approval
+
+# Goal
+
+Ensure a teacher can prepare one complete, source-grounded lesson and approve it before it becomes available to students.
+
+# Context
+
+Coteacher must be based on the actual classroom lesson rather than arbitrary AI-generated content.
+
+A teacher provides notes, textbook sections, or other reference materials. Coteacher organizes the material into identifiable concepts with learning objectives, explanations, visuals, and questions.
+
+The teacher remains responsible for approving instructional content.
+
+# Constraints
+
+- Inspect and reuse existing lesson creation functionality.
+- Support one complete demo lesson; a curriculum-wide authoring system is unnecessary.
+- Every concept must retain a reference to its source material.
+- Preserve the original learning objectives across alternative explanations.
+- If AI generation exists, distinguish it from seeded or manually prepared content.
+- Do not fabricate citations or claim source verification that has not occurred.
+- Do not allow unapproved content to be published to learners.
+- Preserve existing UI patterns and architecture.
+
+# Done When
+
+1. A teacher can create or select a lesson with a subject, topic, class level, and learning objectives.
+2. The lesson contains identifiable reference material.
+3. The lesson is organized into stable concept segments.
+4. Each concept can contain an original explanation, relevant visual, alternative explanation, and understanding check.
+5. The teacher can review the material before publication.
+6. Approval changes the actual publication state, not just a visual label.
+7. Unapproved lessons cannot be collected by learners.
+8. The lesson remains available after refresh or restart.
+
+Verify the complete teacher preparation flow and report the files changed, tests performed, and remaining limitations.
+
+Session instructions: read product context before work; preserve existing architecture,
+offline operation, source references, safe activity and shared objectives; save
+session prompts here. Acceptance for this task: draft imports blocked; source and
+concept review available; persisted approval enables encrypted export; refresh and
+tab reopening restore preparation; regeneration/source changes require review;
+the existing offline demo continues to pass.
+
+## 26. Manual classroom presentation and exact-concept learner revisit
+
+# Goal
+
+Implement or verify a classroom presentation mode where the teacher manually advances lesson visuals and creates a timeline that learners can later revisit.
+
+# Context
+
+Coteacher needs to preserve the structure of the lesson that was actually taught.
+
+During the sprint, the teacher manually advances the presentation. Automatic speech-following is future work.
+
+The timeline must connect each classroom concept to the relevant explanation and visual in the student's offline lesson.
+
+# Constraints
+
+- Reuse the lesson and concept models from the existing application.
+- Every concept must have a stable identifier.
+- Do not implement automatic speech recognition or real-time transcription.
+- Do not create a separate disconnected presentation dataset.
+- The student experience must reference the same concept identifiers.
+- Do not overwrite approved lesson content during presentation.
+- Maintain a clean, projector-friendly interface.
+
+# Done When
+
+1. The teacher can start the approved lesson in presentation mode.
+2. The teacher can move forward and backward between concepts using controls.
+3. Each concept displays its corresponding explanation or visual.
+4. The presentation maintains a concept timeline.
+5. The timeline references the same lesson content available to learners.
+6. Presentation state is reliably preserved where appropriate.
+7. A student can subsequently open the corresponding concept from the learner interface.
+8. The interface works without requiring voice or automatic speech-following.
+
+Test that the exact classroom concept can be revisited by a student rather than merely opening the general topic.
+
+Acceptance for implementation: approved-only presentation start; manual previous/
+next and exact-step selection; persistent current step and actual display visits;
+same classroom timeline references in both encrypted learner packages; unchanged
+approved instructional content; offline learner navigation to the precise step
+and concept including repeated moments; errors/boundaries handled; existing demo
+acceptance passes. No automatic speech/transcription is implemented.
+
+## Teacher audio recording and visual synchronization — 2026-10-09
+
+User prompt (verbatim):
+
+# Goal
+
+Implement or verify a classroom recording system that captures the teacher's lesson audio while maintaining a synchronized timeline of the visuals presented during teaching.
+
+The recording and timeline must provide the foundation for creating personalized, video-like lesson experiences that students can watch after class.
+
+# Context
+
+Coteacher is designed to let students return to the actual lesson their teacher delivered.
+
+During the lesson, the teacher uses Coteacher to display approved visual aids and advances those visuals manually as they teach.
+
+Coteacher records the teacher's audio and tracks when each visual or concept is presented.
+
+After the lesson, this recording and timeline will be used to build personalized lesson packages.
+
+For the sprint, manual synchronization is sufficient. Automatic following of the teacher's speech is a future feature.
+
+# Constraints
+
+- Inspect and reuse existing lesson presentation functionality.
+- Record the teacher's audio using appropriate browser capabilities or an existing recording service.
+- Require microphone permission and make recording status visible.
+- Do not record students or classroom conversations unnecessarily.
+- Associate recording timestamps with stable lesson and concept identifiers.
+- Record the moment each visual is displayed relative to the audio timeline.
+- Preserve the relationship between the teacher's recorded explanation and its approved instructional visuals.
+- Do not implement automatic speech transcription or speech-following unless already working.
+- Do not treat a silent slideshow as a recorded lesson.
+- Preserve the ability to review the recording and timeline before publication.
+- Keep the implementation compatible with the existing architecture.
+
+# Done When
+
+1. The teacher can open an approved lesson in presentation mode.
+2. The teacher can start, pause where supported, and stop an audio recording.
+3. The teacher can advance through visuals manually while teaching.
+4. Every visual transition is associated with a timestamp in the recording.
+5. Recording and timeline timestamps remain aligned, including after pauses.
+6. The recording and visual timeline are saved.
+7. The teacher can replay the recording with the corresponding visuals displayed at the correct times.
+8. The teacher can review the recorded lesson before publishing it.
+9. The recorded lesson remains associated with the original lesson and concept identifiers.
+10. The resulting media and timeline can be consumed by the personalized lesson package system.
+
+Verify the complete recording → timeline capture → synchronized playback journey.
+
+Report what was implemented, how synchronization works, the tests performed, and any known browser limitations.
+
+Acceptance: approved-only, explicitly enabled teacher microphone capture; actual
+non-silent audio; sample-based cues for every displayed transition; pause excludes
+samples and resumes at the current visual; stopped audio/cues persist together;
+draft recordings cannot be exported or collected; reviewed media uses the same
+lesson revision, steps, concepts and sources in both personal routes; seek and
+playback synchronize visuals offline; permission/storage errors release capture
+and preserve reviewable state. Verify existing demo acceptance too.
+
+## 2026-10-09 — Personalized offline recorded lesson replay
+
+User: Why two minutes recording cap?
+
+User goal: Implement a personalized, offline-ready lesson package containing the
+teacher's recorded lesson audio and synchronized instructional visuals tailored to
+each learner. Students must watch an engaging, video-like lesson offline, with
+interactive learning, alternative explanations, activities, quizzes and saved questions.
+
+The teacher's original audio remains the foundation, with meaningful source-grounded
+visual differences for two simulated profiles and unchanged objectives and chronology.
+Inspect existing recording, timeline, lesson, profiles and PWA. Include complete audio,
+synchronized timeline, actual visual assets and stored personal choices. Teacher reviews
+variants before publication. No student AI or trained-model claims. Share large audio
+locally across profiles; optimize Android storage; verify actual media collection,
+offline readiness and missing assets. Preserve architecture and original audio meaning.
+
+Acceptance: approved recording → reviewed deterministic personal sequences → encrypted
+packages for A and B → distinct instructional visuals with identical audio/objective →
+atomic, deduplicated local media collection → offline audible playback/seek/exact-concept
+study/help/activities/quizzes/questions → isolated saved positions → restart and resume.
+Test native browser audio, both profiles, publication gates, missing/corrupt assets,
+pause synchronization and a recording longer than 120 seconds. Document contracts,
+personalization, synchronization, media storage, tests and browser limitations. Existing
+source-only fixtures must be honestly labelled and remain usable for the original demo.
+Do not call a silent slideshow or an uncached media URL a completed recorded lesson.
+
+Full user request:
+
+# Goal
+
+Implement a personalized, offline-ready lesson package containing the teacher's recorded lesson audio and synchronized instructional visuals tailored to each learner.
+
+Students must be able to watch the lesson as an engaging, video-like educational experience while offline.
+
+The package must also support interactive learning, alternative explanations, activities, quizzes, and saved questions.
+
+# Context
+
+The Coteacher lesson package is not simply a collection of notes, slides, and quizzes.
+
+It is a personalized replay of the classroom lesson.
+
+During the original classroom session, the teacher's audio was recorded and the visual presentation timeline was captured.
+
+Coteacher uses the recording and timeline to assemble an individualized lesson experience.
+
+The teacher's original audio remains the foundation of the lesson.
+
+However, the visual presentation can differ between students depending on their needs, previous difficulties, and available learner information.
+
+For example:
+
+Learner A might receive animated fraction diagrams, practical demonstrations, and visual representations.
+
+Learner B might receive numerical examples, step-by-step transformations, and mathematical annotations.
+
+Both students hear the same teacher explaining the same learning objective, but the supporting visuals are personalized.
+
+The result should feel like watching an engaging educational lesson video rather than navigating a static slide deck.
+
+# Constraints
+
+- Inspect the existing recording, timeline, lesson content, learner-profile, and PWA implementations before making changes.
+- Every package must include or locally reference the complete required teacher audio recording.
+- Every package must contain the synchronized visual timeline.
+- Every package must contain the actual visual assets required for offline playback.
+- Each student's personalized visual selection must be stored in their lesson package or package manifest.
+- Personalization must meaningfully alter the instructional visuals, not merely the learner's name, theme, or labels.
+- Visuals must remain consistent with what the teacher is saying at each point in the recording.
+- Do not insert visuals that contradict the recorded audio or change the learning objective.
+- All instructional visuals and explanations must remain grounded in teacher-approved sources.
+- The teacher should be able to review personalized visual variants before publication.
+- For the hackathon sprint, deterministic personalization based on two simulated learner profiles is acceptable.
+- Clearly identify simulated personalization rather than claiming a sophisticated trained recommendation model.
+- Do not require real-time AI generation on the student's device.
+- Preserve the recording's original meaning and chronology.
+- Avoid duplicating large audio files unnecessarily when two learner profiles share a device.
+- Optimize media and caching for low-end Android devices.
+- The entire prepared playback experience must work without internet after collection.
+- Do not assume that simply caching the player interface means the media has been downloaded.
+- Preserve the existing project architecture where practical.
+
+# Done When
+
+## A. Lesson package generation
+
+1. The system retrieves the approved teacher recording and its synchronized timeline.
+2. It associates the timeline with stable lesson and concept identifiers.
+3. It identifies the approved visual variants available for each concept.
+4. It creates a personalized visual sequence for Learner A.
+5. It creates a meaningfully different visual sequence for Learner B.
+6. Both sequences follow the same recorded teacher audio and learning objectives.
+7. The system produces a package or package manifest identifying the recording, visual assets, timeline, explanations, activities, and quizzes.
+8. The package is associated with the correct learner profile.
+9. Necessary media and assets can be saved locally for offline use.
+
+## B. Interactive lesson playback
+
+10. The learner can open the package and play the teacher's recorded lesson.
+11. The teacher's voice is audible throughout the relevant recording.
+12. The appropriate visual appears automatically at the correct timestamp.
+13. Visual transitions remain synchronized with audio playback.
+14. The student can pause, resume, seek backward, and seek forward.
+15. Seeking to a different timestamp updates the displayed visual correctly.
+16. The interface feels like an educational video player, with the audio and visuals forming one coherent presentation.
+17. The student can access the corresponding lesson concept while watching.
+18. The student can pause at a concept and request further explanation.
+19. Playback position and lesson progress are saved.
+20. The student can resume from their previous position.
+
+## C. Personalized playback
+
+21. Learner A watches the recorded lesson with their assigned visual presentation.
+22. Learner B watches the same teacher's recording with a different visual presentation.
+23. The differences are meaningful and appropriate to the concept.
+24. Each learner retains their own playback position and progress.
+25. Switching profiles does not expose or overwrite another learner's progress.
+26. Personalization remains consistent with the recorded explanation.
+27. A learner can access approved alternative explanations where available.
+
+## D. Offline reliability
+
+28. The learner downloads or collects the complete required package while connected.
+29. Coteacher clearly indicates when the package is ready for offline playback.
+30. The device is disconnected from the internet.
+31. The learner reloads or reopens the PWA.
+32. The recorded lesson still plays with audio.
+33. The synchronized visuals still appear at the correct times.
+34. The learner can pause, seek, resume, and navigate concepts without network access.
+35. Prepared explanations, activities, and quizzes remain available.
+36. Playback state survives refresh or application restart.
+37. Missing or incomplete assets are reported clearly.
+
+## E. Testing
+
+Run an end-to-end test demonstrating:
+
+Teacher recording + timeline → personalized package generation → Learner A playback → Learner B playback with different visuals → network disconnection → offline audio-visual playback → resume after restart.
+
+Verify that the offline media does not depend on streaming from a remote server.
+
+Document the package structure, personalization mechanism, synchronization mechanism, media storage strategy, tests performed, and remaining limitations.
+
+Do not consider the task complete if the student can only view static slides without the teacher's recorded audio.
+
+## 2026-10-09 — Review, commit and publish a new pull request
+
+User prompts:
+
+> Review all the code changes you have made and commit and push to the new branch. Ioen a new pr for me to accept
+
+> continue
+
+Acceptance: review all pending lesson preparation, presentation, recording and personalized offline replay changes; fix material review findings; pass contract, unit, build, demo and browser checks; commit only session-owned work on a fresh branch; push it and open an unmerged pull request for the user to review. Preserve the unrelated untracked docs/technical-audit.md. Existing PR #1 remains open, so the new PR uses its feature branch as the base to isolate these additions.
+
+Review finding: include the MIME type in cached audio-container validation, so changing a previously checked WAV to an Opus declaration cannot reuse the WAV result. Add a regression test exercising validation before and after the mutation.
+
+Final verification for this review: npm.cmd test passed 334 tests across 12 files, generated-type freshness and TypeScript; npm.cmd run test:e2e passed all 22 browser tests in 2.4 minutes and built both applications; npm.cmd run pipeline -- --lesson fixtures/demo-lesson passed. The full native recording/timeline → A/B personalized playback → network disconnection → offline playback/restart journey passed on the final build. The staged diff passed whitespace checks. The only review fix was MIME-aware cached audio validation, with its regression test. Chromium's generated debug.log is removed from the workspace and excluded from the commit; docs/technical-audit.md remains untouched.

@@ -5,10 +5,8 @@ import type { LessonPackage, QuizItem } from './generated/lesson-package';
 import type { ProgressRecord, QueuedQuestion } from './generated/progress-record';
 import { validateLessonPackage, validateProgressRecord } from './validation';
 
-export const profiles = [
-  { id: 'student-a1b2c3d4', label: 'Student A', pin: '111111', simulated: true },
-  { id: 'student-b1c2d3e4', label: 'Student B', pin: '222222', simulated: true },
-] as const;
+import { profiles } from './learner-profiles';
+export { profiles } from './learner-profiles';
 export const reviewedMaterials = materials;
 export interface LessonGenerator { generate(notes: string, activity: string): LessonPackage[] }
 const normalize = (text: string) => text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim();
@@ -19,6 +17,7 @@ export const localLessonGenerator: LessonGenerator = {
     }
     return profiles.map((profile, index) => {
       const lesson = structuredClone(fixture) as LessonPackage;
+      lesson.publication = { status: 'draft' };
       for (const concept of lesson.concepts) for (const variant of concept.variants) {
         const path = (narration.clips as Record<string, string>)[variant.content];
         if (path) variant.audioAssetPath = path;
@@ -37,7 +36,11 @@ export const localLessonGenerator: LessonGenerator = {
   },
 };
 export function demoLessons(): LessonPackage[] {
-  return localLessonGenerator.generate(materials.teacherNotes, materials.activityNotes);
+  // Bundled collection is a separately labelled, pre-approved simulated seed.
+  // Newly generated teacher drafts never inherit this approval.
+  return localLessonGenerator.generate(materials.teacherNotes, materials.activityNotes).map(lesson => ({
+    ...lesson, publication: structuredClone(fixture.publication) as LessonPackage['publication'],
+  }));
 }
 export function emptyProgress(lesson: LessonPackage): ProgressRecord {
   return { schemaVersion: '1.0.0', lessonId: lesson.lessonId, studentId: lesson.studentId,

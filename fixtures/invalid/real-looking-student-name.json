@@ -3,6 +3,14 @@
   "lessonId": "light-and-refraction",
   "title": "Why does a pencil look bent in water?",
   "subject": "Science",
+  "topic": "Light and refraction",
+  "classLevel": "JSS 2 (simulated demo)",
+  "contentOrigin": "manually-prepared-demo",
+  "publication": {
+    "status": "approved",
+    "approvedAt": "2026-01-01T09:00:00.000Z",
+    "approvalKind": "seeded-demo"
+  },
   "language": "en",
   "simulated": true,
   "studentId": "Alex Example",

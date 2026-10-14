@@ -1,6 +1,6 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { encryptPayload, localLessonGenerator, profiles } from '@coteacher/shared';
+import { approveLessons, requirePublishedLesson, encryptPayload, localLessonGenerator, profiles } from '@coteacher/shared';
 import type { CliOutput } from './validate-cli';
 
 const usage = 'Usage: npm run pipeline -- --generate --notes <file> --activity <file> --out <directory> --approve-reviewed';
@@ -11,13 +11,13 @@ export async function runGenerationCli(args: readonly string[], output: CliOutpu
   try {
     const notes = await readFile(resolve(cwd, args[2]), 'utf8');
     const activity = await readFile(resolve(cwd, args[4]), 'utf8');
-    const lessons = localLessonGenerator.generate(notes, activity);
+    const lessons = approveLessons(localLessonGenerator.generate(notes, activity), true);
     const directory = resolve(cwd, args[6]);
     await mkdir(directory, { recursive: true });
     for (const lesson of lessons) {
       const profile = profiles.find(p => p.id === lesson.studentId)!;
       // Exclusive creation prevents accidental replacement of a collected package.
-      await writeFile(join(directory, 'lesson-' + lesson.studentId + '.json'), JSON.stringify(await encryptPayload(lesson, profile.pin), null, 2), { flag: 'wx' });
+      await writeFile(join(directory, 'lesson-' + lesson.studentId + '.json'), JSON.stringify(await encryptPayload(requirePublishedLesson(lesson), profile.pin), null, 2), { flag: 'wx' });
     }
     output.stdout('Generated two encrypted simulated packages from reviewed sources. Demo PINs: A 111111, B 222222.');
     return 0;

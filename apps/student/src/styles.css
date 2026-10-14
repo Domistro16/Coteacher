@@ -76,6 +76,10 @@ input[type="file"] { font-size: .85rem; padding: .75rem .3rem; }
 .step-dots { display: flex; gap: .5rem; margin: 1rem 0; }
 .step-dots span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid #a5b5a9; font-size: .8rem; }
 .step-dots .active { background: #245c47; color: #fff; }
+.lesson-timeline { margin: 1rem 0 1.5rem; padding: .75rem; border: 1px solid #d7ded5; border-radius: .65rem; background: #fff; }
+.lesson-timeline ol { display: grid; gap: .5rem; list-style: none; padding: 0; }
+.lesson-timeline button { width: 100%; text-align: left; }
+.lesson-timeline button[aria-current="step"] { border-color: #245c47; background: #eaf3ec; }
 .refresher { margin-bottom: 1rem; border-left: 3px solid #b36516; padding: .5rem 1rem; background: #fff3dc; }
 .answer { margin-top: 1rem; background: #eaf3ec; border-radius: 1rem; padding: 1rem; overflow-wrap: anywhere; }
 .quiz-section, .queued, .transfer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #d7ded5; }
@@ -88,4 +92,17 @@ input[type="file"] { font-size: .85rem; padding: .75rem .3rem; }
 .spoken-caption { font-size: 1.05rem; line-height: 1.6; overflow-wrap: anywhere; }
 .narration-status { font-size: .85rem; color: #4c5b52; }
 .transfer h2 { margin-bottom: .5rem; }
+.recorded-lesson { margin: 1rem 0; }
+.replay-stage { margin: 1rem 0 0; background: #102433; border-radius: .8rem; overflow: hidden; }
+.replay-stage svg { width: 100%; height: auto; display: block; font-family: system-ui, sans-serif; }
+.replay-stage figcaption { color: #edf6fa; padding: .7rem 1rem; font-size: .85rem; }
+.replay-controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0; }
+.recorded-lesson input[type="range"] { padding: 0; margin: .5rem 0; accent-color: #245c47; }
+@media (prefers-reduced-motion: reduce) { .replay-emphasis { display: none; } }
+.recorded-lesson audio { display: block; width: 100%; margin: 1rem 0; }
+.recorded-lesson .lesson-visual { max-width: 34rem; margin: auto; }
+.recorded-lesson ol { padding-left: 1.25rem; }
+.recorded-lesson li { margin: .4rem 0; }
+.recorded-lesson button { text-align: left; }
+.recorded-lesson button[aria-current="step"] { border-color: #245c47; background: #eaf3ec; }
 @media (prefers-reduced-motion: no-preference) { button { transition: background-color .15s; } }
