@@ -10,6 +10,11 @@ async function keyFor(value: string) {
 async function digest(bytes: Uint8Array<ArrayBuffer>) {
   return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(value => value.toString(16).padStart(2, '0')).join('');
 }
+export async function remoteLocalReference(audio: Extract<LessonRecording['audio'], { mediaUrl: string }>): Promise<LocalAudio> {
+  const fingerprint = await digest(Uint8Array.from(atob(audio.mediaKey), character => character.charCodeAt(0)));
+  return { mimeType: audio.mimeType, sampleRate: audio.sampleRate, channels: 1, mediaKey: audio.mediaKey,
+    mediaId: 'audio-' + audio.sha256 + '-' + fingerprint.slice(0, 16), byteLength: audio.byteLength };
+}
 export function prepareLocalMedia(recording: LessonRecording) {
   const existing = cache.get(recording.audio); if (existing) return existing;
   const task = (async () => {

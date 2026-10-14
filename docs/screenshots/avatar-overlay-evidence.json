@@ -1,0 +1,192 @@
+{
+  "source": "Published lesson from configured local backend; prepared companion speech; AI/sync POST calls blocked in isolated screenshot context.",
+  "results": [
+    {
+      "name": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 1100
+      },
+      "playerBefore": {
+        "x": 305.5,
+        "y": 180.40625,
+        "width": 1054,
+        "height": 793.234375
+      },
+      "playerAfter": {
+        "x": 305.5,
+        "y": 180.40625,
+        "width": 1054,
+        "height": 793.234375
+      },
+      "canvasBefore": {
+        "x": 305.5,
+        "y": 229.203125,
+        "width": 1054,
+        "height": 592.875
+      },
+      "canvasAfter": {
+        "x": 305.5,
+        "y": 229.203125,
+        "width": 1054,
+        "height": 592.875
+      },
+      "overlay": {
+        "x": 1043.5,
+        "y": 673.703125,
+        "width": 300,
+        "height": 140.375
+      },
+      "controls": {
+        "x": 305.5,
+        "y": 874.859375,
+        "width": 1054,
+        "height": 98.78125
+      },
+      "recordingPositionSeconds": 36.64
+    },
+    {
+      "name": "mobile",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "playerBefore": {
+        "x": 8.796875,
+        "y": 180.09375,
+        "width": 342.40625,
+        "height": 396.5625
+      },
+      "playerAfter": {
+        "x": 8.796875,
+        "y": 180.09375,
+        "width": 342.40625,
+        "height": 396.5625
+      },
+      "canvasBefore": {
+        "x": 8.796875,
+        "y": 218.484375,
+        "width": 342.40625,
+        "height": 192.59375
+      },
+      "canvasAfter": {
+        "x": 8.796875,
+        "y": 218.484375,
+        "width": 342.40625,
+        "height": 192.59375
+      },
+      "overlay": {
+        "x": 93.203125,
+        "y": 289.015625,
+        "width": 250,
+        "height": 114.0625
+      },
+      "controls": {
+        "x": 8.796875,
+        "y": 463.859375,
+        "width": 342.40625,
+        "height": 112.796875
+      },
+      "recordingPositionSeconds": 36.64
+    },
+    {
+      "name": "narrow",
+      "viewport": {
+        "width": 320,
+        "height": 800
+      },
+      "playerBefore": {
+        "x": 8.796875,
+        "y": 180.09375,
+        "width": 302.40625,
+        "height": 374.0625
+      },
+      "playerAfter": {
+        "x": 8.796875,
+        "y": 180.09375,
+        "width": 302.40625,
+        "height": 374.0625
+      },
+      "canvasBefore": {
+        "x": 8.796875,
+        "y": 218.484375,
+        "width": 302.40625,
+        "height": 170.09375
+      },
+      "canvasAfter": {
+        "x": 8.796875,
+        "y": 218.484375,
+        "width": 302.40625,
+        "height": 170.09375
+      },
+      "overlay": {
+        "x": 53.203125,
+        "y": 266.515625,
+        "width": 250,
+        "height": 114.0625
+      },
+      "controls": {
+        "x": 8.796875,
+        "y": 441.359375,
+        "width": 302.40625,
+        "height": 112.796875
+      },
+      "recordingPositionSeconds": 36.64
+    },
+    {
+      "name": "tablet",
+      "viewport": {
+        "width": 768,
+        "height": 1000
+      },
+      "playerBefore": {
+        "x": 222,
+        "y": 180.46875,
+        "width": 514,
+        "height": 489.484375
+      },
+      "playerAfter": {
+        "x": 222,
+        "y": 180.46875,
+        "width": 514,
+        "height": 489.484375
+      },
+      "canvasBefore": {
+        "x": 222,
+        "y": 229.265625,
+        "width": 514,
+        "height": 289.125
+      },
+      "canvasAfter": {
+        "x": 222,
+        "y": 229.265625,
+        "width": 514,
+        "height": 289.125
+      },
+      "overlay": {
+        "x": 420,
+        "y": 388.390625,
+        "width": 300,
+        "height": 122
+      },
+      "controls": {
+        "x": 222,
+        "y": 571.171875,
+        "width": 514,
+        "height": 98.78125
+      },
+      "recordingPositionSeconds": 36.64
+    }
+  ],
+  "checks": [
+    "identical player/canvas dimensions",
+    "overlay inside canvas",
+    "playback controls unobscured",
+    "no sidebar/modal/nested scrollbars",
+    "same paused recording timestamp",
+    "text question controls preserved",
+    "quiz accessible",
+    "return resumes actual teacher audio",
+    "no page errors"
+  ]
+}

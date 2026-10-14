@@ -1,0 +1,87 @@
+﻿{
+    "scope":  "Production UI and encrypted persistence; mocked microphone, live transport and sourced answer provider; native bundled MP3 playback, no human audio or OpenAI",
+    "startedAt":  "2026-10-14T14:24:13.914Z",
+    "result":  "PASS",
+    "checks":  {
+                   "windowSwitchDoesNotAutoplayDelayedLiveAnswer":  "PASS",
+                   "savedAnswerStillPlaysOnExplicitRequest":  "PASS",
+                   "reportedPhraseOpensApprovedCheck":  "PASS",
+                   "quizSavesAndResumesOriginalRecording":  "PASS"
+               },
+    "providerQuestions":  [
+                              "How does the curved lens bend light like the water in this lesson?"
+                          ],
+    "controls":  {
+                     "sent":  [
+                                  {
+                                      "type":  "session.instructions.append",
+                                      "delegation_id":  null,
+                                      "content":  "Give the short listening greeting supplied next, then wait for the student. Delegate the learner\u0027s teaching questions; do not start an explanation or invent a question before they ask."
+                                  },
+                                  {
+                                      "type":  "session.commentary.append",
+                                      "delegation_id":  null,
+                                      "content":  "The teacher\u0027s recording is paused. So, what\u0027s the problem? Tell me which part you\u0027re struggling with. I\u0027m listening."
+                                  },
+                                  {
+                                      "type":  "session.commentary.append",
+                                      "delegation_id":  "test-d984cdb2-5235-468c-8de4-8bdd6047e667",
+                                      "content":  "Hmm, checking your lesson sources."
+                                  },
+                                  {
+                                      "type":  "session.close"
+                                  },
+                                  {
+                                      "type":  "session.instructions.append",
+                                      "delegation_id":  null,
+                                      "content":  "Give the short listening greeting supplied next, then wait for the student. Delegate the learner\u0027s teaching questions; do not start an explanation or invent a question before they ask."
+                                  },
+                                  {
+                                      "type":  "session.commentary.append",
+                                      "delegation_id":  null,
+                                      "content":  "The teacher\u0027s recording is paused. So, what\u0027s the problem? Tell me which part you\u0027re struggling with. I\u0027m listening."
+                                  },
+                                  {
+                                      "type":  "session.close"
+                                  }
+                              ],
+                     "micStops":  4,
+                     "companionPlays":  [
+                                            "blob:http://127.0.0.1:4443/c34a60b3-9095-47ba-8641-f8f2784b6d32",
+                                            "http://127.0.0.1:4443/audio/a3b2649e986886b1d1c4.mp3",
+                                            "http://127.0.0.1:4443/audio/dd5e7f9bb7960d0a3d43.mp3"
+                                        ]
+                 },
+    "errors":  [
+
+               ],
+    "finishedAt":  "2026-10-14T14:25:23.238Z",
+    "regression":  {
+                       "focusedUnitTests":  "28 PASS",
+                       "typecheck":  "PASS",
+                       "studentBuild":  "PASS",
+                       "teacherBuild":  "PASS",
+                       "desktopPlayerDimensions":  "unchanged",
+                       "mobileWidth":  360,
+                       "horizontalOverflow":  false,
+                       "quizQuestionOnlyClip":  "PASS: native end event, no appended clip",
+                       "savedTimestampMs":  1935,
+                       "baselineEvidence":  "docs/live-check-audio-before-evidence.json",
+                       "servedBuild":  {
+                                           "checkedAt":  "2026-10-14T14:22:52.6818694Z",
+                                           "htmlReferencesLatest":  true,
+                                           "assets":  [
+                                                          {
+                                                              "asset":  "/assets/index-JpjJ3U2Q.js",
+                                                              "matchesLocalBuild":  true,
+                                                              "sha256":  "D8FA3F1FBF04D5F0F7193A2A35A0B2BE8BE00BAF545FB8DF33FF71D9C60C9681"
+                                                          },
+                                                          {
+                                                              "asset":  "/assets/StudentPlayer-DyprdMsw.js",
+                                                              "matchesLocalBuild":  true,
+                                                              "sha256":  "93B8B8528851BCBD660B483627EB7A6BAEFA8E18B95B4D4F68B9C908414EB5A5"
+                                                          }
+                                                      ]
+                                       }
+                   }
+}

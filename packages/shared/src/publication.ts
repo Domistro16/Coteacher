@@ -1,5 +1,6 @@
 import type { LessonPackage } from './generated/lesson-package';
 import { validateLessonPackage } from './validation';
+import { hasReviewedDemoInstruction } from './reviewed-instruction';
 
 /** Structural/source-ID validation is not verification of factual accuracy. */
 export function requirePublishedLesson(value: unknown): LessonPackage {
@@ -13,6 +14,7 @@ export function requirePublishedLesson(value: unknown): LessonPackage {
   if (result.data.publication.approvalKind === 'seeded-demo' && !result.data.simulated) {
     throw new Error('Seeded demo approval is only available for simulated lessons.');
   }
+  if (!hasReviewedDemoInstruction(result.data)) throw new Error('This demo package differs from the reviewed teaching materials. Ask your teacher for a newly prepared and approved package.');
   return result.data;
 }
 

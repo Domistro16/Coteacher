@@ -1,0 +1,384 @@
+{
+  "date": "2026-10-10",
+  "microphoneInput": "Chromium simulated microphone; no human speech verified",
+  "backend": "actual isolated loopback Node service",
+  "storedAudioBytes": 19205,
+  "storedAudioSha256": "2d47fb6227626a8fbc969e5c58d26da461e07f8dedf61fa936667cf1c36ed168",
+  "sameRecordingId": true,
+  "sameObjective": true,
+  "differentVisualSequences": true,
+  "learners": [
+    {
+      "id": "student-a1b2c3d4",
+      "objective": {
+        "text": "Explain that light travels in straight paths in a uniform medium and can change direction at an angled boundary between air and water, making a straight pencil appear bent.",
+        "conceptIds": [
+          "light-path",
+          "refraction"
+        ]
+      },
+      "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+      "durationMs": 6477,
+      "audio": {
+        "mimeType": "audio/ogg;codecs=opus",
+        "sampleRate": 48000,
+        "channels": 1
+      },
+      "recordingReview": {
+        "status": "approved",
+        "reviewedAt": "2026-10-10T03:50:33.803Z"
+      },
+      "visualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-10-10T03:50:34.639Z",
+        "catalogVersion": "refraction-visuals-v1"
+      },
+      "cues": [
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 0
+        },
+        {
+          "timelineStepId": "step-refraction",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 2738
+        },
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 4128
+        },
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 4128
+        },
+        {
+          "timelineStepId": "step-refraction",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 5317
+        }
+      ],
+      "assets": [
+        {
+          "id": "light-path-diagram",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 6
+        },
+        {
+          "id": "light-path-steps",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 5
+        },
+        {
+          "id": "refraction-pencil",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 9
+        },
+        {
+          "id": "refraction-steps",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 9
+        }
+      ],
+      "playback": {
+        "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+        "studentId": "student-a1b2c3d4",
+        "simulated": true,
+        "method": "prepared-support-rules-v2",
+        "catalogVersion": "refraction-visuals-v1",
+        "reason": "Simulated history: interpreting apparent pencil position was difficult; use concrete diagrams.",
+        "decision": {
+          "difficulty": "boundary-position",
+          "representation": "concrete-diagrams",
+          "basis": "simulated-history"
+        },
+        "sequence": [
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 0,
+            "cueIndex": 0,
+            "visualAssetId": "light-path-diagram"
+          },
+          {
+            "timelineStepId": "step-refraction",
+            "conceptId": "refraction",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 2738,
+            "cueIndex": 1,
+            "visualAssetId": "refraction-pencil"
+          },
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 4128,
+            "cueIndex": 2,
+            "visualAssetId": "light-path-diagram"
+          },
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 4128,
+            "cueIndex": 3,
+            "visualAssetId": "light-path-diagram"
+          },
+          {
+            "timelineStepId": "step-refraction",
+            "conceptId": "refraction",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 5317,
+            "cueIndex": 4,
+            "visualAssetId": "refraction-pencil"
+          }
+        ]
+      },
+      "receivedRecordKeys": [
+        "schemaVersion",
+        "algorithm",
+        "iterations",
+        "salt",
+        "iv",
+        "ciphertext"
+      ],
+      "receivedProgress": {
+        "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+        "studentId": "student-a1b2c3d4",
+        "lessonId": "light-and-refraction",
+        "eventCount": 25,
+        "uniqueEventCount": 25,
+        "questionCount": 3,
+        "answeredQuestionCount": 1,
+        "answerOrigins": [
+          "simulated-prepared"
+        ]
+      }
+    },
+    {
+      "id": "student-b1c2d3e4",
+      "objective": {
+        "text": "Explain that light travels in straight paths in a uniform medium and can change direction at an angled boundary between air and water, making a straight pencil appear bent.",
+        "conceptIds": [
+          "light-path",
+          "refraction"
+        ]
+      },
+      "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+      "durationMs": 6477,
+      "audio": {
+        "mimeType": "audio/ogg;codecs=opus",
+        "sampleRate": 48000,
+        "channels": 1
+      },
+      "recordingReview": {
+        "status": "approved",
+        "reviewedAt": "2026-10-10T03:50:33.803Z"
+      },
+      "visualReview": {
+        "status": "approved",
+        "reviewedAt": "2026-10-10T03:50:34.639Z",
+        "catalogVersion": "refraction-visuals-v1"
+      },
+      "cues": [
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 0
+        },
+        {
+          "timelineStepId": "step-refraction",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 2738
+        },
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 4128
+        },
+        {
+          "timelineStepId": "step-light",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 4128
+        },
+        {
+          "timelineStepId": "step-refraction",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "offsetMs": 5317
+        }
+      ],
+      "assets": [
+        {
+          "id": "light-path-diagram",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 6
+        },
+        {
+          "id": "light-path-steps",
+          "conceptId": "light-path",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 5
+        },
+        {
+          "id": "refraction-pencil",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 9
+        },
+        {
+          "id": "refraction-steps",
+          "conceptId": "refraction",
+          "sourceRefs": [
+            "notes-light"
+          ],
+          "layerCount": 9
+        }
+      ],
+      "playback": {
+        "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+        "studentId": "student-b1c2d3e4",
+        "simulated": true,
+        "method": "prepared-support-rules-v2",
+        "catalogVersion": "refraction-visuals-v1",
+        "reason": "Simulated history: following the boundary steps was difficult; use ordered ray annotations.",
+        "decision": {
+          "difficulty": "boundary-steps",
+          "representation": "ordered-annotations",
+          "basis": "simulated-history"
+        },
+        "sequence": [
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 0,
+            "cueIndex": 0,
+            "visualAssetId": "light-path-steps"
+          },
+          {
+            "timelineStepId": "step-refraction",
+            "conceptId": "refraction",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 2738,
+            "cueIndex": 1,
+            "visualAssetId": "refraction-steps"
+          },
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 4128,
+            "cueIndex": 2,
+            "visualAssetId": "light-path-steps"
+          },
+          {
+            "timelineStepId": "step-light",
+            "conceptId": "light-path",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 4128,
+            "cueIndex": 3,
+            "visualAssetId": "light-path-steps"
+          },
+          {
+            "timelineStepId": "step-refraction",
+            "conceptId": "refraction",
+            "sourceRefs": [
+              "notes-light"
+            ],
+            "offsetMs": 5317,
+            "cueIndex": 4,
+            "visualAssetId": "refraction-steps"
+          }
+        ]
+      },
+      "receivedRecordKeys": [
+        "schemaVersion",
+        "algorithm",
+        "iterations",
+        "salt",
+        "iv",
+        "ciphertext"
+      ],
+      "receivedProgress": {
+        "recordingId": "recording-97f4e2d0-6131-4289-84da-93361c1e2529",
+        "studentId": "student-b1c2d3e4",
+        "lessonId": "light-and-refraction",
+        "eventCount": 6,
+        "uniqueEventCount": 6,
+        "questionCount": 0,
+        "answeredQuestionCount": 0,
+        "answerOrigins": []
+      }
+    }
+  ]
+}

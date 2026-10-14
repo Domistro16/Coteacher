@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
+import { deliveryProxy } from '../delivery-proxy';
 
 function offlineShell() {
   let output = '';
@@ -20,7 +21,8 @@ self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(e
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [offlineShell()],
-  server: { host: '127.0.0.1', port: 5173, strictPort: true },
-});
+  server: { host: '127.0.0.1', port: 5173, strictPort: true, proxy: deliveryProxy(mode) },
+  preview: { proxy: deliveryProxy(mode) },
+}));

@@ -1,3 +1,5 @@
+import { teacherSources, teacherReview, teacherTransfers, expectTeacherExport } from './teacher-navigation';
+import { openPreparedCompatibility } from './compatibility';
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { decryptPayload, validateLessonPackage, type LessonPackage } from '@coteacher/shared';
@@ -5,6 +7,7 @@ import { preparationKey } from '../../apps/teacher/src/preparation';
 
 async function approve(page: Page) {
   await page.getByRole('button', { name: 'Prepare lesson', exact: true }).click();
+  await teacherSources(page);
   await page.getByRole('button', { name: 'Use reviewed demo materials' }).click();
   await page.getByRole('button', { name: 'Generate simulated lesson' }).click();
   await page.getByRole('checkbox').check();
@@ -44,18 +47,22 @@ test('approved manual presentation persists actual visits and learners revisit t
   const classroomVisual = await teacher.locator('.cue svg').getAttribute('aria-label');
   await teacher.getByRole('button', { name: 'Previous visual' }).click();
   await teacher.getByRole('navigation', { name: 'Presentation concepts' }).getByRole('button', { name: '2. Refraction at the water surface' }).click();
-  await teacher.getByRole('button', { name: 'Expand projector view' }).click();
+  await teacher.getByRole('button', { name: 'Focus studio', exact: true }).click();
   await expect(teacher.getByRole('navigation', { name: 'Teacher workspace' })).toBeHidden();
   await expect(teacher.getByRole('heading', { name: 'Refraction at the water surface' })).toBeVisible();
+  await teacher.getByRole('button', { name: 'Lesson notes & sources' }).click();
   await expect(teacher.locator('.cue .sources')).toContainText('teacher-notes.md');
+  await teacher.getByRole('button', { name: 'Return to studio' }).click();
   expect(await teacher.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await teacher.getByRole('navigation', { name: 'Presentation controls' }).evaluate(element => element.getBoundingClientRect().bottom <= innerHeight)).toBe(true);
   await teacher.screenshot({ path: info.outputPath('projector-refraction.png'), fullPage: true });
   await teacher.reload();
   await expect(teacher.locator('.cue')).toHaveAttribute('data-presentation-step-id', 'step-refraction');
-  await expect(teacher.getByRole('button', { name: 'Expand projector view' })).toBeVisible();
+  await expect(teacher.getByRole('button', { name: 'Focus studio', exact: true })).toBeVisible();
+  await teacher.getByRole('button', { name: 'Lesson notes & sources' }).click();
   await teacher.getByText('Classroom timeline', { exact: false }).click();
   await expect(teacher.locator('.classroom-history li')).toHaveCount(4);
+  await teacher.getByRole('button', { name: 'Return to studio' }).click();
   const presented = await stored(teacher);
   for (let i = 0; i < presented.length; i++) {
     const { classroomTimeline, ...content } = presented[i];
@@ -67,11 +74,13 @@ test('approved manual presentation persists actual visits and learners revisit t
   await teacher.close();
   const reopened = await context.newPage();
   await reopened.goto('http://127.0.0.1:4274');
+  await reopened.getByRole('button', { name: 'Teach / projector', exact: true }).click();
   await expect(reopened.locator('.cue')).toHaveAttribute('data-presentation-step-id', 'step-refraction');
   await reopened.getByRole('button', { name: 'Prepare lesson', exact: true }).click();
   const files: string[] = [];
   for (const [label, pin] of [['Student A', '111111'], ['Student B', '222222']]) {
     const download = reopened.waitForEvent('download');
+    await teacherTransfers(reopened);
     await reopened.getByRole('button', { name: `Export ${label} package` }).click();
     const path = (await download).path(); files.push((await path)!);
     const result = validateLessonPackage(await decryptPayload(JSON.parse(await readFile(files.at(-1)!, 'utf8')), pin));
@@ -88,8 +97,9 @@ test('approved manual presentation persists actual visits and learners revisit t
   await page.goto('/');
   await page.getByLabel('Six-digit PIN').fill('111111');
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
   await page.getByLabel('Import lesson file').setInputFiles(files[0]);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await expect(page.getByText('Prepared-content demo ready offline', { exact: true })).toBeVisible();
   await context.setOffline(true);
   await page.getByText('Revisit the classroom timeline', { exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Learner concept timeline' }).getByRole('button')).toHaveCount(4);
@@ -106,6 +116,7 @@ test('approved manual presentation persists actual visits and learners revisit t
   await page.reload();
   await page.getByLabel('Six-digit PIN').fill('111111');
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
   await expect(page.locator('.lesson-step')).toHaveAttribute('data-step-id', 'step-refraction');
   await page.getByText('Revisit the classroom timeline', { exact: true }).click();
   await page.getByRole('navigation', { name: 'Learner concept timeline' }).getByRole('button', { name: '1. Light travels along straight paths' }).click();
@@ -114,6 +125,7 @@ test('approved manual presentation persists actual visits and learners revisit t
   await page.getByLabel('Your profile').selectOption('student-b1c2d3e4');
   await page.getByLabel('Six-digit PIN').fill('222222');
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
   await page.getByLabel('Import lesson file').setInputFiles(files[1]);
   await page.getByRole('button', { name: 'Next lesson step' }).click();
   await expect(page.locator('.content-card[data-variant-id]')).toHaveAttribute('data-variant-id', 'refraction-stepwise');

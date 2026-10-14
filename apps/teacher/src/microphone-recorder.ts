@@ -7,6 +7,7 @@ export interface TeacherRecorder { cue(stepId: string): void; pause(): void; res
 
 export async function startTeacherRecorder(lesson: LessonPackage, callbacks: {
   state: (state: CaptureState, elapsedMs: number) => void;
+  visual?: (cue: RecordingCue) => void;
   stopped: (recording: LessonRecording) => void;
   failed: (error: Error) => void;
   signal?: AbortSignal;
@@ -18,6 +19,7 @@ export async function startTeacherRecorder(lesson: LessonPackage, callbacks: {
   }
   const encoder = await createOpusEncoder();
   const context = new AudioContext({ sampleRate: 48000 });
+  let unlock: (() => void) | undefined;
   let stream: MediaStream | undefined;
   let node: AudioWorkletNode | undefined;
   let disposed = false;
@@ -28,6 +30,7 @@ export async function startTeacherRecorder(lesson: LessonPackage, callbacks: {
   const startedAt = new Date().toISOString();
   const release = () => {
     disposed = true;
+    unlock?.(); unlock = undefined;
     callbacks.signal?.removeEventListener('abort', release);
     stream?.getTracks().forEach(track => track.stop());
     node?.disconnect();
@@ -38,6 +41,15 @@ export async function startTeacherRecorder(lesson: LessonPackage, callbacks: {
   callbacks.signal?.addEventListener('abort', release, { once: true });
   try {
     if (callbacks.signal?.aborted) throw new DOMException('Capture cancelled', 'AbortError');
+    if (!navigator.locks) throw new Error('Recording safely across windows needs a current Chrome or Edge browser.');
+    // One recorder per lesson/origin. The projector never requests this lock.
+    await new Promise<void>((resolve, reject) => {
+      void navigator.locks.request(`coteacher-recording-${lesson.lessonId}`, { ifAvailable: true }, async lock => {
+        if (!lock) { reject(new Error('This lesson is already recording in another studio window. Return to that studio to pause or stop it.')); return; }
+        await new Promise<void>(releaseLock => { unlock = releaseLock; resolve(); });
+      }).catch(reject);
+    });
+    if (disposed || callbacks.signal?.aborted) { unlock?.(); throw new DOMException('Capture cancelled', 'AbortError'); }
     // Permission is requested only after the teacher explicitly enables capture.
     stream = await navigator.mediaDevices.getUserMedia({ video: false, audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
     if (disposed) { stream.getTracks().forEach(track => track.stop()); throw new DOMException('Capture cancelled', 'AbortError'); }
@@ -58,7 +70,7 @@ export async function startTeacherRecorder(lesson: LessonPackage, callbacks: {
       }
       if (data.type === 'cue') {
         if (cues.length >= 1000) { fail(new Error('Recording timeline limit reached. Retry with fewer visual transitions.')); return; }
-        cues.push(data.cue);
+        cues.push(data.cue); callbacks.visual?.(data.cue);
       }
       if (data.type === 'state') { state = data.state; elapsed = data.offsetMs; callbacks.state(state, elapsed); }
       if (data.type === 'stopped') {

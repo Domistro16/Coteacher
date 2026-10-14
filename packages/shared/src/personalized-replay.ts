@@ -48,10 +48,22 @@ export function visualCatalog(): VisualAsset[] {
   ];
 }
 
-export function personalizedReplay(lesson: LessonPackage, recording: LessonRecording): LessonPackage {
+type Decision = NonNullable<NonNullable<LessonPackage['playback']>['decision']>;
+export interface ReplayInput { difficulty?: Decision['difficulty']; preference?: Decision['preference'] }
+
+/** Supplied history/preferences are sprint fixtures, never inferred learner types. */
+export function personalizedReplay(lesson: LessonPackage, recording: LessonRecording, input?: ReplayInput): LessonPackage {
+  return buildReplay(lesson, recording, input);
+}
+function buildReplay(lesson: LessonPackage, recording: LessonRecording, input?: ReplayInput, legacy = false): LessonPackage {
   const profile = profiles.find(entry => entry.id === lesson.studentId);
-  if (!profile) throw new Error('This simulated visual rule supports the two demo learners only.');
-  const diagram = profile.replaySupport === 'concrete-diagrams';
+  if (legacy && !profile) throw new Error('This legacy simulated visual rule supports the two demo learners only.');
+  const difficulty = input ? input.difficulty ?? 'insufficient-history' : profile?.recentDifficulty
+    ? profile.replaySupport === 'concrete-diagrams' ? 'boundary-position' : 'boundary-steps' : 'insufficient-history';
+  const representation = input?.preference ?? (difficulty === 'boundary-steps' ? 'ordered-annotations' : 'concrete-diagrams');
+  const decision: Decision = { difficulty, ...(input?.preference ? { preference: input.preference } : {}), representation,
+    basis: input?.preference ? 'learner-preference' : difficulty === 'insufficient-history' ? 'default' : 'simulated-history' };
+  const diagram = legacy ? profile!.replaySupport === 'concrete-diagrams' : representation === 'concrete-diagrams';
   const catalog = visualCatalog();
   const sequence = recording.cues.map((cue, cueIndex) => {
     const visualAssetId = cue.conceptId === 'light-path'
@@ -61,11 +73,16 @@ export function personalizedReplay(lesson: LessonPackage, recording: LessonRecor
     return { ...cue, cueIndex, visualAssetId };
   });
   const used = new Set(sequence.map(cue => cue.visualAssetId));
-  return { ...lesson, recording, visualAssets: catalog.filter(entry => used.has(entry.id)) as LessonPackage['visualAssets'], playback: {
-    recordingId: recording.id, studentId: lesson.studentId, simulated: true, method: 'demo-history-rules-v1',
+  const reason = legacy ? diagram ? 'Simulated profile A: diagram and concrete-observation support after difficulty at the boundary.'
+    : 'Simulated profile B: ordered ray annotations after difficulty following the boundary steps.'
+    : decision.basis === 'default' ? 'History is insufficient: use the prepared concrete-diagram default. All approved help visuals remain available.'
+      : decision.basis === 'learner-preference' ? `Supplied simulated preference: ${representation}. The original voice, objective and timing stay the same.`
+        : diagram ? 'Simulated history: interpreting apparent pencil position was difficult; use concrete diagrams.'
+          : 'Simulated history: following the boundary steps was difficult; use ordered ray annotations.';
+  return { ...lesson, recording, visualAssets: (legacy ? catalog.filter(entry => used.has(entry.id)) : catalog) as LessonPackage['visualAssets'], playback: {
+    recordingId: recording.id, studentId: lesson.studentId, simulated: true, method: legacy ? 'demo-history-rules-v1' : 'prepared-support-rules-v2',
     catalogVersion: visualCatalogVersion,
-    reason: diagram ? 'Simulated profile A: diagram and concrete-observation support after difficulty at the boundary.'
-      : 'Simulated profile B: ordered ray annotations after difficulty following the boundary steps.',
+    reason, ...(!legacy ? { decision } : {}),
     sequence: sequence as NonNullable<LessonPackage['playback']>['sequence'],
   } };
 }
@@ -73,8 +90,10 @@ export function personalizedReplay(lesson: LessonPackage, recording: LessonRecor
 export function checkPersonalizedReplay(lesson: LessonPackage): boolean {
   if (!lesson.playback && !lesson.visualAssets) return true;
   if (!lesson.recording || !lesson.playback || !lesson.visualAssets) return false;
+  if ((lesson.playback.method === 'prepared-support-rules-v2' && !lesson.playback.decision)
+    || (lesson.playback.method === 'demo-history-rules-v1' && lesson.playback.decision)) return false;
   try {
-    const expected = personalizedReplay(lesson, lesson.recording);
+    const expected = buildReplay(lesson, lesson.recording, lesson.playback.decision, lesson.playback.method === 'demo-history-rules-v1');
     return JSON.stringify(expected.playback) === JSON.stringify(lesson.playback)
       && JSON.stringify(expected.visualAssets) === JSON.stringify(lesson.visualAssets);
   } catch { return false; }

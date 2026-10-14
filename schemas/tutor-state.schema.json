@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TutorState", "type": "object", "additionalProperties": false,
+  "required": ["enabled", "studentId", "lessonId", "recordingId", "replies", "memory"],
+  "properties": {
+    "enabled": {"type":"boolean"}, "studentId":{"type":"string"}, "lessonId":{"type":"string"}, "recordingId":{"type":"string"},
+    "replies":{"type":"array","maxItems":100,"items":{"$ref":"#/$defs/reply"}},
+    "memory":{"$ref":"#/$defs/memory"},
+    "liveTurns":{"type":"array","maxItems":200,"items":{"$ref":"#/$defs/liveTurn"}},
+    "checks":{"type":"array","maxItems":40,"items":{"$ref":"#/$defs/check"}},
+    "checkAttempts":{"type":"array","maxItems":200,"items":{"$ref":"#/$defs/checkAttempt"}}
+  },
+  "$defs": {
+    "checkAttempt":{"title":"TutorCheckAttempt","type":"object","additionalProperties":false,"required":["id","checkId","selectedIndex","correctness","answeredAt"],"properties":{
+      "id":{"type":"string","minLength":1,"maxLength":100},"checkId":{"type":"string","minLength":1,"maxLength":100},
+      "selectedIndex":{"type":"integer","minimum":0,"maximum":3},"correctness":{"type":"boolean"},"answeredAt":{"type":"string"}
+    }},
+    "personalization":{"title":"CheckPersonalization","type":"object","additionalProperties":false,"required":["mode","reason","evidenceEventIds","visualAssetId"],"properties":{
+      "mode":{"enum":["guided","standard","application"]},"reason":{"type":"string","minLength":1,"maxLength":400},
+      "evidenceEventIds":{"type":"array","maxItems":10,"uniqueItems":true,"items":{"type":"string","minLength":1}},"visualAssetId":{"type":["string","null"]}
+    }},
+    "check":{"title":"TutorCheck","type":"object","additionalProperties":false,"required":["id","questionId","originalText","conceptId","timelineStepId","positionMs","prompt","options","correctIndex","explanation","sourceRefs","citations","personalization","engine","model","createdAt"],"properties":{
+      "id":{"type":"string","minLength":1,"maxLength":100},"questionId":{"type":"string","minLength":1,"maxLength":100},"originalText":{"type":"string","minLength":1,"maxLength":1500},
+      "conceptId":{"type":"string"},"timelineStepId":{"type":"string"},"positionMs":{"type":"integer","minimum":0},
+      "prompt":{"type":"string","minLength":1,"maxLength":500},"options":{"type":"array","minItems":2,"maxItems":4,"uniqueItems":true,"items":{"type":"string","minLength":1,"maxLength":250}},
+      "correctIndex":{"type":"integer","minimum":0,"maximum":3},"explanation":{"type":"string","minLength":1,"maxLength":1000},
+      "sourceRefs":{"type":"array","minItems":1,"maxItems":6,"uniqueItems":true,"items":{"type":"string"}},"citations":{"type":"array","minItems":1,"maxItems":6,"items":{"$ref":"#/$defs/citation"}},
+      "personalization":{"$ref":"#/$defs/personalization"},"engine":{"enum":["openai","mock"]},"model":{"type":"string"},"createdAt":{"type":"string"},
+      "speechBase64":{"type":["string","null"],"maxLength":1000000}
+    }},
+    "liveTurn":{"title":"LiveTutorTurn","type":"object","additionalProperties":false,"required":["id","sessionId","conceptId","positionMs","role","text","sourceRefs","model","observedAt"],"properties":{
+      "id":{"type":"string","minLength":1,"maxLength":100},"sessionId":{"type":"string","minLength":1,"maxLength":200},
+      "conceptId":{"type":"string"},"positionMs":{"type":"integer","minimum":0},"role":{"enum":["student","avatar"]},
+      "text":{"type":"string","minLength":1,"maxLength":4000},"sourceRefs":{"type":"array","maxItems":6,"uniqueItems":true,"items":{"type":"string"}},
+      "model":{"type":"string"},"observedAt":{"type":"string"}
+    }},
+    "citation":{"title":"TutorCitation","type":"object","additionalProperties":false,"required":["sourceId","title","locator","excerpt","kind"],"properties":{
+      "sourceId":{"type":"string"},"title":{"type":"string"},"locator":{"type":"string"},"excerpt":{"type":"string","maxLength":3000},"kind":{"enum":["lesson","curated"]}
+    }},
+    "reply":{"title":"TutorReply","type":"object","additionalProperties":false,"required":["questionId","originalText","conceptId","timelineStepId","positionMs","status","text","citations","sourceRefs","visualAssetId","engine","model","updatedAt","speechBase64","review"],"properties":{
+      "questionId":{"type":"string"},"originalText":{"type":"string","maxLength":1500},"conceptId":{"type":"string"},"timelineStepId":{"type":"string"},"positionMs":{"type":"integer","minimum":0},
+      "status":{"enum":["queued","answered","deferred","failed"]},"text":{"type":"string","maxLength":2500},"citations":{"type":"array","maxItems":6,"items":{"$ref":"#/$defs/citation"}},
+      "sourceRefs":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+      "visualAssetId":{"type":["string","null"]},"engine":{"enum":["openai","mock","unavailable"]},"model":{"type":"string"},"updatedAt":{"type":"string"},"speechBase64":{"type":["string","null"],"maxLength":1000000},"review":{"enum":["unreviewed","flagged"]}
+    }},
+    "memory":{"title":"LearnerMemory","type":"object","additionalProperties":false,"required":["revision","observations","recommendations"],"properties":{
+      "revision":{"type":"integer","minimum":0},
+      "observations":{"type":"array","maxItems":1000,"items":{"type":"object","additionalProperties":false,"required":["eventId","conceptId","kind","detail"],"properties":{"eventId":{"type":"string"},"conceptId":{"type":"string"},"kind":{"type":"string"},"detail":{"type":"string"}}}},
+      "recommendations":{"type":"array","maxItems":20,"items":{"type":"object","additionalProperties":false,"required":["conceptId","visualAssetId","reason","evidenceEventIds"],"properties":{"conceptId":{"type":"string"},"visualAssetId":{"type":"string"},"reason":{"type":"string"},"evidenceEventIds":{"type":"array","items":{"type":"string"}}}}}
+    }}
+  }
+}

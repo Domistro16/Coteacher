@@ -1,0 +1,9 @@
+/* The five-second cycle is derived from media time in SVG attributes, not CSS time. */
+.lesson-motion-enter { animation:lesson-visual-enter 240ms ease-out both; }
+@keyframes lesson-visual-enter { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+.lesson-motion-enter [data-build] { pointer-events:none; }
+.lesson-watermark { pointer-events:none; user-select:none; }
+.thumbnail .duration-badge { right:auto; left:12px; }
+@media (prefers-reduced-motion:reduce) {
+  .lesson-motion-enter { animation:none!important; transform:none!important; opacity:1!important; }
+}

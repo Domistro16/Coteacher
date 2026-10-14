@@ -2,7 +2,13 @@
 
 Historical first recording iteration. The two-minute WAV limit and common visual
 replay described below are superseded by streaming Opus, reviewed personal scenes
-and shared encrypted media storage. See [the current verification report](personalized-replay-verification.md).
+and shared encrypted media storage. See [personalized replay](personalized-replay-verification.md)
+and the subsequent [primary player and real delivery report](recorded-delivery-verification.md).
+
+The 2026-10-11 [studio/projector report](recording-studio-verification.md)
+supersedes the original inline projector layout and visibility-change auto-pause.
+The current studio uses a clean separate display, local synchronization, visible
+recording controls, and automatic review after a successful save.
 
 Implemented for the existing source-grounded, approved refraction demo. Manual
 presentation is reused; audio is optional and never inferred from slideshow visits.

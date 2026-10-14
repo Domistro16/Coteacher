@@ -21,7 +21,9 @@ describe('reviewed personalized replay contract', () => {
     const b = requirePublishedLesson(personalizedReplay({ ...lesson, studentId: 'student-b1c2d3e4' }, reviewed));
     expect(a.recording).toBe(b.recording); expect(a.objective).toEqual(b.objective);
     expect(a.playback!.sequence.map(({visualAssetId,...cue}) => cue)).toEqual(b.playback!.sequence.map(({visualAssetId,...cue}) => cue));
-    expect(a.visualAssets!.map(asset => asset.layers)).not.toEqual(b.visualAssets!.map(asset => asset.layers));
+    const selectedLayers = (lesson: typeof a) => lesson.playback!.sequence.map(cue => lesson.visualAssets!.find(asset => asset.id === cue.visualAssetId)!.layers);
+    expect(selectedLayers(a)).not.toEqual(selectedLayers(b));
+    expect(a.visualAssets).toEqual(b.visualAssets); // Both also carry the approved alternatives for paused help.
     expect(a.visualAssets!.every(asset => asset.sourceRefs.includes('notes-light'))).toBe(true);
     expect(a.playback!.simulated).toBe(true); expect(a.recording!.audio.mediaKey).toEqual(b.recording!.audio.mediaKey);
     expect(recording.audio.mediaKey).toBeUndefined();

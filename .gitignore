@@ -6,4 +6,10 @@ test-results/
 playwright-report/
 *.tsbuildinfo
 .task-tmp/
+.coteacher-delivery/
+.env
+.env.*
+!.env.example
 pipeline/.narration-*/
+PROMPTS.md
+*.log

@@ -24,6 +24,7 @@
       "$ref": "#/$defs/text"
     },
     "contentOrigin": {
+      "description": "This sprint uses only the supplied manually reviewed demo instruction. Collection and publication reject altered instruction even when approval and source identifiers are structurally valid.",
       "const": "manually-prepared-demo"
     },
     "publication": {
@@ -246,7 +247,10 @@
           "const": true
         },
         "method": {
-          "const": "demo-history-rules-v1"
+          "enum": [
+            "demo-history-rules-v1",
+            "prepared-support-rules-v2"
+          ]
         },
         "catalogVersion": {
           "const": "refraction-visuals-v1"
@@ -296,6 +300,43 @@
               "sourceRefs"
             ]
           }
+        },
+        "decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "difficulty": {
+              "enum": [
+                "boundary-position",
+                "boundary-steps",
+                "insufficient-history"
+              ]
+            },
+            "preference": {
+              "enum": [
+                "concrete-diagrams",
+                "ordered-annotations"
+              ]
+            },
+            "representation": {
+              "enum": [
+                "concrete-diagrams",
+                "ordered-annotations"
+              ]
+            },
+            "basis": {
+              "enum": [
+                "simulated-history",
+                "learner-preference",
+                "default"
+              ]
+            }
+          },
+          "required": [
+            "difficulty",
+            "representation",
+            "basis"
+          ]
         }
       },
       "required": [
@@ -476,6 +517,53 @@
                 "mimeType",
                 "mediaId",
                 "byteLength"
+              ]
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sampleRate": {
+                  "enum": [
+                    16000,
+                    48000
+                  ]
+                },
+                "channels": {
+                  "const": 1
+                },
+                "mediaKey": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]{43}=$"
+                },
+                "mimeType": {
+                  "enum": [
+                    "audio/wav",
+                    "audio/ogg;codecs=opus"
+                  ]
+                },
+                "byteLength": {
+                  "type": "integer",
+                  "minimum": 45,
+                  "maximum": 20000000
+                },
+                "mediaUrl": {
+                  "type": "string",
+                  "pattern": "^/api/recorded-lessons/[a-f0-9]{64}/audio\\?key=[a-f0-9]{64}$"
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "sampleRate",
+                "channels",
+                "mediaKey",
+                "mimeType",
+                "byteLength",
+                "mediaUrl",
+                "sha256"
               ]
             }
           ]

@@ -1,9 +1,11 @@
+import { openPreparedCompatibility } from './compatibility';
 import { expect, test, type Page, type BrowserContext } from '@playwright/test';
 
 async function unlock(page: Page, profile = 'student-a1b2c3d4', pin = '111111') {
   await page.getByLabel('Your profile').selectOption(profile);
   await page.getByLabel('Six-digit PIN').fill(pin);
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
 }
 async function saved(page: Page) {
   await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
@@ -27,9 +29,10 @@ async function offline(page: Page, context: BrowserContext) {
     });
   });
   await page.goto('/'); await unlock(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
   await saved(page);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await expect(page.getByText('Prepared-content demo ready offline', { exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => navigator.serviceWorker.controller ? undefined : new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true }))));
   await context.setOffline(true);
   return async () => {
@@ -65,6 +68,7 @@ test('unseen rotation survives manual views, navigation, offline reload and sepa
   await expect(page.getByRole('region', { name: 'Safety notes', exact: true })).toContainText('plastic');
   await page.getByRole('button', { name: 'Lock / switch learner' }).click();
   await unlock(page, 'student-b1c2d3e4', '222222');
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
   await page.getByRole('button', { name: 'Next lesson step' }).click();
   await variant(page, 'refraction-stepwise');

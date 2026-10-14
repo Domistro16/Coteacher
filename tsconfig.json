@@ -18,6 +18,7 @@
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "pipeline/**/*.ts",
+    "delivery/**/*.ts",
     "packages/**/*.ts",
     "tests/**/*.ts",
     "vitest.config.ts",

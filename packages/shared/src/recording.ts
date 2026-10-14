@@ -14,10 +14,13 @@ export function cueForStep(lesson: LessonPackage, timelineStepId: string, offset
 
 /** Equal-time transitions (including paused navigation) resolve to the last visual. */
 export function recordingCueAt(recording: LessonRecording, timeMs: number): RecordingCue {
+  // Native currentTime is seconds. Its millisecond round-trip can fall one ULP
+  // below an exact cue; tolerate arithmetic noise, never a real earlier frame.
+  const boundary = Number.isFinite(timeMs) ? timeMs + Number.EPSILON * Math.max(1, Math.abs(timeMs)) * 4 : timeMs;
   let low = 0, high = recording.cues.length;
   while (low < high) {
     const middle = Math.floor((low + high) / 2);
-    if (recording.cues[middle].offsetMs <= timeMs) low = middle + 1; else high = middle;
+    if (recording.cues[middle].offsetMs <= boundary) low = middle + 1; else high = middle;
   }
   return recording.cues[Math.max(0, low - 1)];
 }

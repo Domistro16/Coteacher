@@ -1,3 +1,5 @@
+import { teacherSources, teacherReview, teacherTransfers, expectTeacherExport } from './teacher-navigation';
+import { openPreparedCompatibility } from './compatibility';
 import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { demoLessons, encryptPayload, queuedDemoQuestion } from '@coteacher/shared';
@@ -6,6 +8,7 @@ async function unlock(page: Page, profile = 'student-a1b2c3d4', pin = '111111') 
   await page.getByLabel('Your profile').selectOption(profile);
   await page.getByLabel('Six-digit PIN').fill(pin);
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
 }
 async function saved(page: Page) { await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible(); }
 async function ask(page: Page, text: string) {
@@ -26,10 +29,14 @@ test('complete school collection, offline study, two learners, teacher insights,
   const teacher = await context.newPage();
   await teacher.setViewportSize({ width: 1280, height: 900 });
   await teacher.goto('http://127.0.0.1:4274');
+  await teacherSources(teacher);
   await teacher.getByLabel('Teacher notes (.md / .txt)').setInputFiles('fixtures/demo-lesson/teacher-notes.md');
+  await expect(teacher.locator('.uploaded-source')).toHaveCount(1);
+  await expect(teacher.getByLabel('Approved activity source (.md / .txt)')).toBeEnabled();
   await teacher.getByLabel('Approved activity source (.md / .txt)').setInputFiles('fixtures/demo-lesson/activity-notes.md');
+  await expect(teacher.locator('.uploaded-source')).toHaveCount(2);
   await teacher.getByRole('button', { name: 'Generate simulated lesson' }).click();
-  await expect(teacher.getByRole('button', { name: 'Export Student A package' })).toBeDisabled();
+  await expectTeacherExport(teacher, false);
   await teacher.getByRole('checkbox').check();
   await teacher.getByRole('button', { name: 'Approve lesson', exact: true }).click();
   await teacher.screenshot({ path: info.outputPath('teacher-preparation.png'), fullPage: true });
@@ -39,16 +46,17 @@ test('complete school collection, offline study, two learners, teacher insights,
   await expect(teacher.getByRole('heading', { name: 'Refraction at the water surface' })).toBeVisible();
   await teacher.getByRole('button', { name: 'Prepare lesson', exact: true }).click();
   const packageDownload = teacher.waitForEvent('download');
+  await teacherTransfers(teacher);
   await teacher.getByRole('button', { name: 'Export Student A package' }).click();
   const packagePath = (await packageDownload).path();
   await teacher.getByRole('button', { name: 'Class insights' }).click();
-  await expect(teacher.getByText('12 / 18 learners paused or asked an unmatched question')).toBeVisible();
+  await expect(teacher.getByText('4 / 18 learners with support signals')).toBeVisible();
 
   await page.goto('/');
   await unlock(page);
   await page.getByLabel('Import lesson file').setInputFiles((await packagePath)!);
   await saved(page);
-  await expect(page.getByText('Ready offline', { exact: true })).toBeVisible();
+  await expect(page.getByText('Prepared-content demo ready offline', { exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => navigator.serviceWorker.controller ? undefined : new Promise<void>(resolve => navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once:true }))));
   await context.setOffline(true);
   await page.reload();
@@ -85,7 +93,7 @@ test('complete school collection, offline study, two learners, teacher insights,
   await ask(page,queuedDemoQuestion);
   await expect(page.locator('.answer')).toContainText('I do not have a prepared answer');
   await ask(page,'How does a rainbow form?');
-  await page.getByRole('button', { name: 'Take my quiz' }).click();
+  await page.getByRole('button', { name: 'Check what the activity demonstrates' }).click();
   await expect(page.getByRole('heading', { name: 'How does light travel in a uniform medium?' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Light changes direction at the angled water-air boundary', exact: true }).click();
   await expect(page.locator('.quiz-card').getByText(/You’ve got it/)).toBeVisible();
@@ -98,6 +106,7 @@ test('complete school collection, offline study, two learners, teacher insights,
   expect(await readFile((await progressPath)!,'utf8')).not.toContain('rainbow');
   await page.getByRole('button', { name: 'Lock / switch learner' }).click();
   await unlock(page,'student-b1c2d3e4','222222');
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
   await page.getByRole('button', { name: 'Enable narration', exact: true }).click();
   await page.getByRole('button', { name: 'Next lesson step' }).click();
@@ -113,12 +122,21 @@ test('complete school collection, offline study, two learners, teacher insights,
   expect(await page.evaluate(() => (window as unknown as {__networkAttempts:string[]}).__networkAttempts)).toEqual([]);
 
   await context.setOffline(false);
+  await teacherTransfers(teacher);
   await teacher.getByLabel('Learner’s six-digit PIN').fill('111111');
+  await teacherTransfers(teacher);
   await teacher.getByLabel('Import encrypted progress').setInputFiles((await progressPath)!);
   await expect(teacher.getByText('Progress imported. Class insights updated.')).toBeVisible();
-  await expect(teacher.getByText('13 / 19 learners paused or asked an unmatched question')).toBeVisible();
+  await teacher.getByRole('button', { name: 'Class insights', exact: true }).click();
+  await teacher.getByRole('button', { name: 'Class insights', exact: true }).click();
+  await teacher.getByLabel('Learning records').selectOption('received');
+  await expect(teacher.getByText('1 / 1 learners with support signals')).toBeVisible();
+  await teacher.getByLabel('Learning records').selectOption('seeded');
+  await expect(teacher.getByText('4 / 18 learners with support signals')).toBeVisible();
+  await teacherTransfers(teacher);
   await teacher.getByLabel('Import encrypted progress').setInputFiles((await progressPath)!);
   await expect(teacher.getByRole('alert')).toContainText('already imported');
+  await teacherTransfers(teacher);
   await teacher.getByText('Review imported queued questions', { exact:true }).click();
   await teacher.getByRole('button', { name: 'Run simulated answer return' }).click();
   const returnedDownload = teacher.waitForEvent('download');
@@ -133,10 +151,11 @@ test('complete school collection, offline study, two learners, teacher insights,
 
 test('bundled collection survives closing the tab and locks learner progress', async ({page,context}) => {
   await page.goto('/'); await unlock(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button',{name:'Collect demo lesson'}).click();
   await page.getByRole('button',{name:'Next lesson step'}).click();
   await page.getByRole('button',{name:'Pause here / explain again'}).click();
-  await saved(page); await expect(page.getByText('Ready offline',{exact:true})).toBeVisible();
+  await saved(page); await expect(page.getByText('Prepared-content demo ready offline',{exact:true})).toBeVisible();
   await context.setOffline(true); await page.close();
   const reopened = await context.newPage(); await reopened.goto('http://127.0.0.1:4273/');
   await unlock(reopened,'student-a1b2c3d4','222222');
@@ -154,9 +173,11 @@ test('rejects wrong profile, corrupt transfer, unsupported sources, and fits nar
   await expect(page.getByRole('alert')).toContainText('different profile');
   await page.getByLabel('Import lesson file').setInputFiles({name:'broken.json',mimeType:'application/json',buffer:Buffer.from('{broken')});
   await expect(page.getByRole('alert')).toContainText('valid Coteacher JSON');
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button',{name:'Collect demo lesson'}).click(); await saved(page); await fit(page);
   const teacher = await context.newPage(); await teacher.setViewportSize({width:320,height:720});
   await teacher.goto('http://127.0.0.1:4274'); await fit(teacher);
+  await teacherSources(teacher);
   await teacher.getByRole('button',{name:'Use reviewed demo materials'}).click();
   await teacher.getByLabel('Teacher notes (.md / .txt)').setInputFiles({name:'unsupported.md',mimeType:'text/plain',buffer:Buffer.from('Teach algebra')});
   await teacher.getByRole('button',{name:'Generate simulated lesson'}).click();
@@ -167,8 +188,9 @@ test('rejects wrong profile, corrupt transfer, unsupported sources, and fits nar
 test('storage failure is visible and does not claim readiness', async ({page}) => {
   await page.addInitScript(() => { IDBObjectStore.prototype.put = () => { throw new DOMException('Storage full','QuotaExceededError'); }; });
   await page.goto('/'); await unlock(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button',{name:'Collect demo lesson'}).click();
   await expect(page.getByText('Not saved — retry before leaving',{exact:true})).toBeVisible();
-  await expect(page.getByText('Ready offline',{exact:true})).toHaveCount(0);
+  await expect(page.getByText('Prepared-content demo ready offline',{exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Export my progress'})).toBeDisabled();
 });

@@ -1,0 +1,274 @@
+{
+  "result": "PASS",
+  "scope": "Production UI, native quiz dialog and recorded media, IndexedDB, encrypted local school sync. Mocked microphone/live transport and answer/check provider; browser network disabled for offline tests with an explicit offline status across reload. No human audio or OpenAI calls.",
+  "startedAt": "2026-10-14T16:53:00.792Z",
+  "checks": {
+    "preparedCheckAndEscape": "PASS",
+    "spokenQuestionSpecificModalAndPersonalization": "PASS",
+    "modalFocusSourcesGeometryAndMobile": "PASS",
+    "savedAttemptAndResume": "PASS",
+    "otherLearnerUsesOwnHistory": "PASS",
+    "offlineCachedCheckAndDurableAttempts": "PASS",
+    "noUnrelatedFallbackForUncachedQuestion": "PASS"
+  },
+  "api": [
+    {
+      "method": "POST",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 409,
+      "durationMs": 4.375
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1589.532
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "status": 200,
+      "durationMs": 222.834
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "status": 200,
+      "durationMs": 178.635
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1894.028
+    },
+    {
+      "method": "POST",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 409,
+      "durationMs": 5.825
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1782.387
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1101.927
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 304,
+      "durationMs": 640.484
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1766.045
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 902.887
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/check",
+      "status": 200,
+      "durationMs": 1957.48
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 868.55
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 2042.611
+    },
+    {
+      "method": "POST",
+      "path": "/api/progress/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 409,
+      "durationMs": 3.679
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1532.304
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "status": 200,
+      "durationMs": 178.625
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1880.777
+    },
+    {
+      "method": "POST",
+      "path": "/api/progress/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 409,
+      "durationMs": 4.04
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1540.758
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1172.257
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 304,
+      "durationMs": 608.97
+    },
+    {
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1616.545
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1039.154
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-b1c2d3e4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/check",
+      "status": 200,
+      "durationMs": 2116.745
+    },
+    {
+      "method": "GET",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 366.944
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200,
+      "durationMs": 1490.128
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "status": 200,
+      "durationMs": 222.863
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "focus": [
+    {
+      "tag": "A",
+      "text": "https://spaceplace.nasa.gov/telescopes/en/#lenses",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Back to our conversation",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Return to recorded lesson",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "×",
+      "inside": true
+    },
+    {
+      "tag": "SUMMARY",
+      "text": "Why this check?",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "AThe light can bend.",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "BThe lens physically bends.",
+      "inside": true
+    },
+    {
+      "tag": "SUMMARY",
+      "text": "Answer sources · 1",
+      "inside": true
+    },
+    {
+      "tag": "A",
+      "text": "https://spaceplace.nasa.gov/telescopes/en/#lenses",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Back to our conversation",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "Return to recorded lesson",
+      "inside": true
+    },
+    {
+      "tag": "BUTTON",
+      "text": "×",
+      "inside": true
+    }
+  ],
+  "originalPauseMs": 12669,
+  "personalizations": [
+    {
+      "question": "How does a curved lens bend light like water?",
+      "mode": "guided",
+      "evidenceIDs": [
+        "event-a8b83803-cdbb-4f3e-9178-ec855072ad9b"
+      ]
+    },
+    {
+      "question": "How does a curved lens bend light like water?",
+      "mode": "standard",
+      "evidenceIDs": []
+    }
+  ],
+  "finishedAt": "2026-10-14T16:54:01.081Z"
+}

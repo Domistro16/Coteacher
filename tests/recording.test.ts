@@ -79,6 +79,14 @@ describe('real audio and recorded visual contracts', () => {
     expect(recordingCueAt(recording, 1500).timelineStepId).toBe('step-refraction');
     expect(recordingCueAt(recording, 0).timelineStepId).toBe('step-light');
   });
+  it('resolves exact native audio seeks despite floating-point seconds, without anticipating real transitions', () => {
+    const { lesson, recording } = fixture();
+    for (const offset of [16060, 16080, 16220, 16240, 16380, 7234160]) {
+      recording.cues = [cueForStep(lesson, 'step-light', 0), cueForStep(lesson, 'step-refraction', offset)];
+      expect(recordingCueAt(recording, offset / 1000 * 1000).timelineStepId).toBe('step-refraction');
+      expect(recordingCueAt(recording, offset - .0001).timelineStepId).toBe('step-light');
+    }
+  });
 });
 
 describe('actual worklet audio clock', () => {

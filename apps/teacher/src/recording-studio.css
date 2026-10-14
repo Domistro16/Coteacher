@@ -1,0 +1,75 @@
+/* Classroom-only layouts. Student styles and other teacher screens stay intact. */
+.studio-screen .teacher-content {
+  height:calc(100dvh - 78px); min-height:0; max-width:none; padding:12px 20px;
+  display:flex; flex-direction:column; gap:8px;
+}
+.studio-screen .teacher-content > .answer { display:none; }
+.studio-screen .teacher-content > .safety,.studio-screen .loading-line { margin:0; padding:6px 12px; font-size:.8rem; }
+.studio-screen .teacher-footer { display:none; }
+.classroom-studio { min-height:0; flex:1; display:grid; grid-template-rows:minmax(0,1fr) auto; gap:10px; }
+.studio-presentation-slot { min-height:0; }
+.teacher-app .studio-presentation { margin:0; height:100%; display:grid; grid-template-rows:auto minmax(0,1fr) auto auto auto; gap:8px; }
+.studio-presentation .studio-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin:0; }
+.studio-heading .eyebrow { margin:0; font-size:.65rem; }
+.studio-heading .presentation-lesson-title { margin:0; font-size:1rem; font-weight:900; }
+.studio-count { flex-shrink:0; font-size:.8rem; font-weight:800; color:#5930b6; background:#eee7fc; padding:8px 12px; border-radius:12px; }
+.studio-canvas-space { min-height:0; display:grid; place-items:center; container-type:size; border-radius:20px; background:#ebe7f3; }
+.teaching-canvas { aspect-ratio:16/9; min-width:0; width:min(100cqw,177.777cqh); overflow:hidden; background:#fff;
+  border:1px solid #ddd5ed; border-radius:16px; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:6px; padding:12px 18px; box-sizing:border-box; }
+.teaching-canvas h2 { margin:0!important; font-size:clamp(.8rem,2cqw,1.4rem); line-height:1.15; }
+.studio-presentation .teaching-canvas .lesson-visual,.classroom-projector .teaching-canvas .lesson-visual {
+  width:100%; max-width:none; height:100%; min-height:0; margin:0; display:flex; align-items:center; justify-content:center;
+}
+.teaching-canvas .lesson-visual svg { width:100%; height:100%; max-height:100%; }
+.teaching-canvas .lesson-visual figcaption { display:none; }
+.studio-presentation .teaching-canvas .explanation,.classroom-projector .teaching-canvas .explanation {
+  margin:0; max-width:none; font-size:clamp(.7rem,1.6cqw,1.05rem); line-height:1.25; color:#242039;
+}
+.studio-display-tools { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.teacher-app .studio-display-tools button { font-size:.75rem; padding:6px 12px; min-height:44px; }
+.studio-display-tools [role=status] { margin-left:auto; font-size:.7rem; color:#5b526b; }
+.studio-presentation .timeline-navigation { display:flex; flex-wrap:nowrap; align-items:center; gap:8px; margin:0; }
+.studio-presentation .timeline-navigation span { text-align:center; flex:1; font-size:.8rem; font-weight:800; }
+.studio-presentation .timeline-navigation button { flex-shrink:0; }
+.studio-presentation .concept-navigation { margin:0; flex-wrap:nowrap; overflow-x:auto; }
+.studio-presentation .concept-navigation button { margin:0; min-height:44px; white-space:nowrap; font-size:.75rem; padding:8px 12px; }
+.teacher-app .classroom-studio .recording-panel { padding:10px 14px; margin:0; border:1px solid #ddd5ed; border-radius:16px; box-shadow:0 4px 18px #24203908; }
+.classroom-studio .recording-controls { gap:8px; }
+.classroom-studio .recording-controls .recording-status { margin:0; padding:8px 10px; flex:1; min-width:180px; }
+.recording-timer { margin-left:12px; font-variant-numeric:tabular-nums; font-weight:900; }
+.classroom-studio .recording-controls .check { margin:0; font-size:.8rem; order:1; }
+.classroom-studio .recording-controls .check input { min-height:0; }
+.classroom-studio .recording-controls button { font-size:.8rem; padding:8px 14px; }
+.teacher-app .stop-recording { color:#a5213b; border-color:#ecc0ca; background:#fff2f4; }
+.classroom-studio .recording-guidance { margin:5px 0 0; font-size:.7rem; line-height:1.25; }
+.classroom-studio .recording-panel .safety { margin:4px 0 0; padding:8px; font-size:.8rem; }
+.classroom-studio:has(.recording-review) { overflow-y:auto; grid-template-rows:minmax(320px,1fr) auto; }
+.studio-notes { width:min(620px,calc(100vw - 32px)); max-height:80dvh; overflow:auto; padding:24px; border:1px solid #ddd5ed; border-radius:20px; color:#242039; background:#fff; }
+.studio-notes::backdrop { background:#24203980; }
+.projector-error { position:fixed; top:80px; right:12px; z-index:30; width:min(360px,calc(100vw - 24px)); margin:0; font-size:.8rem; padding:12px; box-shadow:0 8px 30px #24203930; }
+.projector-error p { margin:0 0 8px; }
+.studio-focus .teacher-sidebar,.studio-focus .teacher-topbar,.studio-focus .teacher-footer { display:none; }
+.studio-focus .teacher-body { margin:0; padding-top:0; }
+.studio-screen.studio-focus .teacher-content { height:100dvh; padding:12px; }
+.classroom-projector { height:100dvh; width:100%; position:relative; background:#12101d; overflow:hidden; display:grid; place-items:center; container-type:size; outline:none; }
+.classroom-projector .teaching-canvas { width:min(100cqw,177.777cqh); border:0; border-radius:0; padding:2cqw; gap:1cqh; }
+.classroom-projector .teaching-canvas h2 { font-size:clamp(1rem,3cqw,2.8rem); }
+.classroom-projector .teaching-canvas .explanation { font-size:clamp(.9rem,2cqw,1.8rem); }
+.projector-waiting { position:absolute; bottom:12px; left:50%; transform:translateX(-50%); background:#242039; color:#fff; padding:12px 18px; border-radius:12px; max-width:90%; text-align:center; }
+@media (max-width:800px) {
+  .studio-screen .teacher-topbar { display:none; }
+  .studio-screen .teacher-content { height:calc(100dvh - 64px); padding:8px; }
+  .studio-presentation .studio-heading .presentation-lesson-title { font-size:.8rem; line-height:1.2; }
+  .studio-count { font-size:.7rem; padding:6px; }
+  .studio-presentation .timeline-navigation span { display:none; }
+  .studio-presentation .timeline-navigation button { flex:1; padding:7px; font-size:.8rem; }
+  .studio-display-tools { gap:4px; }
+  .teacher-app .studio-display-tools button { flex:1; padding:4px; font-size:.68rem; }
+  .studio-display-tools [role=status] { width:100%; margin:0; line-height:1; }
+  .studio-presentation .concept-navigation button { flex:0 0 auto; font-size:.7rem; }
+  .teacher-app .classroom-studio .recording-panel { padding:8px; }
+  .classroom-studio .recording-controls .recording-status { flex-basis:100%; padding:4px 8px; font-size:.75rem; }
+  .classroom-studio .recording-controls button { flex:1; font-size:.75rem; padding:6px; }
+  .teaching-canvas { padding:6px; gap:4px; }
+}
+@media (prefers-reduced-motion:reduce) { .classroom-projector * { animation:none!important; transition:none!important; } }

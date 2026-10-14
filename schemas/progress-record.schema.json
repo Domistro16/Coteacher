@@ -103,6 +103,9 @@
         },
         {
           "$ref": "#/$defs/tryItFollowUpEvent"
+        },
+        {
+          "$ref": "#/$defs/visualExploredEvent"
         }
       ]
     },
@@ -124,6 +127,9 @@
           "$ref": "#/$defs/id"
         },
         "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventId": {
           "$ref": "#/$defs/id"
         }
       },
@@ -152,6 +158,9 @@
         },
         "variantId": {
           "$ref": "#/$defs/id"
+        },
+        "eventId": {
+          "$ref": "#/$defs/id"
         }
       },
       "required": [
@@ -179,6 +188,9 @@
           "$ref": "#/$defs/id"
         },
         "variantId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventId": {
           "$ref": "#/$defs/id"
         }
       },
@@ -211,6 +223,15 @@
         },
         "matcherScore": {
           "$ref": "#/$defs/score"
+        },
+        "recordedContext": {
+          "$ref": "#/$defs/recordedQuestionContext"
+        },
+        "originalText": {
+          "$ref": "#/$defs/text"
+        },
+        "eventId": {
+          "$ref": "#/$defs/id"
         }
       },
       "required": [
@@ -220,7 +241,15 @@
         "conceptId",
         "questionId",
         "matcherScore"
-      ]
+      ],
+      "dependentRequired": {
+        "originalText": [
+          "recordedContext"
+        ],
+        "recordedContext": [
+          "originalText"
+        ]
+      }
     },
     "questionNoMatchEvent": {
       "type": "object",
@@ -243,6 +272,9 @@
         },
         "matcherScore": {
           "$ref": "#/$defs/score"
+        },
+        "eventId": {
+          "$ref": "#/$defs/id"
         }
       },
       "required": [
@@ -271,6 +303,16 @@
         },
         "correctness": {
           "type": "boolean"
+        },
+        "selectedIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "eventId": {
+          "$ref": "#/$defs/id"
         }
       },
       "required": [
@@ -304,6 +346,9 @@
           "$ref": "#/$defs/text"
         },
         "questionId": {
+          "$ref": "#/$defs/id"
+        },
+        "eventId": {
           "$ref": "#/$defs/id"
         }
       },
@@ -344,6 +389,9 @@
         },
         "answered": {
           "const": false
+        },
+        "recordedContext": {
+          "$ref": "#/$defs/recordedQuestionContext"
         }
       },
       "required": [
@@ -378,6 +426,15 @@
         },
         "sourceRefs": {
           "$ref": "#/$defs/sourceRefs"
+        },
+        "recordedContext": {
+          "$ref": "#/$defs/recordedQuestionContext"
+        },
+        "answerOrigin": {
+          "enum": [
+            "teacher-reviewed",
+            "simulated-prepared"
+          ]
         }
       },
       "required": [
@@ -388,6 +445,93 @@
         "answered",
         "answer",
         "sourceRefs"
+      ]
+    },
+    "visualExploredEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "visual-explored"
+        },
+        "origin": {
+          "enum": ["learner-choice", "prepared-help", "connected-help"],
+          "description": "How this representation was shown. Missing on legacy events; never infer an explicit preference from missing or automatic origin."
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "conceptId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "timelineStepId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "recordingId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "visualAssetId": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "positionMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 21600000
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "eventId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "conceptId",
+        "timelineStepId",
+        "recordingId",
+        "positionMs",
+        "visualAssetId",
+        "sourceRefs"
+      ]
+    },
+    "recordedQuestionContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "studentId": {
+          "$ref": "#/$defs/id"
+        },
+        "lessonId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "recordingId": {
+          "$ref": "#/$defs/id"
+        },
+        "positionMs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 21600000
+        }
+      },
+      "required": [
+        "studentId",
+        "lessonId",
+        "conceptId",
+        "recordingId",
+        "positionMs"
       ]
     }
   }

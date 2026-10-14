@@ -55,15 +55,24 @@ export interface QueuedAnswerProvider { answer(question: QueuedQuestion): Queued
 export const simulatedAnswerProvider: QueuedAnswerProvider = {
   answer(question) {
     if (question.answered || normalize(question.text).toLowerCase().replace(/[?.!]+$/, '') !== queuedDemoQuestion.toLowerCase().replace('?', '')) return question;
-    return { ...question, answered: true, answer: 'Use a clear plastic cup, never glass. Ask an adult to help, and keep the water away from electrical equipment.', sourceRefs: ['notes-activity'] };
+    return { ...question, answered: true, answerOrigin: 'simulated-prepared', answer: 'Use a clear plastic cup, never glass. Ask an adult to help, and keep the water away from electrical equipment.', sourceRefs: ['notes-activity'] };
   },
 };
 export function mergeReturnedAnswers(local: ProgressRecord, returned: ProgressRecord, lesson: LessonPackage): ProgressRecord {
   if (!validateProgressRecord(returned, lesson).valid) throw new Error('The returned progress does not belong to this lesson and profile.');
   return { ...local, queuedQuestions: local.queuedQuestions.map(q => {
-    const updated = returned.queuedQuestions.find(item => item.id === q.id && item.text === q.text && item.timelineStepId === q.timelineStepId && item.askedAt === q.askedAt);
+    if (q.answered) return q; // Stale server/file data cannot replace received guidance.
+    const updated = returned.queuedQuestions.find(item => sameQuestionIdentity(item, q));
     return updated?.answered ? updated : q;
   }) };
+}
+/** Submitted question context is immutable, including after teacher resolution. */
+export function sameQuestionIdentity(a: QueuedQuestion, b: QueuedQuestion): boolean {
+  const first = a.recordedContext, second = b.recordedContext;
+  return a.id === b.id && a.text === b.text && a.timelineStepId === b.timelineStepId && a.askedAt === b.askedAt
+    && ((!first && !second) || Boolean(first && second && first.studentId === second.studentId
+      && first.lessonId === second.lessonId && first.conceptId === second.conceptId
+      && first.recordingId === second.recordingId && first.positionMs === second.positionMs));
 }
 export function seededRecords(): ProgressRecord[] {
   return Array.from({ length: 18 }, (_, i) => {

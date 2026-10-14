@@ -1,0 +1,35 @@
+{
+  "scope": "Production app, isolated copy of existing local history and actual encrypted school sync; mocked microphone, peer controls and live transport; no audio or OpenAI",
+  "startedAt": "2026-10-14T13:54:57.978Z",
+  "scenario": "Shorter divergent device history plus two local offline events and one pending question",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "status": 200
+    }
+  ],
+  "result": "PASS",
+  "consoleError": "Failed to load resource: the server responded with a status of 409 (Conflict)",
+  "schoolHistoryRetained": true,
+  "localOfflineWorkRetained": true,
+  "stableIDsNotDuplicated": true,
+  "mergedHistoryPersistedAtSchool": true,
+  "counts": {
+    "schoolEventsBefore": 26,
+    "eventsAfter": 28,
+    "schoolQuestionsBefore": 6,
+    "questionsAfter": 7
+  },
+  "finishedAt": "2026-10-14T13:55:15.779Z"
+}

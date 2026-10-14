@@ -1,0 +1,72 @@
+import { expect, test } from '@playwright/test';
+import { demoLessons, encryptPayload } from '@coteacher/shared';
+import { openPreparedCompatibility } from './compatibility';
+
+test('recording is the default experience and an unavailable or unapproved lesson is never substituted with notes', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Six-digit PIN').fill('111111');
+  await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await expect(page.getByRole('heading', { name: 'Hey, Student A!' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Collect demo lesson' })).toBeHidden();
+  await page.getByRole('button', { name: 'Find my teacher’s lesson' }).click();
+  await expect(page.getByRole('alert')).toContainText('No recorded teacher lesson is published yet');
+  await expect(page.locator('.lesson-step')).toHaveCount(0);
+  const unauthorized = await page.request.post('/api/lessons', { data: { lessons: demoLessons() } });
+  expect(unauthorized.status()).toBe(403);
+  expect((await page.request.get('/api/progress')).status()).toBe(403);
+  expect((await page.request.post('/api/progress/answers/student-a1b2c3d4', { data: {} })).status()).toBe(403);
+  const unrecorded = await page.request.post('http://127.0.0.1:4274/api/lessons', { data: { lessons: demoLessons() } });
+  expect(unrecorded.status()).toBe(400);
+  await expect(page.getByText('Ready offline', { exact: true })).toHaveCount(0);
+});
+
+test('saved notes stay behind explicit compatibility review without erasing existing progress or questions', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Six-digit PIN').fill('111111');
+  await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
+  await page.getByRole('button', { name: 'Collect demo lesson' }).click();
+  await page.getByLabel('Type your question').fill('What does the Moon taste like?');
+  await page.getByRole('button', { name: 'Send question', exact: true }).click();
+  await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Lock / switch learner' }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
+  await page.reload();
+  await page.getByLabel('Six-digit PIN').fill('111111');
+  await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await expect(page.getByRole('heading', { name: 'Hey, Student A!' })).toBeVisible();
+  await expect(page.locator('.lesson-step')).toBeHidden();
+  await expect(page.getByText('Prepared-content demo ready offline', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Ready offline', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Find my teacher’s lesson' }).click();
+  await expect(page.getByRole('alert')).toContainText('No recorded teacher lesson is published yet');
+  await expect(page.locator('.lesson-step')).toBeHidden();
+  await openPreparedCompatibility(page);
+  await expect(page.locator('.lesson-step')).toBeVisible();
+  await expect(page.getByText('What does the Moon taste like?', { exact: true })).toBeVisible();
+});
+
+test('an edited activity cannot reuse approval through an encrypted school transfer', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Six-digit PIN').fill('111111');
+  await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
+  await page.getByRole('button', { name: 'Collect demo lesson' }).click();
+  await page.getByLabel('Type your question').fill('Keep this original learner question.');
+  await page.getByRole('button', { name: 'Send question', exact: true }).click();
+  await expect(page.getByText('Saved on this device', { exact: true })).toBeVisible();
+  const edited = demoLessons()[0];
+  const activity = edited.concepts.flatMap(concept => concept.variants).find(variant => variant.type === 'tryit')!;
+  if (activity.type === 'tryit') activity.steps[0] = 'Use a sharp knife without supervision.';
+  const payload = await encryptPayload(edited, '111111');
+  await page.getByLabel('Import returned answers').setInputFiles({ name: 'altered-approved-lesson.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(payload)) });
+  await expect(page.getByRole('alert')).toContainText('reviewed teaching materials');
+  await expect(page.getByText('Use a sharp knife without supervision.', { exact: true })).toHaveCount(0);
+  await expect(page.locator('.queued')).toContainText('Keep this original learner question.');
+  await page.reload(); await page.getByLabel('Six-digit PIN').fill('111111');
+  await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
+  await expect(page.locator('.queued')).toContainText('Keep this original learner question.');
+});

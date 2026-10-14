@@ -1,3 +1,4 @@
+import { openPreparedCompatibility } from './compatibility';
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 import fixture from '../../fixtures/demo-lesson/lesson-package.json' with { type: 'json' };
 
@@ -29,6 +30,8 @@ async function openOfflinePlayer(page: Page, context: BrowserContext) {
   await page.goto('/');
   await page.getByLabel('Six-digit PIN').fill('111111');
   await page.getByRole('button', { name: 'Unlock my profile' }).click();
+  await openPreparedCompatibility(page);
+  await page.getByText('Prepared-content compatibility demo', { exact: true }).click();
   await page.getByRole('button', { name: 'Collect demo lesson' }).click();
   await expect(page.getByRole('heading', { name: fixture.title, exact: true })).toBeVisible();
   await expect(page.getByRole('article', { name: 'Original', exact: true })).toBeVisible();
@@ -88,7 +91,7 @@ test('studies the fixture and completes Try it offline, returning to the teacher
   await page.getByRole('button', { name: 'Done — return to teacher', exact: true }).tap();
   await expect(page.locator('[data-step-id]')).toHaveAttribute('data-step-id', teacherStep.id);
   await expect(page.getByRole('article', { name: 'Original', exact: true })).toHaveAttribute('data-variant-id', teacherStep.defaultVariantId);
-  await expect(page.getByRole('article')).toContainText(fixture.concepts[1].variants[0].content);
+  await expect(page.getByRole('article', { name: 'Original', exact: true })).toContainText(fixture.concepts[1].variants[0].content);
   await page.getByText("Your teacher's words", { exact: true }).tap();
   await expect(page.locator('.teacher-words').getByText(teacherStep.teacherSaid, { exact: true })).toBeVisible();
   await assertClean();

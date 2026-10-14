@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-10-14T17:15:13.910Z",
+  "publicationUnchanged": true,
+  "profiles": [
+    {
+      "studentId": "student-a1b2c3d4",
+      "progressRetained": true,
+      "liveHistoryRetained": true,
+      "savedRepliesAndAudioRetained": true,
+      "events": 40,
+      "questions": 10,
+      "liveTurns": 35,
+      "replies": 10,
+      "tutorEnabled": true
+    },
+    {
+      "studentId": "student-b1c2d3e4",
+      "noReceivedSchoolRecordInBaseline": true
+    }
+  ],
+  "result": "PASS"
+}

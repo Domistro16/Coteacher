@@ -1,5 +1,11 @@
 # Personalized offline recorded lesson replay
 
+This report records the original replay implementation and its verification.
+New exports use prepared-support-rules-v2, retain all four approved scenes for
+paused help and include an inspectable decision. See
+[visual adaptation verification](visual-adaptation-verification.md) for the
+current behavior, additional tests and limits; legacy v1 packages remain valid.
+
 The teacher preparation → manual classroom presentation → recorded audio/timeline
 → reviewed personal package → offline learner replay journey is implemented for
 the existing light/refraction demo. Student A and B hear the same complete captured
@@ -168,7 +174,9 @@ is simulated audio, not a verified physical teacher voice or classroom conversat
   short WAV fallback that silently truncates a class. Chromium automation passes; Firefox,
   Safari and physical low-end Android microphone/playback/performance remain unverified.
 - Browser storage can be evicted. Keep standalone encrypted package files as backups.
-  There is no server, automatic sync or signed teacher attestation. Public demo PINs are
+  The subsequent [recorded delivery extension](recorded-delivery-verification.md)
+  adds an explicit loopback publishing/streaming/download service. There is no
+  automatic progress sync or signed teacher attestation. Public demo PINs are
   working workflow fixtures, not production authentication.
 - A browser cannot isolate the teacher from nearby students. Use a close microphone,
   pause for discussion and review privacy. Unfinished capture is lost on a forced reload

@@ -19,6 +19,9 @@ export interface LessonPackage {
   subject: Text;
   topic: Text;
   classLevel: Text;
+  /**
+   * This sprint uses only the supplied manually reviewed demo instruction. Collection and publication reject altered instruction even when approval and source identifiers are structurally valid.
+   */
   contentOrigin: "manually-prepared-demo";
   publication:
     | {
@@ -315,7 +318,7 @@ export interface LessonPackage {
     recordingId: Id;
     studentId: StudentId;
     simulated: true;
-    method: "demo-history-rules-v1";
+    method: "demo-history-rules-v1" | "prepared-support-rules-v2";
     catalogVersion: "refraction-visuals-v1";
     reason: string;
     /**
@@ -340,6 +343,12 @@ export interface LessonPackage {
         sourceRefs: SourceRefs;
       }[]
     ];
+    decision?: {
+      difficulty: "boundary-position" | "boundary-steps" | "insufficient-history";
+      preference?: "concrete-diagrams" | "ordered-annotations";
+      representation: "concrete-diagrams" | "ordered-annotations";
+      basis: "simulated-history" | "learner-preference" | "default";
+    };
   };
 }
 export interface Source {
@@ -453,6 +462,15 @@ export interface LessonRecording {
         mimeType: "audio/wav" | "audio/ogg;codecs=opus";
         mediaId: Id;
         byteLength: number;
+      }
+    | {
+        sampleRate: 16000 | 48000;
+        channels: 1;
+        mediaKey: string;
+        mimeType: "audio/wav" | "audio/ogg;codecs=opus";
+        byteLength: number;
+        mediaUrl: string;
+        sha256: string;
       };
   /**
    * @minItems 1

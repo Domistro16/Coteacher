@@ -6,9 +6,11 @@ export type {
   VariantViewedEvent,
   TryItCompletedEvent,
   QuestionMatchedEvent,
+  RecordedQuestionContext,
   QuestionNoMatchEvent,
   QuizAnsweredEvent,
   TryItFollowUpEvent,
+  VisualExploredEvent,
   QueuedQuestion,
   UnansweredQuestion,
   AnsweredQuestion,
@@ -28,3 +30,9 @@ export * from './opus-container';
 export * from './matcher';
 export * from './narration-content';
 export type { PlayerState } from './generated/player-state';
+export * from './progress-sync';
+export type { TutorState, TutorReply, TutorCitation, LearnerMemory, LiveTutorTurn, TutorCheck, TutorCheckAttempt, CheckPersonalization } from './generated/tutor-state';
+export type { TutorCheckRequest } from './generated/tutor-check-request';
+export * from './tutor-check';
+export type { LiveSessionRequest } from './generated/live-session';
+export * from './tutor-memory';

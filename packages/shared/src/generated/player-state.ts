@@ -10,5 +10,9 @@ export interface PlayerState {
   recording?: {
     recordingId: string;
     positionMs: number;
+    support?: {
+      timelineStepId: string;
+      visualAssetId: string;
+    };
   };
 }

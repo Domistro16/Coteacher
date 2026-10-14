@@ -10,14 +10,15 @@ export type Event =
   | QuestionMatchedEvent
   | QuestionNoMatchEvent
   | QuizAnsweredEvent
-  | TryItFollowUpEvent;
+  | TryItFollowUpEvent
+  | VisualExploredEvent;
 export type Score = number;
 export type Text = string;
-export type QueuedQuestion = UnansweredQuestion | AnsweredQuestion;
 /**
  * @minItems 1
  */
 export type SourceRefs = [Id, ...Id[]];
+export type QueuedQuestion = UnansweredQuestion | AnsweredQuestion;
 
 export interface ProgressRecord {
   schemaVersion: "1.0.0";
@@ -39,6 +40,7 @@ export interface NavigationEvent {
   timestamp: Timestamp;
   timelineStepId: Id;
   conceptId: Id;
+  eventId?: Id;
 }
 export interface VariantViewedEvent {
   type: "variant-viewed";
@@ -46,6 +48,7 @@ export interface VariantViewedEvent {
   timelineStepId: Id;
   conceptId: Id;
   variantId: Id;
+  eventId?: Id;
 }
 export interface TryItCompletedEvent {
   type: "tryit-completed";
@@ -53,6 +56,7 @@ export interface TryItCompletedEvent {
   timelineStepId: Id;
   conceptId: Id;
   variantId: Id;
+  eventId?: Id;
 }
 export interface QuestionMatchedEvent {
   type: "question-matched";
@@ -61,6 +65,16 @@ export interface QuestionMatchedEvent {
   conceptId: Id;
   questionId: Id;
   matcherScore: Score;
+  recordedContext?: RecordedQuestionContext;
+  originalText?: Text;
+  eventId?: Id;
+}
+export interface RecordedQuestionContext {
+  studentId: Id;
+  lessonId: Id;
+  conceptId: Id;
+  recordingId: Id;
+  positionMs: number;
 }
 export interface QuestionNoMatchEvent {
   type: "question-no-match";
@@ -69,6 +83,7 @@ export interface QuestionNoMatchEvent {
   conceptId: Id;
   questionId: Id;
   matcherScore?: Score;
+  eventId?: Id;
 }
 export interface QuizAnsweredEvent {
   type: "quiz-answered";
@@ -76,6 +91,9 @@ export interface QuizAnsweredEvent {
   conceptId: Id;
   quizId: Id;
   correctness: boolean;
+  selectedIndex?: number;
+  sourceRefs?: SourceRefs;
+  eventId?: Id;
 }
 export interface TryItFollowUpEvent {
   type: "tryit-follow-up";
@@ -85,6 +103,22 @@ export interface TryItFollowUpEvent {
   variantId: Id;
   text: Text;
   questionId?: Id;
+  eventId?: Id;
+}
+export interface VisualExploredEvent {
+  type: "visual-explored";
+  /**
+   * How this representation was shown. Missing on legacy events; never infer an explicit preference from missing or automatic origin.
+   */
+  origin?: "learner-choice" | "prepared-help" | "connected-help";
+  timestamp: Timestamp;
+  conceptId: string;
+  timelineStepId: string;
+  recordingId: string;
+  visualAssetId: string;
+  positionMs: number;
+  sourceRefs: SourceRefs;
+  eventId?: Id;
 }
 export interface UnansweredQuestion {
   id: Id;
@@ -92,6 +126,7 @@ export interface UnansweredQuestion {
   askedAt: Timestamp;
   timelineStepId: Id;
   answered: false;
+  recordedContext?: RecordedQuestionContext;
 }
 export interface AnsweredQuestion {
   id: Id;
@@ -101,4 +136,6 @@ export interface AnsweredQuestion {
   answered: true;
   answer: Text;
   sourceRefs: SourceRefs;
+  recordedContext?: RecordedQuestionContext;
+  answerOrigin?: "teacher-reviewed" | "simulated-prepared";
 }

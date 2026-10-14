@@ -1,0 +1,35 @@
+import { expect, test } from '@playwright/test';
+import { teacherSources } from './teacher-navigation';
+
+test.use({ launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
+test('a second studio cannot capture this lesson until the first recorder releases its local lock', async ({ page, context }) => {
+  test.setTimeout(60000);
+  await context.grantPermissions(['microphone'], { origin: 'http://127.0.0.1:4274' });
+  await page.goto('http://127.0.0.1:4274'); await teacherSources(page);
+  await page.getByRole('button', { name: 'Use reviewed demo materials' }).click();
+  await page.getByRole('button', { name: 'Generate simulated lesson' }).click();
+  await page.getByRole('checkbox').check(); await page.getByRole('button', { name: 'Approve lesson', exact: true }).click();
+  await page.getByRole('button', { name: 'Teach / projector' }).click(); await page.getByRole('button', { name: 'Start presentation' }).click();
+  await page.getByLabel('Record my explanation only.', { exact: false }).check();
+  await page.getByRole('button', { name: 'Start audio recording' }).click();
+  await expect(page.getByRole('button', { name: 'Pause recording', exact: true })).toBeVisible();
+  const second = await context.newPage();
+  await second.goto('http://127.0.0.1:4274/#/teach');
+  await second.getByLabel('Record my explanation only.', { exact: false }).check();
+  await second.getByRole('button', { name: 'Start audio recording' }).click();
+  await expect(second.getByRole('alert')).toContainText('already recording in another studio');
+  await expect(page.getByRole('button', { name: 'Pause recording', exact: true })).toBeVisible();
+  await page.waitForTimeout(2200);
+  await page.getByRole('button', { name: 'Stop and save recording' }).click();
+  await expect(page.getByRole('heading', { name: 'See what your learners will see.' })).toBeVisible();
+  await second.getByRole('button', { name: 'Start audio recording' }).click();
+  await expect(second.getByRole('alert')).toContainText('saved in another studio');
+  await second.getByRole('button', { name: 'Review your lesson' }).click();
+  await second.getByRole('button', { name: 'Delete recording and rerecord' }).click();
+  await second.getByLabel('Record my explanation only.', { exact: false }).check();
+  await second.getByRole('button', { name: 'Start audio recording' }).click();
+  await expect(second.getByRole('button', { name: 'Pause recording', exact: true })).toBeVisible();
+  await second.waitForTimeout(2200);
+  await second.getByRole('button', { name: 'Stop and save recording' }).click();
+  await expect(second.getByRole('heading', { name: 'See what your learners will see.' })).toBeVisible();
+});
