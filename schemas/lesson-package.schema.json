@@ -1,0 +1,532 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:coteacher:lesson-package:1.0.0",
+  "title": "LessonPackage",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "lessonId": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "$ref": "#/$defs/text"
+    },
+    "subject": {
+      "$ref": "#/$defs/text"
+    },
+    "language": {
+      "$ref": "#/$defs/text"
+    },
+    "simulated": {
+      "type": "boolean"
+    },
+    "studentId": {
+      "$ref": "#/$defs/studentId"
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "conceptIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "text",
+        "conceptIds"
+      ]
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      },
+      "minItems": 1
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/concept"
+      },
+      "minItems": 1
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/timelineStep"
+      },
+      "minItems": 1
+    },
+    "questionBank": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/question"
+      },
+      "minItems": 0
+    },
+    "quiz": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/quizItem"
+      },
+      "minItems": 1
+    },
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "conceptOrder": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "conceptRoutes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "conceptId": {
+                "$ref": "#/$defs/id"
+              },
+              "variantOrder": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/id"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "reason": {
+                "$ref": "#/$defs/text"
+              }
+            },
+            "required": [
+              "conceptId",
+              "variantOrder",
+              "reason"
+            ]
+          },
+          "minItems": 1
+        },
+        "insertedRefreshers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "conceptId": {
+                "$ref": "#/$defs/id"
+              },
+              "variantId": {
+                "$ref": "#/$defs/id"
+              },
+              "beforeConceptId": {
+                "$ref": "#/$defs/id"
+              }
+            },
+            "required": [
+              "conceptId",
+              "variantId",
+              "beforeConceptId"
+            ]
+          },
+          "minItems": 0
+        }
+      },
+      "required": [
+        "conceptOrder",
+        "conceptRoutes",
+        "insertedRefreshers"
+      ]
+    },
+    "matcher": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confidenceThreshold": {
+          "$ref": "#/$defs/score"
+        },
+        "noMatchMessage": {
+          "$ref": "#/$defs/text"
+        }
+      },
+      "required": [
+        "confidenceThreshold",
+        "noMatchMessage"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "lessonId",
+    "title",
+    "subject",
+    "language",
+    "simulated",
+    "studentId",
+    "objective",
+    "sources",
+    "concepts",
+    "timeline",
+    "questionBank",
+    "quiz",
+    "route",
+    "matcher"
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "studentId": {
+      "type": "string",
+      "pattern": "^student-[0-9a-f]{8,32}$"
+    },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "assetPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.(?:/|$))[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.[A-Za-z0-9]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "kind": {
+          "enum": [
+            "notes",
+            "textbook",
+            "reference"
+          ]
+        },
+        "citation": {
+          "$ref": "#/$defs/text"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "citation"
+      ]
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "$ref": "#/$defs/text"
+        },
+        "prerequisiteConceptIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "misconceptions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 0
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/variant"
+          },
+          "minItems": 2
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "prerequisiteConceptIds",
+        "misconceptions",
+        "sourceRefs",
+        "variants"
+      ]
+    },
+    "variant": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/explanationVariant"
+        },
+        {
+          "$ref": "#/$defs/tryItVariant"
+        }
+      ]
+    },
+    "explanationVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "original",
+            "short",
+            "analogy",
+            "stepwise",
+            "refresher"
+          ]
+        },
+        "content": {
+          "$ref": "#/$defs/text"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "visualAssetPath": {
+          "$ref": "#/$defs/assetPath"
+        },
+        "audioAssetPath": {
+          "$ref": "#/$defs/assetPath"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "content",
+        "sourceRefs"
+      ]
+    },
+    "tryItVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "const": "tryit"
+        },
+        "content": {
+          "$ref": "#/$defs/text"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "visualAssetPath": {
+          "$ref": "#/$defs/assetPath"
+        },
+        "audioAssetPath": {
+          "$ref": "#/$defs/assetPath"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 1
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 1
+        },
+        "explainsWhy": {
+          "$ref": "#/$defs/text"
+        },
+        "safetyNotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 1
+        },
+        "returnToStep": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "content",
+        "sourceRefs",
+        "items",
+        "steps",
+        "explainsWhy",
+        "safetyNotes",
+        "returnToStep"
+      ]
+    },
+    "timelineStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "teacherSaid": {
+          "$ref": "#/$defs/text"
+        },
+        "defaultVariantId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      },
+      "required": [
+        "id",
+        "conceptId",
+        "teacherSaid",
+        "defaultVariantId",
+        "sourceRefs"
+      ]
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "question": {
+          "$ref": "#/$defs/text"
+        },
+        "alternatePhrasings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "answer": {
+          "$ref": "#/$defs/text"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        },
+        "audience": {
+          "enum": [
+            "class",
+            "student"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "question",
+        "alternatePhrasings",
+        "answer",
+        "conceptId",
+        "timelineStepId",
+        "sourceRefs",
+        "audience"
+      ]
+    },
+    "quizItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "prompt": {
+          "$ref": "#/$defs/text"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          },
+          "minItems": 2,
+          "uniqueItems": true
+        },
+        "correctIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "explanation": {
+          "$ref": "#/$defs/text"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "misconception": {
+          "$ref": "#/$defs/text"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      },
+      "required": [
+        "id",
+        "prompt",
+        "options",
+        "correctIndex",
+        "explanation",
+        "conceptId",
+        "misconception",
+        "sourceRefs"
+      ]
+    }
+  }
+}

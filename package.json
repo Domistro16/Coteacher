@@ -1,0 +1,34 @@
+{
+  "name": "coteacher",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "pipeline"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm run dev:student",
+    "dev:student": "npm run dev --workspace @coteacher/student",
+    "dev:teacher": "npm run dev --workspace @coteacher/teacher",
+    "build": "npm run build --workspace @coteacher/student && npm run build --workspace @coteacher/teacher",
+    "pipeline": "tsx pipeline/src/cli.ts",
+    "generate:audio": "tsx pipeline/src/narrate.ts",
+    "generate:types": "node scripts/generate-types.mjs",
+    "check:types": "node scripts/generate-types.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run check:types && npm run typecheck && vitest run",
+    "test:e2e": "npm run build && playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "^24.0.0",
+    "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

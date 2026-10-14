@@ -1,0 +1,260 @@
+{
+  "schemaVersion": "1.0.0",
+  "lessonId": "light-and-refraction",
+  "title": "Why does a pencil look bent in water?",
+  "subject": "Science",
+  "language": "en",
+  "simulated": true,
+  "studentId": "Alex Example",
+  "objective": {
+    "text": "Explain that light travels in straight paths in a uniform medium and can change direction at an angled boundary between air and water, making a straight pencil appear bent.",
+    "conceptIds": [
+      "light-path",
+      "refraction"
+    ]
+  },
+  "sources": [
+    {
+      "id": "notes-light",
+      "title": "Simulated teacher notes: light and refraction",
+      "kind": "notes",
+      "citation": "fixtures/demo-lesson/teacher-notes.md, page 1, sections 1-2 (hand-written simulated lesson notes)."
+    },
+    {
+      "id": "notes-activity",
+      "title": "Simulated teacher notes: safe pencil activity",
+      "kind": "notes",
+      "citation": "fixtures/demo-lesson/activity-notes.md, page 1, activity and safety sections (hand-written simulated lesson notes)."
+    }
+  ],
+  "concepts": [
+    {
+      "id": "light-path",
+      "title": "Light travels along straight paths",
+      "prerequisiteConceptIds": [],
+      "misconceptions": [
+        "Light always follows a curved path."
+      ],
+      "sourceRefs": [
+        "notes-light"
+      ],
+      "variants": [
+        {
+          "id": "light-original",
+          "type": "original",
+          "content": "In a uniform medium, such as still air, light travels along a straight path.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        },
+        {
+          "id": "light-refresher",
+          "type": "refresher",
+          "content": "Remember: a light ray is a way to draw the direction light travels. Its path is straight while the medium stays uniform.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "refraction",
+      "title": "Refraction at the water surface",
+      "prerequisiteConceptIds": [
+        "light-path"
+      ],
+      "misconceptions": [
+        "The pencil physically bends when placed in water."
+      ],
+      "sourceRefs": [
+        "notes-light",
+        "notes-activity"
+      ],
+      "variants": [
+        {
+          "id": "refraction-original",
+          "type": "original",
+          "content": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        },
+        {
+          "id": "refraction-short",
+          "type": "short",
+          "content": "The pencil stays straight. Light changes direction on its way from water to air, so the pencil looks bent.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        },
+        {
+          "id": "refraction-analogy",
+          "type": "analogy",
+          "content": "Imagine a toy cart crossing at an angle from a smooth surface onto a slower surface. One side reaches the new surface first, turning the cart. This is an analogy for a change of direction; light is not a cart.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        },
+        {
+          "id": "refraction-stepwise",
+          "type": "stepwise",
+          "content": "1. Light leaves the submerged pencil. 2. It reaches the water-air boundary at an angle. 3. Its speed and direction change. 4. Your eyes receive this light and the pencil appears bent.",
+          "sourceRefs": [
+            "notes-light"
+          ]
+        },
+        {
+          "id": "refraction-tryit",
+          "type": "tryit",
+          "content": "Observe a straight, unsharpened pencil partly immersed in water from the side.",
+          "sourceRefs": [
+            "notes-light",
+            "notes-activity"
+          ],
+          "items": [
+            "One unsharpened pencil with no sharp point",
+            "One clear plastic cup",
+            "A small amount of room-temperature water",
+            "A towel"
+          ],
+          "steps": [
+            "Ask an adult to help. Place the plastic cup on a stable table away from electrical equipment.",
+            "Add a small amount of water and rest the unsharpened pencil partly in the cup.",
+            "Look at the pencil from the side at an angle to the water surface. Compare the parts above and below the surface.",
+            "Lift the pencil out and check that it is still straight. Dry any spills with the towel."
+          ],
+          "explainsWhy": "Light from the underwater part changes direction as it crosses into air at an angle. The apparent bend is caused by refraction, not by a change in the pencil.",
+          "safetyNotes": [
+            "Use a plastic cup, never glass, and an unsharpened pencil without a sharp point.",
+            "Ask an adult to help and keep water away from electrical equipment.",
+            "Do not drink the water or put the pencil in your mouth. Wipe up spills."
+          ],
+          "returnToStep": "step-refraction"
+        }
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "id": "step-light",
+      "conceptId": "light-path",
+      "teacherSaid": "In a uniform medium, light travels along a straight path.",
+      "defaultVariantId": "light-original",
+      "sourceRefs": [
+        "notes-light"
+      ]
+    },
+    {
+      "id": "step-refraction",
+      "conceptId": "refraction",
+      "teacherSaid": "The pencil remains straight. Light changes direction at the angled boundary between water and air, so the underwater part appears displaced.",
+      "defaultVariantId": "refraction-original",
+      "sourceRefs": [
+        "notes-light"
+      ]
+    }
+  ],
+  "questionBank": [
+    {
+      "id": "question-bent",
+      "question": "Why does the pencil look bent in water?",
+      "alternatePhrasings": [
+        "Why does the pencil look broken?",
+        "What makes the underwater part look shifted?"
+      ],
+      "answer": "The pencil is straight. Light changes direction as it passes from water to air at an angle, making the underwater part appear displaced.",
+      "conceptId": "refraction",
+      "timelineStepId": "step-refraction",
+      "sourceRefs": [
+        "notes-light",
+        "notes-activity"
+      ],
+      "audience": "class"
+    },
+    {
+      "id": "question-straight",
+      "question": "Does light travel straight before reaching the water surface?",
+      "alternatePhrasings": [
+        "Is the light path straight in one medium?"
+      ],
+      "answer": "Yes. In a uniform medium light travels along straight paths. Its direction can change at an angled boundary between different media.",
+      "conceptId": "light-path",
+      "timelineStepId": "step-light",
+      "sourceRefs": [
+        "notes-light"
+      ],
+      "audience": "student"
+    }
+  ],
+  "quiz": [
+    {
+      "id": "quiz-light",
+      "prompt": "How does light travel in a uniform medium?",
+      "options": [
+        "Along a straight path",
+        "Always along a curved path"
+      ],
+      "correctIndex": 0,
+      "explanation": "Light travels along a straight path while the medium stays uniform.",
+      "conceptId": "light-path",
+      "misconception": "Light always follows a curved path.",
+      "sourceRefs": [
+        "notes-light"
+      ]
+    },
+    {
+      "id": "quiz-bent",
+      "prompt": "Why does the pencil appear bent at the water surface?",
+      "options": [
+        "The water physically bends the pencil",
+        "Light changes direction at the angled water-air boundary"
+      ],
+      "correctIndex": 1,
+      "explanation": "The pencil stays straight. Refraction changes the direction of light reaching your eyes.",
+      "conceptId": "refraction",
+      "misconception": "The pencil physically bends when placed in water.",
+      "sourceRefs": [
+        "notes-light",
+        "notes-activity"
+      ]
+    }
+  ],
+  "route": {
+    "conceptOrder": [
+      "light-path",
+      "refraction"
+    ],
+    "conceptRoutes": [
+      {
+        "conceptId": "light-path",
+        "variantOrder": [
+          "light-original",
+          "light-refresher"
+        ],
+        "reason": "Review the straight light path before explaining the water boundary. You can skip the review or switch to the teacher's original."
+      },
+      {
+        "conceptId": "refraction",
+        "variantOrder": [
+          "refraction-original",
+          "refraction-short",
+          "refraction-analogy",
+          "refraction-stepwise",
+          "refraction-tryit"
+        ],
+        "reason": "Try a brief explanation or the safe observation if this part is confusing. You can switch to the teacher's original."
+      }
+    ],
+    "insertedRefreshers": [
+      {
+        "conceptId": "light-path",
+        "variantId": "light-refresher",
+        "beforeConceptId": "refraction"
+      }
+    ]
+  },
+  "matcher": {
+    "confidenceThreshold": 0.72,
+    "noMatchMessage": "Hmm, I'm not sure I have that yet, but once I'm online I'll get back to you on that pronto."
+  }
+}

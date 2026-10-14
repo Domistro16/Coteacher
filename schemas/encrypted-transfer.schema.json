@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/encrypted-transfer.schema.json",
+  "title": "EncryptedTransfer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "algorithm", "iterations", "salt", "iv", "ciphertext"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "algorithm": {"const": "PBKDF2-SHA256/AES-256-GCM"},
+    "iterations": {"const": 210000},
+    "salt": {"type": "string", "pattern": "^[A-Za-z0-9+/]{22}==$"},
+    "iv": {"type": "string", "pattern": "^[A-Za-z0-9+/]{16}$"},
+    "ciphertext": {"type": "string", "minLength": 24, "maxLength": 2800000, "pattern": "^[A-Za-z0-9+/]+={0,2}$"}
+  }
+}

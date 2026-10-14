@@ -1,0 +1,394 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:coteacher:progress-record:1.0.0",
+  "title": "ProgressRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "lessonId": {
+      "$ref": "#/$defs/id"
+    },
+    "studentId": {
+      "$ref": "#/$defs/studentId"
+    },
+    "exportedAt": {
+      "$ref": "#/$defs/timestamp"
+    },
+    "simulated": {
+      "type": "boolean"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      },
+      "minItems": 0
+    },
+    "queuedQuestions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/queuedQuestion"
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "lessonId",
+    "studentId",
+    "exportedAt",
+    "simulated",
+    "events",
+    "queuedQuestions"
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "studentId": {
+      "type": "string",
+      "pattern": "^student-[0-9a-f]{8,32}$"
+    },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "assetPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*(?:^|/)\\.(?:/|$))[A-Za-z0-9_-]+(?:/[A-Za-z0-9_.-]+)*\\.[A-Za-z0-9]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "event": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/navigationEvent"
+        },
+        {
+          "$ref": "#/$defs/variantViewedEvent"
+        },
+        {
+          "$ref": "#/$defs/tryItCompletedEvent"
+        },
+        {
+          "$ref": "#/$defs/questionMatchedEvent"
+        },
+        {
+          "$ref": "#/$defs/questionNoMatchEvent"
+        },
+        {
+          "$ref": "#/$defs/quizAnsweredEvent"
+        },
+        {
+          "$ref": "#/$defs/tryItFollowUpEvent"
+        }
+      ]
+    },
+    "navigationEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "pause",
+            "replay",
+            "explain-again"
+          ]
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId"
+      ]
+    },
+    "variantViewedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "variant-viewed"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "variantId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId",
+        "variantId"
+      ]
+    },
+    "tryItCompletedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "tryit-completed"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "variantId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId",
+        "variantId"
+      ]
+    },
+    "questionMatchedEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "question-matched"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "questionId": {
+          "$ref": "#/$defs/id"
+        },
+        "matcherScore": {
+          "$ref": "#/$defs/score"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId",
+        "questionId",
+        "matcherScore"
+      ]
+    },
+    "questionNoMatchEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "question-no-match"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "questionId": {
+          "$ref": "#/$defs/id"
+        },
+        "matcherScore": {
+          "$ref": "#/$defs/score"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId",
+        "questionId"
+      ]
+    },
+    "quizAnsweredEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "quiz-answered"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "quizId": {
+          "$ref": "#/$defs/id"
+        },
+        "correctness": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "conceptId",
+        "quizId",
+        "correctness"
+      ]
+    },
+    "tryItFollowUpEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "tryit-follow-up"
+        },
+        "timestamp": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "conceptId": {
+          "$ref": "#/$defs/id"
+        },
+        "variantId": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "questionId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": [
+        "type",
+        "timestamp",
+        "timelineStepId",
+        "conceptId",
+        "variantId",
+        "text"
+      ]
+    },
+    "queuedQuestion": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/unansweredQuestion"
+        },
+        {
+          "$ref": "#/$defs/answeredQuestion"
+        }
+      ]
+    },
+    "unansweredQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "askedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "answered": {
+          "const": false
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "askedAt",
+        "timelineStepId",
+        "answered"
+      ]
+    },
+    "answeredQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "text": {
+          "$ref": "#/$defs/text"
+        },
+        "askedAt": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "timelineStepId": {
+          "$ref": "#/$defs/id"
+        },
+        "answered": {
+          "const": true
+        },
+        "answer": {
+          "$ref": "#/$defs/text"
+        },
+        "sourceRefs": {
+          "$ref": "#/$defs/sourceRefs"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "askedAt",
+        "timelineStepId",
+        "answered",
+        "answer",
+        "sourceRefs"
+      ]
+    }
+  }
+}

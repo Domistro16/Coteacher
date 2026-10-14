@@ -1,0 +1,9 @@
+node_modules/
+.npm-cache/
+coverage/
+apps/*/dist/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.task-tmp/
+pipeline/.narration-*/
