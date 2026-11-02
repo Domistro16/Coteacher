@@ -1,5 +1,7 @@
 # Sprint phases and acceptance
 
+School/auth, private learning and live-tutor foundations have fictional functional evidence. The follow-up Batches 1–2 PR supplies the student-model baseline and expanded privacy verification. No trained-model, calibration or learning-effectiveness claim is made.
+
 Visual-motion verification on 2026-10-12: **400 unit tests / 21 files** and
 **42/42 browser scenarios** pass, alongside contract/type checks and both builds.
 Five-second instructional SVG cycles, cue-relative play/pause/seek, captured-sample

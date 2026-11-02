@@ -1,18 +1,36 @@
 # Voice: input, spoken replies, and intent handling
 
-**Principle:** voice is the interface; text is the internal representation. Everything Coteacher says is spoken aloud AND shown as captions. The student should never need to read to use it, and never needs to hunt for buttons.
+**Supported scope:** the reviewed demo has prepared spoken clips and matching text.
+Voice availability depends on the content and device. New generated answers may
+be text-only when no prepared clip, connected speech or installed local voice is
+available. Teacher recordings do not have generated captions. Typing and readable
+prepared text remain available offline; audio-only use is not guaranteed.
 
 ## Input (push-to-talk)
-- The microphone listens only while the button is pressed.
-- Online: browser speech recognition or an open-source model. Offline in the sprint: typing is the fallback. On-device open-source recognition (for example Whisper- or Vosk-based) is a stretch goal or next step; test it on Nigerian accents before relying on it.
+- Press-to-talk capture listens while its button is pressed. Explicitly enabled
+  offline voice mode and connected live sessions have separate active-state and
+  stop controls; they are not limited to that press gesture.
+- Connected speech uses the configured provider after opt-in. The optional local
+  browser recognizer is device-dependent; typing is the offline fallback. No
+  Whisper/Vosk or other open-source recognizer has been integrated/evaluated.
+  Open-source speech and Nigerian-accent evaluation remain future milestones.
 - If recognition is low-confidence or unavailable, ask the student to type. Never guess.
 
 ## Output (Coteacher speaks back)
-Every explanation, matched answer, no-match message, quiz feedback and Try it instruction is spoken in a friendly, youthful, student-like persona. Do not imitate or clone the teacher's voice. Mechanism, in order of preference:
-1. **Pre-generated audio** per variant and answer, produced by the pipeline at package build time with a text-to-speech model (open-source or cloud) and shipped as small compressed files (the `audio` field in the schema). No runtime dependency, works offline, consistent voice.
-2. **Browser speech synthesis (`speechSynthesis`)** as the fallback for anything without pre-generated audio, such as answers that arrive after reconnection. Voice quality and language support vary by device.
-3. **Captions always visible,** with play, pause, replay and speed controls.
-If generating audio files is not feasible in the sprint, use speech synthesis everywhere and describe pre-generated audio as the next step. Say so in the README.
+Reviewed demo explanations, fixed answers, feedback and Try it instructions have
+prepared clips. Other text is spoken only when an available speech path supports
+it, with an honest unavailable message otherwise. Use a consistent system voice. Do not imitate or clone the teacher's voice. Mechanism, in order of preference:
+1. **Prepared demo clips** generated from reviewed fixed captions with Windows
+   SAPI/FFmpeg and checked in as compressed MP3 files. Explanation/activity
+   variants use `audioAssetPath`; fixed answers use the exact-text manifest. These
+   cached clips need no runtime speech provider. Arbitrary new lesson/answer audio
+   is not automatically prepared by this fixed-demo pipeline.
+2. **Browser speech synthesis (`speechSynthesis`)** as the fallback for anything without pre-generated audio, such as answers that arrive after reconnection. Only a voice declaring local English support is used for offline fallback.
+   Voice quality and language support vary by device; absent local support leaves text readable.
+3. **Prepared response text remains visible.** Play, pause, replay and speed
+   controls apply to available audio. This does not provide teacher-recording captions.
+When a clip is absent and no local speech voice is available, keep the prepared
+text readable and show an honest speech-availability message.
 
 ## Intent handling (do not hardcode phrases)
 - Recognize a small set of command intents: pause, replay, explain differently, try it, quiz me, repeat.
@@ -21,7 +39,8 @@ If generating audio files is not feasible in the sprint, use speech synthesis ev
 - Unrelated or off-topic input goes to the honest no-match.
 
 ## Tests
-- Spoken playback works with the network disabled; captions are always present.
+- Prepared clip playback works with networking disabled; matching prepared text
+  remains visible. Missing local speech must show a readable fallback.
 - The demo path has audio (or synthesized speech) for each explanation it plays.
 - Intent tests include varied phrasings, and near-misses that must not trigger a command.
 
@@ -63,3 +82,13 @@ No-match context is saved verbatim and accompanied by an unseen related
 explanation where one remains. It is explicitly not an answer to that question.
 The previous explicit pause/“but I don't understand” form remains a convenience
 for requesting an explanation plus supplemental context; it is not required.
+
+## Evaluation limits
+
+No open-source STT or TTS evaluation milestone has been completed. Recognition
+control tests use injected browser mocks; native recording uses synthetic audio.
+Bundled Windows SAPI clips and actual OpenAI speech requests are distinct from an
+open-source speech benchmark. Physical-device recognition, Nigerian-accent quality,
+intelligibility and comparative speech memory/latency/cost remain unverified.
+Earlier human rehearsal reports apply to their recorded builds, not every current
+recording, generated answer or device. See student-learning-acceptance.md.

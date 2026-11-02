@@ -20,26 +20,50 @@ export function createLiveVoice(audio: HTMLAudioElement) {
   let transcriptTimer: ReturnType<typeof setTimeout> | undefined;
   let frame = 0, meterTimer: ReturnType<typeof setTimeout> | undefined;
   let input: { delta: string; endMs?: number }[] = [], output = '', sources: string[] = [], latestDelegation = '', model = 'gpt-live-1';
-  let outputAllowed = true, progressOnly = false;
-  const progressWords = new Set("hmm hm okay ok sure one moment i'm i am will i'll let me checking check looking look at into on that this it your the our lesson sources source notes a quick just second now for you against from".split(' '));
+  let outputAllowed = true, progressOnly = false, progressOffset = 0;
+  const progressPhrases = [
+    'hmm', 'hm', 'okay', 'ok', 'sure', "that's a good question", 'that is a good question',
+    "that's interesting", "i'm with you", 'i am with you', 'i hear you', 'one moment',
+    'checking your lesson sources', 'checking the lesson sources',
+    "i'm checking your lesson sources", 'i am checking your lesson sources',
+    'let me check your lesson sources', 'let me check on that', 'give me a moment to check your lesson sources',
+    'let me get a clear explanation for you', 'lemme get a clear explanation for you',
+    'let me get a simple explanation so we can walk through it together',
+    "i'm still checking your lesson sources", 'thanks for waiting',
+  ].sort((a, b) => b.length - a.length);
   function allowProgress(text: string) {
-    const words = text.toLowerCase().replace(/[’‘]/g, "'").replace(/[.,!?]/g, ' ').trim().split(/\s+/);
-    return words.length <= 24 && words.some(word => ['checking', 'check', 'looking', 'look'].includes(word)) && words.every(word => progressWords.has(word));
+    const normalized = text.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[.,!?;:\u2026]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!normalized || normalized.length > 300) return false;
+    // Provider transcripts can split even the first word. Permit only prefixes
+    // and combinations of these non-instructional phrases, never teaching text.
+    const accepted = new Set<number>();
+    function matches(at: number): boolean {
+      if (accepted.has(at)) return false;
+      accepted.add(at);
+      const rest = normalized.slice(at);
+      return progressPhrases.some(phrase => phrase.startsWith(rest)
+        || rest.startsWith(phrase + ' ') && matches(at + phrase.length + 1));
+    }
+    return matches(0);
   }
   const delegated = new Set<string>();
   const emit = (patch: Partial<LiveVoiceState>) => { state = { ...state, ...patch }; options?.state(state); };
   function flushOutput() {
     clearTimeout(transcriptTimer);
     if (sessionId && output.trim()) options?.transcript(sessionId, 'avatar', output.slice(0, 4000), [...sources], model);
-    output = '';
+    output = ''; progressOffset = 0;
   }
   function announceChecking(id: string | null, task: string, token: number) {
     const timer = setTimeout(() => {
       delegateTimers.delete(timer);
       if (token !== generation || task !== latestDelegation || channel?.readyState !== 'open') return;
-      flushOutput(); progressOnly = true;
+      // Keep the existing transcript prefix: Live may already be halfway
+      // through "Okay, let me..." when our progress command is accepted.
+      progressOnly = true;
+      channel.send(JSON.stringify({ type: 'session.instructions.append', delegation_id: id,
+        content: 'While the source-checked answer is pending, immediately say the following progress commentary once: "Hmm, checking your lesson sources." Do not add a teaching claim or start an explanation. Wait for the verified answer.' }));
       channel.send(JSON.stringify({ type: 'session.commentary.append', delegation_id: id, content: 'Hmm, checking your lesson sources.' }));
-    }, 500);
+    }, 150);
     delegateTimers.add(timer);
     return () => { clearTimeout(timer); delegateTimers.delete(timer); };
   }
@@ -85,9 +109,14 @@ export function createLiveVoice(audio: HTMLAudioElement) {
       if (text.length > 1500) { input = []; channel?.send(JSON.stringify({ type: 'session.commentary.append', delegation_id: null, content: 'Please ask one shorter question, or type it. The current question was too long to save safely.' })); }
       emit({ caption: text.slice(0, 1500), speaking: false });
     } else if (event.type === 'session.output_transcript.delta' && typeof event.delta === 'string') {
+      const beforeFragment = output.length;
       output += event.delta;
       if (progressOnly && !outputAllowed) {
-        const allowed = allowProgress(output);
+        // The requested "Hmm,..." can start a new utterance without a space
+        // after an earlier, muted provider preface. Validate it independently;
+        // never unmute the unrecognized preface or arbitrary teaching text.
+        if (/^\s*hmm\b/i.test(event.delta)) progressOffset = beforeFragment;
+        const allowed = allowProgress(output.slice(progressOffset));
         audio.muted = !allowed;
         if (allowed) emit({ caption: output.slice(-2000) });
       }
@@ -97,7 +126,7 @@ export function createLiveVoice(audio: HTMLAudioElement) {
     } else if (event.type === 'session.delegation.created') {
       const metadata = event.delegation as { id?: unknown; target?: unknown } | undefined;
       if (metadata?.target !== 'client' || typeof metadata.id !== 'string' || delegated.has(metadata.id)) return;
-      const id = metadata.id; delegated.add(id); latestDelegation = id;
+      const id = metadata.id; delegated.add(id);
       // Delegations contain metadata, NOT the question. Allow transcript events to catch up.
       const cutoff = typeof event.offset_ms === 'number' ? event.offset_ms : undefined;
       const timer = setTimeout(async () => {
@@ -107,6 +136,9 @@ export function createLiveVoice(audio: HTMLAudioElement) {
         const consumed = new Set(fragments); input = input.filter(item => !consumed.has(item));
         const text = fragments.map(item => item.delta).join('').trim();
         if (!text) { channel.send(JSON.stringify({ type: 'session.commentary.append', delegation_id: id, content: 'I did not receive a usable question transcript. Please repeat it or type it; I will not guess.' })); return; }
+        // A repeated delegation without a new question must not discard the
+        // source-checked answer already being prepared for the current task.
+        latestDelegation = id;
         options?.transcript(sessionId, 'student', text, [], model);
         emit({ status: 'working', message: 'Microphone on · checking your lesson sources…', caption: text });
         const cancelChecking = announceChecking(id, id, token);

@@ -2,8 +2,10 @@ import { loadEnv, type ProxyOptions } from 'vite';
 import { resolve } from 'node:path';
 
 export function deliveryProxy(mode: string, teacher = false): Record<string, ProxyOptions> {
-  const env = { ...loadEnv(mode, resolve(import.meta.dirname, '..'), ''), ...process.env };
-  return { '/api': { target: env.COTEACHER_DELIVERY_URL ?? 'http://127.0.0.1:8787', changeOrigin: true,
+  // Explicit acceptance mode never reads private project env files.
+  const fileEnv = process.env.COTEACHER_TEST_NO_ENV_FILES === 'true' ? {} : loadEnv(mode, resolve(import.meta.dirname, '..'), '');
+  const env = { ...fileEnv, ...process.env };
+  return { '/api/v1': { target: env.COTEACHER_DELIVERY_URL ?? 'http://127.0.0.1:8787', changeOrigin: false }, '/api': { target: env.COTEACHER_DELIVERY_URL ?? 'http://127.0.0.1:8787', changeOrigin: true,
     ...(teacher ? { configure(proxy) { proxy.on('proxyReq', (request, incoming) => {
       const publication = incoming.method === 'POST' && incoming.url === '/api/lessons';
       const overview = incoming.method === 'GET' && incoming.url === '/api/progress';

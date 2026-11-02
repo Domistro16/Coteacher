@@ -1,0 +1,111 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "schoolId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "subjectKey": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "lessonId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "lessonRevision": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "sourceRevision": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1
+    },
+    "configuration": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "reviewedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "concepts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "conceptId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "knowledgeKey": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "prerequisites": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "maxItems": 10,
+            "uniqueItems": true
+          },
+          "sourceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "conceptId",
+          "knowledgeKey",
+          "prerequisites",
+          "sourceRefs"
+        ]
+      },
+      "maxItems": 50,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "schoolId",
+    "subjectKey",
+    "lessonId",
+    "lessonRevision",
+    "sourceRevision",
+    "language",
+    "configuration",
+    "reviewedAt",
+    "concepts"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/lesson-knowledge.schema.json",
+  "title": "LessonKnowledge"
+}

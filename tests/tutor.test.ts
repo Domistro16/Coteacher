@@ -4,7 +4,7 @@ import { resolve, join } from 'node:path';
 import { decryptPayload, encryptPayload, emptyProgress, identifyProgressEvents, validTutorState, observedMemory, initialTutorState, companionMessages, type ProgressRecord, type TutorState } from '@coteacher/shared';
 import { LessonDeliveryStore } from '../delivery/store';
 import { ProgressReturnStore } from '../delivery/progress-store';
-import { TutorStore, checkedAnswer, tutorSources } from '../delivery/tutor-store';
+import { TutorStore, checkedAnswer, checkedCheck, tutorSources } from '../delivery/tutor-store';
 import { OpenAITutor } from '../delivery/tutor-provider';
 import { MockTutor, tutorPackages } from './tutor-fixture';
 
@@ -22,6 +22,15 @@ async function submit(tutor: TutorStore, record: ProgressRecord, pin = '111111',
 async function state(tutor: TutorStore, record: ProgressRecord, pin = '111111') { return await decryptPayload(await tutor.returned(record.studentId, 'tutor-recording'), pin) as TutorState; }
 
 describe('connected tutoring and evidence-backed memory (mock provider, no network)', () => {
+  it('rejects explicit private preference disclosures even when the science has a valid source quote', () => {
+    const quote = 'Light changes direction when it enters water.';
+    const input = { question: 'Why?', objective: 'Explain refraction', concept: 'Refraction', classLevel: 'JSS2', sources: [{sourceId:'notes',title:'Reviewed notes',locator:'p1',kind:'lesson' as const,excerpt:quote}],visuals:[],history:[],observations:[],teachingPreferences:{confidence:2,formats:undefined,length:undefined,readingEase:undefined,medium:undefined,interests:undefined,feedback:undefined,studySupport:undefined} };
+    const answer = {supported:true,safe:true,confident:true,text:quote,sourceIds:['notes'],quotes:[quote],visualAssetId:null};
+    expect(checkedAnswer(answer,input)).not.toBeNull();
+    expect(checkedAnswer({...answer,text:'Your confidence is 2. '+quote},input)).toBeNull();
+    expect(checkedAnswer({...answer,text:'Because you like football, '+quote},input)).toBeNull();
+    expect(checkedCheck({supported:true,safe:true,confident:true,prompt:'Does light change direction?',options:['Yes','No'],correctIndex:0,explanation:'Your reading ease needs support. '+quote,sourceIds:['notes'],quotes:[quote]}, {...input,answer:quote,personalization:{mode:'guided',reason:'Reviewed support',evidenceEventIds:[],visualAssetId:null},representation:null,previousAttempts:[]})).toBeNull();
+  });
   it('shows received learner evidence to teachers without enabling external tutoring', async () => {
     const f = await fixture(), lesson = f.packages[1], record = emptyProgress(lesson);
     record.events.push({ type: 'visual-explored', origin: 'learner-choice', eventId: 'b-choice', timestamp: '2026-10-14T09:00:00Z', conceptId: 'refraction', timelineStepId: 'step-refraction', recordingId: 'tutor-recording', positionMs: 1300, visualAssetId: 'refraction-steps', sourceRefs: ['notes-light'] });

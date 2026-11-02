@@ -20,8 +20,12 @@ import { useConnectedVoice } from './useConnectedVoice';
 import { TutorSources } from './TutorSources';
 import { useLiveVoice } from './useLiveVoice';
 import { QuizModal } from './QuizModal';
+import { LearningDisplay } from './LearningDisplay';
+import { selectApprovedSupport,preferredHelpLesson } from '../../../packages/shared/src/learning-engine';
 
-export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot; update: (next: Snapshot) => void; saved: string }) {
+type StudentPlayerProps={ snapshot: Snapshot; update: (next: Snapshot) => void; saved: string; connectedAvailable?:boolean;liveAvailable?:boolean;speechAvailable?:boolean;providerName?:string };
+export function StudentPlayer(props:StudentPlayerProps){return <LearningDisplay.Provider value={props.snapshot.learning?.memory.preferences??{}}><StudentPlayerContent {...props}/></LearningDisplay.Provider>;}
+function StudentPlayerContent({ snapshot, update, saved, connectedAvailable = true, liveAvailable = true,speechAvailable=true,providerName='OpenAI' }: StudentPlayerProps) {
   const latest = useRef(snapshot); latest.current = snapshot;
   const { lesson, player, progress } = snapshot;
   const model = useMemo(() => createPlayerModel(lesson), [lesson]);
@@ -48,6 +52,10 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
   const tutor = useTutor();
   const sessionScope = lesson.studentId + '/' + lesson.recording!.id;
   const liveVoice = useLiveVoice(sessionScope, tutor.enabled && tutor.online);
+  useEffect(() => {
+    tutor.setLiveActive(liveVoice.active);
+    return () => tutor.setLiveActive(false);
+  }, [sessionScope, liveVoice.active]);
   const connectedVoice = useConnectedVoice(tutor.transcribe, setDraft);
   const spokenReply = useRef('');
   const liveQuestions = useRef(new Set<string>());
@@ -81,7 +89,13 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
   const attempts = contextualCheck ? snapshot.tutor?.checkAttempts?.filter(a => a.checkId === contextualCheck.id) ?? [] : item ? progress.events.filter((event): event is QuizAnsweredEvent => event.type === 'quiz-answered' && event.quizId === item.id) : [];
   const answer = attempts.at(-1);
   const supportAsset = lesson.visualAssets?.find(entry => entry.id === player.recording?.support?.visualAssetId && entry.conceptId === cue.conceptId);
-  const recommendation = snapshot.tutor?.memory.recommendations.find(entry => entry.conceptId === cue.conceptId);
+  function privateDecision(current:Snapshot,conceptId:string){
+    if(!current.learning?.support)return undefined;
+    const choice=current.progress.events.filter(e=>e.type==='visual-explored' && e.conceptId===conceptId && e.origin==='learner-choice').at(-1);
+    return selectApprovedSupport(current.learning.memory,lesson,current.learning.support.knowledge,conceptId,timestamp(),choice?.type==='visual-explored'?(choice.visualAssetId.includes('steps')?'steps':'picture'):undefined);
+  }
+  const decision=privateDecision(snapshot,cue.conceptId);
+  const recommendation = decision?{...decision,evidenceEventIds:decision.evidenceIds}:snapshot.tutor?.memory.recommendations.find(entry => entry.conceptId === cue.conceptId);
   const recommendedAsset = lesson.visualAssets?.find(entry => entry.id === recommendation?.visualAssetId && entry.conceptId === cue.conceptId);
   const teacherReply = progress.queuedQuestions.find(question => question.answered && question.text === questionText && question.recordedContext?.positionMs === position);
   const aiReply = teacherReply ? undefined : [...(snapshot.tutor?.replies ?? [])].reverse().find(reply => reply.originalText === questionText && reply.conceptId === cue.conceptId && reply.positionMs === position);
@@ -122,7 +136,7 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
   }, [sessionScope]);
   useEffect(() => () => checkRequest.current?.abort(), []);
   function openSession(at: number) {
-    if (panel) { if (tutor.online && tutor.enabled && !liveVoice.isActive()) startLive(true); return; }
+    if (panel) { if (liveAvailable && tutor.online && tutor.enabled && !liveVoice.isActive()) startLive(true); return; }
     voice.stop(); speech.stop(); connectedVoice.cancel(); companion.stop();
     const current = latest.current;
     const moment = recordingCueAt(lesson.recording!, at);
@@ -132,8 +146,8 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
       progress: { ...current.progress, events: [...current.progress.events, ...destination.events] } });
     setResponse({}); setQuestionText(''); setCheckOffered(false); setPanel('help');
     checkQuestion.current = null;
-    if (tutor.online) {
-      if (tutor.enabled) startLive(true);
+    if (tutor.online && speechAvailable && current.learning?.memory.preferences.input!=='type') {
+      if (tutor.enabled && liveAvailable) startLive(true);
       else setVoiceSetupOpen(true);
     }
   }
@@ -143,8 +157,8 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
     const moment = recordingCueAt(lesson.recording!, at);
     const memory = observedMemory(lesson, current.progress, current.tutor?.memory ?? initialTutorState(lesson).memory);
     const suggested = memory.recommendations.find(entry => entry.conceptId === moment.conceptId);
-    const spokenVisual = suggested?.visualAssetId ?? (moment.conceptId === 'refraction' && lesson.visualAssets?.some(asset => asset.id === 'refraction-pencil') ? 'refraction-pencil' : undefined);
-    const next = adaptRecordedMoment(lesson, current.player, current.progress, at, detail, timestamp(), () => 'queued-' + crypto.randomUUID(), spokenVisual);
+    const spokenVisual = privateDecision(current,moment.conceptId)?.visualAssetId ?? suggested?.visualAssetId ?? (moment.conceptId === 'refraction' && lesson.visualAssets?.some(asset => asset.id === 'refraction-pencil') ? 'refraction-pencil' : undefined);
+    const next = adaptRecordedMoment(preferredHelpLesson(lesson,current.learning?.memory), current.player, current.progress, at, detail, timestamp(), () => 'queued-' + crypto.randomUUID(), spokenVisual);
     // Only an actual submitted question opts into connected text tutoring; never fabricate an opening question.
     const connected = Boolean(detail.trim() && tutor.online && tutor.enabled);
     commit({ ...current, player: next.player, progress: next.progress });
@@ -158,7 +172,8 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
     setCheckOffered(quizzes.length > 0 && (!question || question.status === 'prepared'));
     const frames = question ? [{ text: question.status === 'prepared' ? question.text : companionMessages.pending, refs: question.refs }]
       : [{ text: explanation.content, refs: explanation.sourceRefs }];
-    if (liveVoice.isActive()) companion.prepare(frames);
+    if(current.learning?.memory.preferences.medium==='reading'){companion.stop();companion.prepare(frames);}
+    else if (liveVoice.isActive()) companion.prepare(frames);
     else companion.speak([...frames, { text: companionMessages.understanding, refs: [] }]);
     return next.response;
   }
@@ -260,21 +275,25 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
   function toggleVoice() { liveVoice.stop(); speech.stop(); if (voiceEnabled) { voice.stop(); setVoiceState({ status: 'off', message: 'Microphone off · tap or type works too' }); } setVoiceEnabled(!voiceEnabled); }
   function activateVoice() {
     if (liveVoice.isActive()) { liveVoice.stop(); return; }
-    if (!navigator.onLine) { toggleVoice(); return; }
-    if (tutor.enabled && tutor.online) { startLive(); return; }
+    if (!navigator.onLine || !connectedAvailable || !speechAvailable) { toggleVoice(); return; }
+    if (liveAvailable && tutor.enabled && tutor.online) { startLive(); return; }
     // Open the actual current-moment panel and its disclosure before any external voice capture.
     if (!panel) window.dispatchEvent(new CustomEvent('coteacher-explain-recording', { detail: { recordingId: lesson.recording!.id } }));
     voice.stop(); speech.stop(); setVoiceEnabled(false); setVoiceSetupOpen(true);
   }
   async function delegateLive(text: string, signal: AbortSignal) {
+    function explanation(text: string, sourceRefs: string[]) {
+      setCheckOffered(quizzes.length > 0);
+      return { text: text + ' ' + (quizzes.length > 0 ? 'Would you like to try a quick check on that, or ask another question?' : companionMessages.understanding), sourceRefs };
+    }
     const intent = companionIntent(text, checkOffer.current);
     if (intent === 'confirm') { setQuestionText(text); setCheckOffered(true); return { text: companionMessages.checkOffer, sourceRefs: [] }; }
     if (intent === 'resume') { resume(); return { text: 'Returning to your teacher at the saved position.', sourceRefs: [] }; }
     if (intent === 'check') { openCheck(); return { text: 'Your quick check is open. The teacher recording remains paused.', sourceRefs: [] }; }
     const current = latest.current, at = current.player.recording!.positionMs;
     const result = help(at, intent === 'another' ? '' : text);
-    if (result?.question?.status === 'prepared') return { text: result.question.text + ' ' + companionMessages.understanding, sourceRefs: result.question.refs };
-    if (intent === 'another') { const prepared = selectedVariant(model, latest.current.player); return { text: (prepared.type === 'tryit' ? context.original.content : prepared.content) + ' ' + companionMessages.understanding, sourceRefs: prepared.sourceRefs }; }
+    if (result?.question?.status === 'prepared') return explanation(result.question.text, result.question.refs);
+    if (intent === 'another') { const prepared = selectedVariant(model, latest.current.player); return explanation(prepared.type === 'tryit' ? context.original.content : prepared.content, prepared.sourceRefs); }
     const queued = [...latest.current.progress.queuedQuestions].reverse().find(entry => entry.text === text && entry.recordedContext?.positionMs === at);
     if (!queued) return { text: 'Please ask which part of the current concept is unclear, or use the prepared explanation.', sourceRefs: [] };
     liveQuestions.current.add(queued.id);
@@ -282,9 +301,10 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
     const deadline = Date.now() + 150000;
     while (!signal.aborted && Date.now() < deadline && latest.current.lesson.studentId + '/' + latest.current.lesson.recording!.id === sessionScope) {
       const answer = latest.current.progress.queuedQuestions.find(entry => entry.id === queued.id);
-      if (answer?.answered) return { text: answer.answer + ' ' + companionMessages.understanding, sourceRefs: answer.sourceRefs };
+      if (answer?.answered) return explanation(answer.answer, answer.sourceRefs);
       const reply = latest.current.tutor?.replies.find(entry => entry.questionId === queued.id && entry.status !== 'queued');
-      if (reply) return { text: reply.review === 'flagged' ? 'Your teacher flagged this answer for review. Use prepared help for now.' : reply.text + (reply.status === 'answered' ? ' ' + companionMessages.understanding : ''), sourceRefs: reply.review === 'flagged' ? [] : reply.sourceRefs };
+      if (reply) return reply.review === 'flagged' ? { text: 'Your teacher flagged this answer for review. Use prepared help for now.', sourceRefs: [] }
+        : reply.status === 'answered' ? explanation(reply.text, reply.sourceRefs) : { text: reply.text, sourceRefs: reply.sourceRefs };
       await new Promise<void>(resolve => { const timer = setTimeout(done, 300); function done() { clearTimeout(timer); signal.removeEventListener('abort', done); resolve(); } signal.addEventListener('abort', done, { once: true }); });
     }
     throw new Error('Your question stays saved while the source-checked answer is pending.');
@@ -314,9 +334,9 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
   const micStatus = !voiceEnabled ? voiceState.status === 'unavailable' ? voiceState.message : 'Microphone off · tap or type works too'
     : companion.state.status === 'playing' || companion.speaking ? 'Microphone paused while Coteacher speaks'
     : voiceEnabled && panel === 'activity' ? 'Microphone paused during the activity' : voiceState.message;
-  const voiceActionLabel = liveVoice.active ? 'Turn live voice off' : navigator.onLine ? 'Talk by voice' : voiceEnabled ? 'Turn offline voice off' : 'Enable offline voice mode';
+  const voiceActionLabel = liveVoice.active ? 'Turn live voice off' : navigator.onLine && connectedAvailable ? 'Talk by voice' : voiceEnabled ? 'Turn offline voice off' : 'Enable offline voice mode';
   const voiceActionStatus = liveVoice.active || navigator.onLine && liveVoice.state.status === 'error' ? liveVoice.state.message
-    : voiceEnabled || !navigator.onLine ? micStatus : 'Microphone off · live voice requires a connection and your permission';
+    : voiceEnabled || !navigator.onLine || !connectedAvailable ? micStatus : 'Microphone off · live voice requires a connection and your permission';
   const assistant = panel && <CompanionDock voiceActive={liveVoice.active} requestInput={voiceSetupOpen} toolMode={panel === 'check' ? 'help' : panel} lessonId={lesson.lessonId} conceptId={cue.conceptId} conceptTitle={context.concept.title} positionMs={position} onClose={close} onResume={resume}
     voice={<CompanionVoice docked compact={panel !== 'help'} live={liveVoice} lesson={lesson} speech={companion} prompt={questionText ? (teacherReply?.answered ? teacherReply.answer : '') || (aiReply?.review === 'flagged' ? 'Your teacher flagged this answer for review.' : aiReply?.text) || (response.question?.status === 'prepared' ? response.question.text : tutor.online && tutor.enabled ? tutor.status || 'Your question is saved. Checking the connected tutor…' : 'No prepared answer matches. Your question is saved. Connected answers require your permission.') : 'What is unclear about ' + context.concept.title.toLowerCase() + '? Ask by voice or type your question.'} beforeSpeech={prepareSpokenVisual} listening={connectedVoice.recording || voiceEnabled && voiceState.status === 'listening' && !companion.speaking && companion.state.status !== 'playing'} voiceEnabled={voiceEnabled || liveVoice.active} voiceStatus={voiceActionStatus} voiceActionLabel={voiceActionLabel} toggleVoice={activateVoice} label={!questionText ? 'Coteacher · ready to listen' : companion.generated ? aiReply?.engine === 'mock' ? 'Mocked tutor · test response' : aiReply?.engine === 'openai' ? 'AI coach · downloaded AI voice' : 'Downloaded sourced companion voice' : questionText ? response.question?.status === 'prepared' ? 'Prepared offline answer' : tutor.online && tutor.enabled ? 'Connected tutor' : 'Saved on this device' : 'Coteacher · ready to listen'}/>}
     composer={<>
@@ -326,15 +346,15 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
         <button disabled={!draft.trim()} className="primary" aria-label="Ask Coteacher"><Icon name="arrow"/></button>
         <button type="button" aria-label={voiceActionLabel} title={voiceActionLabel} aria-pressed={voiceEnabled || liveVoice.active} onClick={activateVoice}><Icon name="mic"/></button>
       </form>
-      <p role="status">{voiceActionStatus}</p><p className="companion-disclosure">Connected questions use OpenAI and your approved lesson sources. Answers are saved for teacher oversight.</p></div>}
+      <p role="status">{voiceActionStatus}</p><p className="companion-disclosure">Connected questions go to {providerName} with approved lesson sources. Answers are saved for teacher oversight.</p></div>}
       {!voiceSetupOpen && tutor.online && <label className="companion-disclosure"><input type="checkbox" checked={tutor.enabled} onChange={event => tutor.enable(event.target.checked)}/>Use connected AI answers</label>}
       {voiceSetupOpen && <div className="companion-connection" aria-label="Voice permission">
         <p>Voice sends microphone audio, questions and lesson excerpts to OpenAI. AI answers are saved for teacher oversight.</p>
         <label><input type="checkbox" checked={tutor.enabled} onChange={event => { tutor.enable(event.target.checked); if (event.target.checked) tutor.retry(); }}/>Enable connected tutoring and learning memory</label>
-        <button disabled={!tutor.online || !tutor.enabled || liveVoice.active} onClick={() => startLive()}>Start live conversation</button>
-        <button onClick={() => setVoiceSetupOpen(false)}>Type instead</button>
+        <button disabled={!liveAvailable || !tutor.online || !tutor.enabled || liveVoice.active} onClick={() => startLive()}>Start live conversation</button>
+        <button onClick={() => setVoiceSetupOpen(false)}>Type instead</button>{!liveAvailable&&<p>Live conversation is not configured. You can type or send a short voice question.</p>}
         <details><summary>Connection options</summary><p role="status">{tutor.status}</p><button onClick={tutor.retry}>Retry connection and questions</button>
-          <button disabled={!tutor.online || !tutor.enabled || liveVoice.active} onClick={() => { companion.stop(); if (connectedVoice.recording) connectedVoice.stop(); else void connectedVoice.start(); }}>{connectedVoice.recording ? 'Stop voice question' : 'Record a voice question'}</button>
+          <button disabled={!speechAvailable || !tutor.online || !tutor.enabled || liveVoice.active} onClick={() => { companion.stop(); if (connectedVoice.recording) connectedVoice.stop(); else void connectedVoice.start(); }}>{connectedVoice.recording ? 'Stop voice question' : 'Record a voice question'}</button>
           <p role="status">{connectedVoice.status || speechStatus}</p>
         </details>
       </div>}
@@ -345,21 +365,22 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
         <p>{questionText}</p>
         {teacherReply?.answered ? <><p>{teacherReply.answer}</p><Sources lesson={lesson} refs={teacherReply.sourceRefs}/></> : aiReply ? <div data-tutor-status={aiReply.status} role="status"><p>{aiReply.review === 'flagged' ? 'Your teacher flagged this response for review.' : aiReply.text}</p>{aiReply.status === 'answered' && aiReply.review !== 'flagged' && <TutorSources reply={aiReply}/>}</div> : response.question && <><p>{response.question.status === 'prepared' ? response.question.text : tutor.online && tutor.enabled ? 'Your question is saved. Checking the connected tutor…' : 'No prepared answer matches. Saved for reconnection after connected answers are enabled.'}</p><Sources lesson={lesson} refs={response.question.refs}/></>}
       </details>}
-      {(response.question?.status === 'prepared' || aiReply?.status === 'answered' || teacherReply?.answered || checkOffered) && <div className="companion-replies"><button onClick={() => respond('It makes sense now')}>It makes sense now</button>{checkOffered && quizzes.length > 0 && <button onClick={() => openCheck()}>Try a quick check</button>}{activity && <button onClick={openActivity}>Try it</button>}</div>}
+      {(response.question?.status === 'prepared' || aiReply?.status === 'answered' || teacherReply?.answered || checkOffered) && <div className="companion-replies"><button aria-label="It makes sense now" onClick={() => respond('It makes sense now')}>Got it</button>{checkOffered && quizzes.length > 0 && <button aria-label="Try a quick check" onClick={() => openCheck()}>Quick check</button>}{activity && <button onClick={openActivity}>Try it</button>}</div>}
       <details className="companion-more"><summary>Approved alternatives</summary>
         {recommendedAsset && recommendation && <section data-recommended-visual-id={recommendedAsset.id}><p>{recommendation.reason}</p><small>Based on {recommendation.evidenceEventIds.length} saved interaction{recommendation.evidenceEventIds.length === 1 ? '' : 's'}.</small><button onClick={() => { companion.pause(); const current = latest.current; commit({ ...current, ...exploreRecordedVisual(lesson, current.player, current.progress, position, recommendedAsset.id, timestamp()) }); }}>Try recommended visual</button><Sources lesson={lesson} refs={recommendedAsset.sourceRefs}/></section>}
         <button onClick={() => help(position)}>Prepared explanation</button>
         <details><summary>Read prepared explanation</summary><p>{variant.type === 'tryit' ? context.original.content : variant.content}</p><Sources lesson={lesson} refs={variant.type === 'tryit' ? context.original.sourceRefs : variant.sourceRefs}/></details>
         {lesson.visualAssets!.filter(entry => entry.conceptId === cue.conceptId).map(entry => <button key={entry.id} onClick={() => { companion.pause(); const current = latest.current; commit({ ...current, ...exploreRecordedVisual(lesson, current.player, current.progress, position, entry.id, timestamp()) }); }}>{entry.title}</button>)}
-        {quizzes.length > 0 && <button onClick={() => openCheck()}>Quick check</button>}
+        {quizzes.length > 0 && <button onClick={() => openCheck(0, true)}>Quick check</button>}
         {activity && <button onClick={openActivity}>Try it activity</button>}
-      </details>
       <PlayerQuestions lesson={lesson} progress={progress} saved={saved} open={false} replies={snapshot.tutor?.replies} conceptId={cue.conceptId} onHear={reply => {
         liveVoice.stop(); voice.stop(); speech.stop(); connectedVoice.cancel(); setQuestionText(reply.originalText);
         checkQuestion.current = { questionId: reply.questionId, originalText: reply.originalText, positionMs: reply.positionMs };
         if (reply.visualAssetId) { const current = latest.current; commit({ ...current, player: { ...current.player, recording: { ...current.player.recording!, support: { timelineStepId: reply.timelineStepId, visualAssetId: reply.visualAssetId } } } }); }
         companion.speakGenerated(reply.text, reply.speechBase64!);
       }}/>
+      </details>
+
     </>}
     {panel === 'activity' && <button className="text-action" onClick={() => { companion.stop(); setPanel('help'); }}>Back to our conversation</button>}
     {panel === 'activity' && activity && <section className="activity immersive-activity">
@@ -369,7 +390,7 @@ export function StudentPlayer({ snapshot, update, saved }: { snapshot: Snapshot;
       </>}<details><summary>Activity sources</summary><Sources lesson={lesson} refs={activity.sourceRefs}/></details>
     </section>}
   </CompanionDock>;
-  return <div className="watch-page">
+  return <div className={`watch-page${snapshot.learning?.memory.preferences.largerText?' larger-learning-text':''}`}>
     {panel === 'check' && <QuizModal onClose={closeCheck} onResume={resume}>
       {checkPhase === 'loading' && <p role="status">Preparing a sourced check for the question you asked…</p>}
       {checkPhase === 'error' && <><p role="status">{checkError}</p>{tutor.online && tutor.enabled && <button onClick={() => openCheck()}>Try preparing this check again</button>}</>}

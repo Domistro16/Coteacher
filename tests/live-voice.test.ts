@@ -20,6 +20,9 @@ describe('GPT-Live client delegation and privacy boundaries (mock transport)', (
     const payload = JSON.parse(request.body as string);
     expect(payload.session).toMatchObject({ model: 'gpt-live-1', delegation: { type: 'client' } });
     expect(payload.session.instructions).toContain('Delegate ALL educational questions');
+    expect(payload.session.instructions).toContain('Would you like to try a quick check on that, or ask another question?');
+    expect(payload.session.instructions).toContain('never start or read a quiz without acceptance');
+    expect(payload.session.instructions).toContain('Do not offer a quick check for a deferred, flagged or unsupported answer');
     expect(payload.session.instructions).not.toContain('test-key'); expect(payload.transport).toEqual({ type: 'webrtc', sdp: 'offer' });
     await expect(new OpenAILiveVoice('test-key', async () => new Response('{}', { status: 403 })).create('offer', { concept: '', objective: '', classLevel: '' })).rejects.toThrow('403');
   });
@@ -101,17 +104,56 @@ describe('GPT-Live client delegation and privacy boundaries (mock transport)', (
     delegate.mockImplementationOnce(() => new Promise(resolve => { checked = resolve; }));
     channel.message({ type: 'session.input_transcript.delta', delta: 'Can you check the sources?', end_ms: 100 });
     channel.message({ type: 'session.delegation.created', offset_ms: 110, delegation: { id: 'delegate_slow', target: 'client' } });
-    await vi.advanceTimersByTimeAsync(1200);
+    await vi.advanceTimersByTimeAsync(749);
+    expect(channel.sent.some(event => event.delegation_id === 'delegate_slow' && event.content === 'Hmm, checking your lesson sources.')).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
     expect(channel.sent).toContainEqual({ type: 'session.commentary.append', delegation_id: 'delegate_slow', content: 'Hmm, checking your lesson sources.' });
-    channel.message({ type: 'session.output_transcript.delta', delta: 'Hmm, checking your lesson sources.' });
+    // Live transcript events arrive in fragments. The acknowledgment must be
+    // audible from its first safe words, not only after "checking" arrives.
+    channel.message({ type: 'session.output_transcript.delta', delta: 'Hmm, ' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: 'check' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: 'ing your lesson sources.' });
     expect(audio.muted).toBe(false);
     channel.message({ type: 'session.output_transcript.delta', delta: ' Light follows a magical path.' });
     expect(audio.muted).toBe(true);
+    // A repeated work notice with no new learner transcript must not supersede
+    // the checked answer already being prepared for the learner's question.
+    channel.message({ type: 'session.delegation.created', delegation: { id: 'delegate_empty_during_work', target: 'client' } });
+    await vi.advanceTimersByTimeAsync(650);
     checked({ text: 'Checked explanation', sourceRefs: ['notes'] });
     await vi.advanceTimersByTimeAsync(0);
+    expect(channel.sent).toContainEqual({ type: 'session.commentary.append', delegation_id: 'delegate_slow', content: 'Checked explanation' });
     expect(audio.muted).toBe(false);
+    // The provider can preface the requested progress line in natural language.
+    let secondChecked!: (value: { text: string; sourceRefs: string[] }) => void;
+    delegate.mockImplementationOnce(() => new Promise(resolve => { secondChecked = resolve; }));
+    const typed = live.ask('Why does the pencil still look straight out of the water?');
+    await vi.advanceTimersByTimeAsync(100);
+    channel.message({ type: 'session.output_transcript.delta', delta: 'Okay, let' });
+    expect(audio.muted).toBe(true);
+    await vi.advanceTimersByTimeAsync(50);
+    channel.message({ type: 'session.output_transcript.delta', delta: ' me check on thatHmm, checking your lesson sources.' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: "That's a good question. " });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: 'Give me a moment to check your lesson sources.' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: ' An unrecognized preface.' });
+    expect(audio.muted).toBe(true);
+    channel.message({ type: 'session.output_transcript.delta', delta: 'Hmm,' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: ' checking your lesson sources.' });
+    expect(audio.muted).toBe(false);
+    channel.message({ type: 'session.output_transcript.delta', delta: ' The pencil bends.' });
+    expect(audio.muted).toBe(true);
+    secondChecked({ text: 'Checked explanation', sourceRefs: ['notes'] }); await typed;
+    const checkingCount = channel.sent.filter(event => event.content === 'Hmm, checking your lesson sources.').length;
     await live.ask('Can you explain the same boundary again?');
-    expect(delegate).toHaveBeenCalledTimes(3);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(channel.sent.filter(event => event.content === 'Hmm, checking your lesson sources.')).toHaveLength(checkingCount);
+    expect(delegate).toHaveBeenCalledTimes(4);
     expect(transcript).toHaveBeenCalledWith('live_x', 'student', 'Can you explain the same boundary again?', [], 'gpt-live-1');
     expect(channel.sent).toContainEqual({ type: 'session.thinking.append', delegation_id: null, content: JSON.stringify({ learnerTypedQuestion: 'Can you explain the same boundary again?' }) });
     expect(channel.sent).toContainEqual({ type: 'session.commentary.append', delegation_id: null, content: 'Checked explanation' });

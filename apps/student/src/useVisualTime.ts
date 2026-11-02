@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { LearningDisplay } from './LearningDisplay';
 
 export function useReducedVisualMotion() {
+  const preference=useContext(LearningDisplay).reducedMotion;
   const [reduced, setReduced] = useState(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
   useEffect(() => {
     const query = matchMedia('(prefers-reduced-motion: reduce)');
     const change = () => setReduced(query.matches);
     query.addEventListener('change', change); return () => query.removeEventListener('change', change);
   }, []);
-  return reduced;
+  return reduced || preference === true;
 }
 
 /** Only standalone, visible previews own a clock. Recorded visuals supply media time. */

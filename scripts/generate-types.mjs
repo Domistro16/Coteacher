@@ -3,13 +3,14 @@ import { fileURLToPath } from 'node:url';
 import { compile } from 'json-schema-to-typescript';
 
 const checking = process.argv.includes('--check');
-for (const name of ['lesson-package', 'progress-record', 'encrypted-transfer', 'player-state', 'progress-receipt', 'progress-sync-state', 'tutor-state', 'live-session', 'tutor-check-request']) {
+for (const name of ['learning-reference', 'lesson-knowledge', 'learner-memory', 'adaptation-decision', 'prepared-support', 'learner-profile', 'server-envelope', 'school-backup', 'school-state', 'lesson-package', 'progress-record', 'encrypted-transfer', 'player-state', 'progress-receipt', 'progress-sync-state', 'tutor-state', 'live-session', 'tutor-check-request']) {
   const schemaUrl = new URL('../schemas/' + name + '.schema.json', import.meta.url);
   const outputUrl = new URL('../packages/shared/src/generated/' + name + '.ts', import.meta.url);
   const schema = JSON.parse(await readFile(schemaUrl, 'utf8'));
   const output = await compile(schema, schema.title, {
     cwd: fileURLToPath(new URL('../schemas/', import.meta.url)),
     enableConstEnums: false,
+    ignoreMinAndMaxItems: ['lesson-knowledge','learner-memory','adaptation-decision','prepared-support','learner-profile','school-state'].includes(name),
     bannerComment: '/* Generated from schemas/' + name + '.schema.json. Do not edit; run npm run generate:types. */',
     $refOptions: { resolve: { http: false, file: false } },
   });

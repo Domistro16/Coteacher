@@ -80,6 +80,7 @@
 .companion-learning-task { margin:.75rem 0; padding:1rem; border:1px solid #e4daf7; border-radius:16px; background:#fff; color:#30243f; }
 @media(max-width:600px) {
  .companion-dock.is-composing { width:290px; }
+ .companion-dock.is-composing .companion-voice { display:none; }
  .companion-session-actions { margin-right:56px; }
 }
 .companion-dock.is-composing .companion-bubble { display:none; }
@@ -91,3 +92,6 @@
 .companion-dock:has(.companion-answer-details[open]) .companion-replies { display:none; }
 .companion-session-actions .player-questions[open],.companion-connection>details[open] { max-height:10rem; overflow:auto; overscroll-behavior:contain; }
 .companion-session-actions .player-questions .helper-note { font-size:.7rem; }
+.companion-session-actions:has(>details[open])>:not(details[open]) { display:none; }
+.companion-session-actions>details[open] { max-height:min(10rem,var(--companion-details-height,10rem)); overflow:auto; overscroll-behavior:contain; }
+.companion-more .player-questions[open] { max-height:none; overflow:visible; }

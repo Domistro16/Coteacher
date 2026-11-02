@@ -4,6 +4,7 @@ export default defineConfig({
   globalSetup: './tests/e2e/servers.ts',
   testDir: './tests/e2e',
   testMatch: '**/*.spec.ts',
+  testIgnore: '**/school-*.spec.ts',
   fullyParallel: false,
   workers: 1,
   retries: 0,

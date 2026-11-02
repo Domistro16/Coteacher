@@ -1,5 +1,11 @@
 # Final human audio rehearsal
 
+26 October update: the operator reports recognized words followed by no audible
+answer. The populated-history answer handoff fix has passed isolated production
+controls and focused tests, but corrected human playback is UNVERIFIED. Earlier
+operator confirmations below remain historical evidence for their tested build.
+See live-answer-handoff-fix.md and live-answer-handoff-evidence.json.
+
 Current rehearsal status: **PARTIAL**. Student audible playback is **PASS by
 operator report**: "So I think it's verified that human heairing is fine now."
 Teacher recording/visual timing is also **PASS by operator report**: "Teacher

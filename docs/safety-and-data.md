@@ -1,5 +1,17 @@
 # Safety, privacy and data rules
 
+Student learning extension (1 November 2026): verified consent readiness is distinct
+from legacy registration checkboxes. Guardian mailbox control, authority declaration
+and independent school/operator relationship review are separate checks. Real-child
+onboarding stays disabled pending legal/operational release; fictional local testing
+does not establish compliance. Structured private questionnaire records are excluded from school snapshots,
+teacher tutor memory and progress exports. Permitted preferences may reach a
+consented language provider; generated text can paraphrase them. Prompt rules and
+explicit-disclosure rejection reduce that risk, but do not guarantee semantic
+non-disclosure. Voluntary details in questions/conversations can reach the provider
+and authorized teacher oversight. Optional withdrawal removes answers
+and derived summaries; disconnected copies clear on their next participation.
+
 ## Content
 - Every explanation, question-bank answer, quiz item and Try it activity has `sourceRefs` pointing to entries in `sources`.
 - The sprint assembles supplied, manually prepared instructional content. Source-ID
@@ -28,8 +40,9 @@
 - No real children's data in fixtures, tests, or demos. Use fake names and pseudonymous ids.
 - Seeded data carries `"simulated": true` and is visibly marked in the UI.
 - Personal packages and progress files are protected by a profile PIN. Keep sensitive data out of the lesson file itself.
-- Student voice commands are processed locally where supported; their raw audio
-  is never stored. Teacher lesson recording is explicitly enabled and permission
+- The optional local browser command path processes audio locally where supported
+  and does not persist raw command audio. Connected transcription/live voice
+  separately sends audio to the disclosed provider after opt-in. Teacher lesson recording is explicitly enabled and permission
   gated, with a visible microphone status. Use a close teacher microphone and
   pause/mute capture for student speech and classroom discussions. Only teacher
   audio is intended for recording; the browser cannot isolate individual voices.
@@ -37,8 +50,10 @@
   IndexedDB as a private review draft. Review instructional accuracy, timing and
   privacy before separately approving the recording for encrypted learner export.
   No recognition, voice cloning or automated source verification occurs. Explicit
-  publication uploads only reviewed teacher media and manifests to the configured
-  local service; drafts are never uploaded automatically. No cloud is configured.
+  publication uploads only reviewed teacher media and manifests to the
+  configured lesson service; drafts are not uploaded automatically. The original
+  demo uses loopback files; account deployments may use managed PostgreSQL/private
+  object storage and connected providers. Hosted deployment testing remains deferred.
   Browser recordings in tests use simulated inputs, never children or classrooms.
 - Personalized SVG scenes are prepared manually from the reviewed notes and selected
   by explicit simulated profile-history rules. They are not generated transcripts,
@@ -51,12 +66,16 @@
   publication token and demo PINs are public fixtures. Random audio capabilities
   reduce accidental access but are not identity verification. Deploying public
   media needs authenticated teacher publication, authorized learner delivery,
-  HTTPS, managed storage and retention controls; none are claimed here.
+  HTTPS, managed storage and retention controls. Account mode implements these
+  authorization/storage boundaries, but hosted production operation and real-child
+  rollout are not verified by the original demo.
 - Teachers see aggregates by default and can inspect received pseudonymous events
   and original questions. Learner snapshots stay encrypted on the device and are
   sent to the configured school lesson service or explicitly exported files. The
-  current service is loopback-only and uses simulated profiles; no external AI,
-  analytics or cloud speech service receives learner questions or recordings.
+  original demo service is loopback-only and uses simulated profiles. Explicitly
+  enabled connected tutoring sends question/context to OpenAI, and connected voice
+  sends microphone audio for transcription or live interaction. No pooled training
+  or improvement-data collection/export is enabled.
   Do not claim school-exclusive storage for a deployment configured to use an
   external provider: that receiving service can access submitted learner context
   and must be disclosed. PIN encryption is not anonymity or complete access control.
@@ -71,7 +90,8 @@
   snapshot. Lock before handing over the device; profile selection clears pending
   authenticated recovery data. Public demo PINs, six-digit entropy, unlocked tabs,
   same-origin scripts and browser storage eviction limit privacy. Use one learner
-  tab at a time; there is no cross-tab lock or production account system. See
+  tab at a time; there is no cross-tab study lock. Account-mode authentication does not remove
+  these unlocked-device or same-origin-script limitations. See
   [shared-device verification](shared-device-verification.md).
 # Companion voice sessions
 
@@ -108,3 +128,15 @@ The companion speaks approved prepared explanations and procedural prompts using
 bundled generic local-system narration. It does not imitate the teacher, replace
 classroom audio, generate teaching content or call an external AI service. Shared
 device/privacy limitations above still apply. See companion-verification.md.
+
+## School enrollment extension (30 October 2026)
+
+School registration, reviewed school activation, multi-school teacher assignments,
+student affiliation and approved subject enrollment are now explicitly authorized.
+The authenticated school service is separate from the simulated lesson-delivery
+demo. Supabase verifies email identity; administrative MFA, school membership,
+teaching assignments and enrollment govern server access. R2 objects are private.
+Complete downloaded learning does not require a server session. Public operation
+requires provider configuration; real student accounts remain disabled by default
+until consent, retention and operational release checks pass. Fixtures and
+local account registration remain fictional-data-only. See school-registration.md.

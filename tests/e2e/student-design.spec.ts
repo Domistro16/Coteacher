@@ -5,6 +5,9 @@ import { expect, test } from '@playwright/test';
 test.use({ serviceWorkers: 'block' });
 for (const width of [320, 360, 768, 1440]) {
   test(`purposeful student screens, keyboard navigation and profile separation at ${width}px`, async ({ page }, info) => {
+    // Includes a wrong PIN, two real PBKDF2 unlocks and keyboard navigation
+    // through every screen. This is interaction coverage, not a 30-second SLA.
+    test.setTimeout(90000);
     await page.setViewportSize({ width, height: 900 });
     await page.route('**/api/lessons/*', route => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: 'No recorded teacher lesson is published yet.' }) }));
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));

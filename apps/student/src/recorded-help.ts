@@ -1,6 +1,7 @@
 import { matchQuestion, recordingCueAt, requirePublishedLesson, type LessonPackage, type ProgressRecord, type VisualAsset, type VisualExploredEvent } from '@coteacher/shared';
 import { handleStudentRequest } from './help';
 import { createPlayerModel, transitionPlayer, type PlayerState } from './player';
+import { preparedQuestions } from '../../../packages/shared/src/preparation';
 
 function context(lesson: LessonPackage, progress: ProgressRecord, positionMs: number) {
   requirePublishedLesson(lesson);
@@ -50,7 +51,7 @@ export function adaptRecordedMoment(lesson: LessonPackage, player: PlayerState, 
     const recordedContext = { studentId: lesson.studentId, lessonId: lesson.lessonId,
       conceptId: cue.conceptId, recordingId: recording.id, positionMs: position };
     const result = matchQuestion(detail, cue.timelineStepId, {
-      ...lesson, questionBank: lesson.questionBank.filter(question => question.conceptId === cue.conceptId),
+      ...lesson, preparedSupport:undefined,questionBank: preparedQuestions(lesson).filter(question => question.conceptId === cue.conceptId),
     });
     if ('match' in result) {
       next.progress.events.push({ type: 'question-matched', timestamp, conceptId: cue.conceptId,

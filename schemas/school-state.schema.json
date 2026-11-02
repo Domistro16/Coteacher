@@ -1,0 +1,1407 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/school-state.schema.json",
+  "title": "SchoolState",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "title": "Account",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "teacher",
+              "student",
+              "operator"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "simulated": {
+            "type": "boolean"
+          },
+          "guardianEmail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "role",
+          "email",
+          "verified",
+          "simulated",
+          "guardianEmail"
+        ]
+      }
+    },
+    "schools": {
+      "type": "array",
+      "items": {
+        "title": "School",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "rejected",
+              "suspended"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "levels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "location",
+          "contact",
+          "evidence",
+          "status",
+          "reason",
+          "levels"
+        ]
+      }
+    },
+    "memberships": {
+      "type": "array",
+      "items": {
+        "title": "Membership",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "teacher",
+              "student"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "rejected",
+              "suspended",
+              "ended"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "accountId",
+          "role",
+          "status"
+        ]
+      }
+    },
+    "sessions": {
+      "type": "array",
+      "items": {
+        "title": "Session",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "name",
+          "archived"
+        ]
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "title": "Group",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "sessionId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "sessionId",
+          "level",
+          "name",
+          "min",
+          "max",
+          "archived"
+        ]
+      }
+    },
+    "subjects": {
+      "type": "array",
+      "items": {
+        "title": "Subject",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "name",
+          "archived"
+        ]
+      }
+    },
+    "offerings": {
+      "type": "array",
+      "items": {
+        "title": "Offering",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "subjectId": {
+            "type": "string"
+          },
+          "compulsory": {
+            "type": "boolean"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "groupId",
+          "subjectId",
+          "compulsory",
+          "archived"
+        ]
+      }
+    },
+    "assignments": {
+      "type": "array",
+      "items": {
+        "title": "Assignment",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "teacherId": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "offeringId",
+          "teacherId",
+          "archived"
+        ]
+      }
+    },
+    "placements": {
+      "type": "array",
+      "items": {
+        "title": "Placement",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "studentId",
+          "groupId",
+          "active"
+        ]
+      }
+    },
+    "enrollments": {
+      "type": "array",
+      "items": {
+        "title": "Enrollment",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "groupId": {
+            "type": "string"
+          },
+          "offeringIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "uniqueItems": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "superseded"
+            ]
+          },
+          "needsReview": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "studentId",
+          "groupId",
+          "offeringIds",
+          "status",
+          "needsReview"
+        ]
+      }
+    },
+    "invitations": {
+      "type": "array",
+      "items": {
+        "title": "Invitation",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "teacher",
+              "student",
+              "admin"
+            ]
+          },
+          "tokenHash": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "accepted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "email",
+          "role",
+          "tokenHash",
+          "expiresAt",
+          "accepted"
+        ]
+      }
+    },
+    "audits": {
+      "type": "array",
+      "items": {
+        "title": "Audit",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "actorId",
+          "schoolId",
+          "action",
+          "entityId",
+          "at"
+        ]
+      }
+    },
+    "credentials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "salt": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "mustChange": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accountId",
+          "salt",
+          "digest",
+          "mustChange"
+        ]
+      }
+    },
+    "policies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "level": {
+            "type": "string"
+          },
+          "min": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "level",
+          "min",
+          "max"
+        ]
+      }
+    },
+    "publications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "teacherId": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "recordingId": {
+            "type": "string"
+          },
+          "external": {
+            "type": "boolean"
+          },
+          "reviewed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "teacherId",
+          "offeringId",
+          "recordingId",
+          "external",
+          "reviewed"
+        ]
+      }
+    },
+    "identities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "providerId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accountId",
+          "providerId"
+        ]
+      }
+    },
+    "loginSessions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tokenHash": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tokenHash",
+          "accountId",
+          "expiresAt"
+        ]
+      }
+    },
+    "lessons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "teacherId": {
+            "type": "string"
+          },
+          "recordingId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "templateKey": {
+            "type": "string"
+          },
+          "audioKey": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "byteLength": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20000000
+          },
+          "publishedAt": {
+            "type": "string"
+          },
+          "archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "offeringId",
+          "teacherId",
+          "recordingId",
+          "title",
+          "templateKey",
+          "audioKey",
+          "sha256",
+          "byteLength",
+          "publishedAt",
+          "archived"
+        ]
+      }
+    },
+    "learningRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "lessonId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "lessonId",
+          "studentId",
+          "objectKey",
+          "digest",
+          "updatedAt"
+        ]
+      }
+    },
+    "consents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "guardianEmail": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "guardian",
+              "school-authorized",
+              "external-ai",
+              "local-ai",
+              "adult-self"
+            ]
+          },
+          "acceptedAt": {
+            "type": "string"
+          },
+          "withdrawn": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "accountId",
+          "guardianEmail",
+          "kind",
+          "acceptedAt",
+          "withdrawn"
+        ]
+      }
+    },
+    "uploads": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "teacherId": {
+            "type": "string"
+          },
+          "offeringId": {
+            "type": "string"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "byteLength": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20000000
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "used": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "teacherId",
+          "offeringId",
+          "objectKey",
+          "sha256",
+          "byteLength",
+          "expiresAt",
+          "used"
+        ]
+      }
+    },
+    "tutorRecords": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "schoolId": {
+            "type": "string"
+          },
+          "lessonId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "objectKey": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "schoolId",
+          "lessonId",
+          "studentId",
+          "objectKey",
+          "updatedAt"
+        ]
+      }
+    },
+    "retiredObjects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "deleteAfter": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "deleteAfter"
+        ]
+      }
+    },
+    "privateLearners": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "envelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "algorithm",
+              "iv",
+              "tag",
+              "ciphertext"
+            ],
+            "properties": {
+              "algorithm": {
+                "const": "aes-256-gcm-server-v1"
+              },
+              "iv": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 16,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "tag": {
+                "type": "string",
+                "minLength": 24,
+                "maxLength": 24,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "ciphertext": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 48000000,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              }
+            }
+          },
+          "memoryEnvelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "algorithm",
+              "iv",
+              "tag",
+              "ciphertext"
+            ],
+            "properties": {
+              "algorithm": {
+                "const": "aes-256-gcm-server-v1"
+              },
+              "iv": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 16,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "tag": {
+                "type": "string",
+                "minLength": 24,
+                "maxLength": 24,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "ciphertext": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 48000000,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              }
+            }
+          }
+        },
+        "required": [
+          "accountId",
+          "envelope"
+        ]
+      }
+    },
+    "preparedSupport": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "publicationId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "schemaVersion": {
+                "const": "1.0.0"
+              },
+              "schoolId": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "lessonId": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "lessonRevision": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "sourceRevision": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "language": {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              "configuration": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "approved"
+                ]
+              },
+              "reviewedAt": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+              },
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "maxLength": 100,
+                      "minLength": 1
+                    },
+                    "conceptId": {
+                      "type": "string",
+                      "maxLength": 100,
+                      "minLength": 1
+                    },
+                    "question": {
+                      "type": "string",
+                      "maxLength": 800,
+                      "minLength": 1
+                    },
+                    "answer": {
+                      "type": "string",
+                      "maxLength": 2000,
+                      "minLength": 1
+                    },
+                    "sourceRefs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1
+                      },
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "uniqueItems": true
+                    },
+                    "rank": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "misconception": {
+                      "type": "boolean"
+                    },
+                    "origin": {
+                      "enum": [
+                        "reviewed",
+                        "generated"
+                      ]
+                    },
+                    "quotes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sourceRef": {
+                            "type": "string"
+                          },
+                          "variantId": {
+                            "type": "string"
+                          },
+                          "quote": {
+                            "type": "string",
+                            "minLength": 12,
+                            "maxLength": 2000
+                          }
+                        },
+                        "required": [
+                          "sourceRef",
+                          "variantId",
+                          "quote"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "conceptId",
+                    "question",
+                    "answer",
+                    "sourceRefs",
+                    "rank",
+                    "misconception"
+                  ]
+                },
+                "maxItems": 100,
+                "uniqueItems": true
+              },
+              "explanations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "maxLength": 100,
+                      "minLength": 1
+                    },
+                    "conceptId": {
+                      "type": "string",
+                      "maxLength": 100,
+                      "minLength": 1
+                    },
+                    "text": {
+                      "type": "string",
+                      "maxLength": 2000,
+                      "minLength": 1
+                    },
+                    "sourceRefs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "minLength": 1
+                      },
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "uniqueItems": true
+                    },
+                    "origin": {
+                      "enum": [
+                        "reviewed",
+                        "generated"
+                      ]
+                    },
+                    "quotes": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 6,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sourceRef": {
+                            "type": "string"
+                          },
+                          "variantId": {
+                            "type": "string"
+                          },
+                          "quote": {
+                            "type": "string",
+                            "minLength": 12,
+                            "maxLength": 2000
+                          }
+                        },
+                        "required": [
+                          "sourceRef",
+                          "variantId",
+                          "quote"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "conceptId",
+                    "text",
+                    "sourceRefs"
+                  ]
+                },
+                "maxItems": 100,
+                "uniqueItems": true
+              },
+              "knowledge": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "schemaVersion": {
+                    "const": "1.0.0"
+                  },
+                  "schoolId": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "subjectKey": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "lessonId": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "lessonRevision": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "sourceRevision": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "language": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "minLength": 1
+                  },
+                  "configuration": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                  },
+                  "reviewedAt": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+                  },
+                  "concepts": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "conceptId": {
+                          "type": "string",
+                          "maxLength": 100,
+                          "minLength": 1
+                        },
+                        "knowledgeKey": {
+                          "type": "string",
+                          "maxLength": 100,
+                          "minLength": 1
+                        },
+                        "prerequisites": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "minLength": 1
+                          },
+                          "maxItems": 10,
+                          "uniqueItems": true
+                        },
+                        "sourceRefs": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "minLength": 1
+                          },
+                          "minItems": 1,
+                          "maxItems": 20,
+                          "uniqueItems": true
+                        }
+                      },
+                      "required": [
+                        "conceptId",
+                        "knowledgeKey",
+                        "prerequisites",
+                        "sourceRefs"
+                      ]
+                    },
+                    "maxItems": 50,
+                    "uniqueItems": true
+                  }
+                },
+                "required": [
+                  "schemaVersion",
+                  "schoolId",
+                  "subjectKey",
+                  "lessonId",
+                  "lessonRevision",
+                  "sourceRevision",
+                  "language",
+                  "configuration",
+                  "reviewedAt",
+                  "concepts"
+                ]
+              }
+            },
+            "required": [
+              "schemaVersion",
+              "schoolId",
+              "lessonId",
+              "lessonRevision",
+              "sourceRevision",
+              "language",
+              "configuration",
+              "status",
+              "candidates",
+              "explanations",
+              "knowledge"
+            ]
+          }
+        },
+        "required": [
+          "publicationId",
+          "data"
+        ]
+      }
+    },
+    "placementRequests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "studentId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "schoolId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "classLevel": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "subjects": {
+            "type": "array",
+            "maxItems": 15,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "maxLength": 60,
+              "minLength": 1
+            }
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "reviewed"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          }
+        },
+        "required": [
+          "id",
+          "studentId",
+          "schoolId",
+          "classLevel",
+          "subjects",
+          "status",
+          "createdAt"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "accounts",
+    "schools",
+    "memberships",
+    "sessions",
+    "groups",
+    "subjects",
+    "offerings",
+    "assignments",
+    "placements",
+    "enrollments",
+    "invitations",
+    "audits",
+    "credentials",
+    "policies",
+    "publications",
+    "identities",
+    "loginSessions",
+    "lessons",
+    "learningRecords",
+    "consents",
+    "uploads",
+    "tutorRecords",
+    "retiredObjects",
+    "privateLearners",
+    "preparedSupport",
+    "placementRequests"
+  ]
+}

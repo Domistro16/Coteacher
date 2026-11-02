@@ -1,0 +1,235 @@
+{
+  "scope": "Actual production UI, isolated copy of current school histories, actual encrypted sync; mocked microphone/live transport and teaching provider; no OpenAI/human audio",
+  "startedAt": "2026-10-26T19:57:03.248Z",
+  "api": [
+    {
+      "method": "POST",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 409,
+      "bytes": 55,
+      "at": "2026-10-26T19:57:30.588Z"
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 1170566,
+      "at": "2026-10-26T19:57:59.348Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "query": "",
+      "status": 200,
+      "bytes": 303,
+      "at": "2026-10-26T19:58:01.769Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 72023,
+      "at": "2026-10-26T19:58:05.231Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 1170259,
+      "at": "2026-10-26T19:58:10.807Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 409,
+      "bytes": 55,
+      "at": "2026-10-26T19:58:26.201Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 1171882,
+      "at": "2026-10-26T19:58:34.954Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 1171575,
+      "at": "2026-10-26T19:58:44.571Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 1172415,
+      "at": "2026-10-26T19:58:54.875Z"
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 73839,
+      "at": "2026-10-26T19:59:34.367Z"
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "GET",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 73839,
+      "at": "2026-10-26T20:00:09.833Z"
+    },
+    {
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 409,
+      "bytes": 55,
+      "at": "2026-10-26T20:00:30.971Z"
+    }
+  ],
+  "result": "FAIL",
+  "controls": {
+    "sent": [
+      {
+        "event": {
+          "type": "session.instructions.append",
+          "delegation_id": null,
+          "content": "Give the short listening greeting supplied next, then wait for the student. Delegate the learner's teaching questions; do not start an explanation or invent a question before they ask."
+        },
+        "at": 1793044685245
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": null,
+          "content": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening."
+        },
+        "at": 1793044685245
+      },
+      {
+        "event": {
+          "type": "session.instructions.append",
+          "delegation_id": "diagnostic-pencil",
+          "content": "While the source-checked answer is pending, immediately say the following progress commentary once: \"Hmm, checking your lesson sources.\" Do not add a teaching claim or start an explanation. Wait for the verified answer."
+        },
+        "at": 1793044687444
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "diagnostic-pencil",
+          "content": "Hmm, checking your lesson sources."
+        },
+        "at": 1793044687444
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "empty-repeated-notice",
+          "content": "I did not receive a usable question transcript. Please repeat it or type it; I will not guess."
+        },
+        "at": 1793044695911
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "diagnostic-pencil",
+          "content": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent. Would you like to try a quick check on that, or ask another question?"
+        },
+        "at": 1793044736196
+      },
+      {
+        "event": {
+          "type": "session.close"
+        },
+        "at": 1793044744971
+      }
+    ],
+    "stopped": 2
+  },
+  "providerCalls": 1,
+  "directQuickCheckInvitation": true,
+  "originalHistoryAndAudioRetained": true,
+  "error": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: 'Your quick check', exact: true }).getByRole('heading', { name: /What can happen to light crossing from air into water/ })\nExpected: visible\nTimeout: 90000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 90000ms\n  - waiting for getByRole('dialog', { name: 'Your quick check', exact: true }).getByRole('heading', { name: /What can happen to light crossing from air into water/ })\n",
+  "body": "Skip to content\ncoteacher\n.\nHome\nMy Lessons\nDownloads\nProgress\nProfile\nA little every day.\n\nYour lesson. Your pace.\n\nYour classroom, again\nConnected\nSA\n← My Lessons\nDownload for offline use\nSaved on this device\nWatch online\nScience · JSS 2 (simulated demo)\nStreaming\nWhy does a pencil look bent in water?\n\nYour classroom teacher • 0:37 • Your personal replay\n\nTalk with Coteacher\nLet’s work through a tricky part together.\nOffline voice options\nYOUR CLASSROOM, REPLAYED\nRefraction at the water surface\nAir\nWater\nGrey: the pencil stays straight.\nGold: its apparent position.\nChanging direction at the air–water boundary changes what we see.\ncoteacher.\nCompare the straight pencil and its apparent position\nRead visual annotations\nSeek recorded lesson\n10\n10\n0:34 / 0:37\nPlayback speed\n0.75×\n1×\n1.25×\n1.5×\nCoteacher\n\nRefraction at the water surface · paused at 0:34\n\nConnected tutor\n\nLight from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent.\n\nTap Hear Coteacher to listen. Your teacher’s place is saved.\n\nI don’t understand\nReplay this section\nCheck this concept\nIn this lesson\n2 classroom moments\n01\nLight travels along straight paths\n0:00\n02\nRefraction at the water surface\n0:12\nAbout this lesson\ncoteacher\n.\nEverything is up to date · school received your progress. 160 learning events received.\nAnother chance at the lesson\n\nCOTEACHER\n\nYour quick check\n×\n\nYour question and attempts are still waiting for the school connection. They remain saved.\n\nTry preparing this check again\nBack to our conversation\nReturn to recorded lesson",
+  "local": {
+    "questions": [
+      {
+        "id": "queued-52bfffd4-7bcf-4ce5-bcea-5425f540c286",
+        "text": "Okay Okay, yeah, now I get you very well. Yeah, I get it. I'd like to try a quick check",
+        "askedAt": "2026-10-26T16:34:59.664Z",
+        "timelineStepId": "step-refraction",
+        "answered": false,
+        "recordedContext": {
+          "studentId": "student-a1b2c3d4",
+          "lessonId": "light-and-refraction",
+          "conceptId": "refraction",
+          "recordingId": "recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+          "positionMs": 35884
+        }
+      },
+      {
+        "id": "queued-4b22674e-4058-41e8-8313-f307b3c4fb49",
+        "text": "Why would a pencil look bent when it enters into water",
+        "askedAt": "2026-10-26T19:58:06.404Z",
+        "timelineStepId": "step-refraction",
+        "answered": false,
+        "recordedContext": {
+          "studentId": "student-a1b2c3d4",
+          "lessonId": "light-and-refraction",
+          "conceptId": "refraction",
+          "recordingId": "recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+          "positionMs": 34930
+        }
+      }
+    ],
+    "replies": [
+      {
+        "questionId": "queued-52bfffd4-7bcf-4ce5-bcea-5425f540c286",
+        "status": "answered",
+        "text": "Great! Here's a quick question: Why does a straight pencil appear bent when it is partially submerged in water?",
+        "updatedAt": "2026-10-26T16:35:29.187Z"
+      },
+      {
+        "questionId": "queued-4b22674e-4058-41e8-8313-f307b3c4fb49",
+        "status": "answered",
+        "text": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent.",
+        "updatedAt": "2026-10-26T19:58:43.957Z"
+      }
+    ],
+    "turns": 160
+  },
+  "finishedAt": "2026-10-26T20:00:49.633Z"
+}

@@ -1,0 +1,352 @@
+{
+  "checkedAt": "2026-10-31T22:41:55.645Z",
+  "target": "PC-hosted apps with real Supabase and private R2",
+  "postgres": {
+    "status": "PASS",
+    "scope": "real schema migration and locked transactional contract read",
+    "concurrency": {
+      "status": "PASS",
+      "scope": "separate connections serialize writers; rolled-back JSONB probe leaves no state change"
+    }
+  },
+  "r2": {
+    "status": "PASS",
+    "scope": "encrypted verification object write/read/delete; object removed"
+  },
+  "authSettings": {
+    "status": "PASS",
+    "emailSignupEnabled": true,
+    "emailConfirmationRequired": true
+  },
+  "localApps": {
+    "status": "PASS",
+    "ports": [
+      5175,
+      5174,
+      5173
+    ],
+    "managedIdentity": true,
+    "simulated": true,
+    "checkedAt": "2026-10-31T21:29:53Z",
+    "scope": "All three normal account origins return HTTP 200; managed identity and simulated-data mode enabled. Demo reruns use separate output."
+  },
+  "loopbackCookie": {
+    "status": "PASS",
+    "scope": "Chromium stored and sent Secure HttpOnly __Host cookie on actual loopback HTTP requests"
+  },
+  "remaining": {
+    "emailDelivery": "PASS: real owner and teacher email confirmation completed",
+    "recovery": "PASS: user completed mailbox reset and signed in with the exact teacher email alias; usual-address failure was a different account",
+    "liveMultiUserJourney": "PASS: school setup/enrollment, real R2 publication, offline media and receipts, teacher guidance, real typed OpenAI answer/follow-up and fresh assigned-teacher oversight",
+    "providerRestore": "DEFERRED by user; separate empty provider-target drill remains unverified",
+    "vercelRender": "DEFERRED by user"
+  },
+  "r2BrowserUpload": {
+    "status": "PASS",
+    "scope": "actual signed browser PUT from local teacher origin returned 200; retrieved bytes match; temporary object deleted; synthetic protocol payload, not an audio-quality test"
+  },
+  "authEmailConfirmation": {
+    "observedAt": "2026-10-31T07:43:09.470Z",
+    "providerAccountExists": true,
+    "emailConfirmed": true,
+    "scope": "confirmed provider status plus user report of email confirmation"
+  },
+  "confirmationFixValidation": {
+    "unitFiles": 37,
+    "unitTests": 489,
+    "schoolBrowserTests": 3,
+    "typecheck": "PASS",
+    "builds": "PASS: all three account apps",
+    "emailSending": "Mocked in automated tests; live resend is user-initiated through the UI"
+  },
+  "managedSignIn": {
+    "status": "PASS",
+    "scope": "user reports successful live sign-in; Supabase email is confirmed and the verified operator identity is linked in PostgreSQL"
+  },
+  "adminMfa": {
+    "status": "PASS",
+    "observedAt": "2026-10-31T10:42:20.626Z",
+    "scope": "user completed authenticator setup; read-only Supabase check confirms one verified TOTP factor; no secret or code exported"
+  },
+  "baselineBackup": {
+    "status": "PASS",
+    "createdAt": "2026-10-31T10:42:29.248Z",
+    "objects": 0,
+    "scope": "Encrypted account-state backup captured before school/media setup; zero objects at backup time. This is historical baseline evidence, not a populated backup or restore drill."
+  },
+  "emailSender": {
+    "status": "ACCEPTED",
+    "observedAt": "2026-10-31T11:31:36.136Z",
+    "scope": "after SMTP port/login correction, real school-owner signup through the browser returned HTTP 201; provider has one unconfirmed owner account and confirmation_sent_at is set",
+    "inboxDelivery": "PASS: user confirmed owner and teacher emails; actual account sign-in and subsequent school journeys succeeded",
+    "guide": "docs/local-smtp-setup.md"
+  },
+  "continuationCheckpoint": {
+    "checkedAt": "2026-10-31T20:23:10.660Z",
+    "scope": "PC-hosted real Supabase/R2; fictional school and student only",
+    "smtpConfirmation": "PASS: owner and teacher confirmation links received and followed by user",
+    "schoolActivation": "PASS: Fictional Live Provider Academy registered through UI and activated by reviewer",
+    "teacherAffiliation": "PASS: unaffiliated access denied (403), join request approved, three assignments",
+    "studentEnrollment": "PASS: school-issued credentials, forced password change, JSS2A placement, compulsory Science plus optional Art approved; single-subject submission rejected (400)",
+    "nativeRecording": "PASS with synthetic tone only; not human microphone verification",
+    "r2Publication": "PASS: actual browser signed upload and reviewed lesson publication confirmed",
+    "studentMediaJourney": "PASS: authorized streaming, complete download, closed-tab offline playback, sourced prepared answer, safe activity/quiz, honest no-match, zero offline API calls, progress receipt and teacher insights",
+    "providerDiagnostic": "PASS: approved read counted zero lessons before successful publication; previous approval usage blocker no longer reproduces"
+  },
+  "liveMediaJourney": {
+    "checkedAt": "2026-10-31T20:26:27.174Z",
+    "nativeSyntheticCapture": "PASS",
+    "r2Publication": "PASS",
+    "authorizedStreaming": "PASS",
+    "download": "PASS",
+    "closedTabOfflinePlayback": "PASS",
+    "preparedSourcedAnswer": "PASS",
+    "safeActivityAndQuiz": "PASS",
+    "honestNoMatch": "PASS",
+    "offlineApiCalls": 0,
+    "progressReceipt": "PASS",
+    "teacherInsights": "PASS"
+  },
+  "populatedBackup": {
+    "status": "PASS",
+    "createdAt": "2026-10-31T20:53:04.249Z",
+    "folder": ".school-backups/live-populated-tutor-20261031-2053",
+    "objects": 4,
+    "scope": "Encrypted current fictional school, recorded lesson, learning record and tutor record; separate from the earlier zero-object baseline"
+  },
+  "localArchiveRestore": {
+    "checkedAt": "2026-10-31T20:53:35.028Z",
+    "scope": "Populated live-provider archive restored to a separate empty LOCAL adapter target; not a provider-target restore drill",
+    "objects": 4,
+    "tutorAnsweredReplies": 3,
+    "schools": 1,
+    "lessons": 1,
+    "learningRecords": 1,
+    "tutorRecords": 1,
+    "sessionsRevoked": true,
+    "pendingUploadsRevoked": true,
+    "authorizedPackageAndAudioChecksum": "PASS",
+    "sourceUntouched": true,
+    "providerTargetRestore": "UNVERIFIED"
+  },
+  "liveSchoolTutor": {
+    "checkedAt": "2026-10-31T20:52:31.260Z",
+    "teacherGuidanceReturn": "PASS",
+    "realOpenAiAnswer": "PASS",
+    "contextualFollowup": "PASS",
+    "sourceReferences": "PASS",
+    "assignedTeacherOversight": "PASS",
+    "input": "typed fictional learner questions; live microphone/WebRTC not tested",
+    "freshTeacherOversight": {
+      "checkedAt": "2026-10-31T21:25:17.434Z",
+      "assignedTeacherOversight": "PASS",
+      "freshAuthorizedRead": "PASS",
+      "initialAndFollowupVisible": "PASS",
+      "sourceReferences": "PASS"
+    }
+  },
+  "recoveryFailureHandling": {
+    "status": "PASS",
+    "scope": "Mock issuer: normalized email and exact originating callback; validation, 429 and delivery failure; nine identity-adapter tests passed. Live recovery link not yet exercised."
+  },
+  "schoolTutorTimeout": {
+    "status": "PASS",
+    "schoolDeadlineMs": 45000,
+    "demoDeadlineMs": 15000,
+    "scope": "Real browser POST previously aborted at 15 seconds. School browser regression delayed first submission 16 seconds and verified answer and receipt without cancellation."
+  },
+  "latestRegression": {
+    "unitFiles": 37,
+    "unitTests": 492,
+    "generatedTypes": "PASS",
+    "typecheck": "PASS",
+    "schoolBrowserTests": 3,
+    "demoPackage": "PASS",
+    "originalBrowserSuite": {
+      "initialFullRun": {
+        "passed": 41,
+        "failed": 3
+      },
+      "targetedReruns": {
+        "audioSaveRetry": "PASS",
+        "mockTutorJourney": "PASS: unchanged assertions",
+        "nativeRecordingOfflineReplay": "PASS: constant synthetic tone, real media graph and durable quiz event"
+      },
+      "scope": "Historical initial failures and targeted reruns; superseded by the final complete 45-pass run after all fixes."
+    },
+    "finalTypecheck": "PASS after all harness/fixture changes",
+    "whitespaceCheck": "PASS",
+    "finalFullBrowserRun": {
+      "status": "PASS",
+      "passed": 45,
+      "failed": 0,
+      "duration": "13.4 minutes",
+      "command": "COTEACHER_TEST_TUTOR=mock COTEACHER_E2E_BUILD_ROOT=.task-tmp/e2e-demo npm exec playwright test -- --max-failures=1",
+      "scope": "Single complete run after all fixes; actual media and offline paths, synthetic microphone/recognition and mock demo tutor"
+    },
+    "intermediateFullRun": {
+      "passed": 42,
+      "failed": 2,
+      "failures": "Short label-completion sampling window and late half-second companion-audio measurement",
+      "resolution": "Unchanged completion/energy thresholds; frequent label sampling and early bounded native-audio measurement"
+    },
+    "samplingFixVerification": {
+      "passed": 2,
+      "scope": "Studio/projector motion and complete native recorded/offline replay journey; no production media-clock changes"
+    },
+    "schoolBrowserScope": "Latest complete run after integer-ms clock fix; 3 passed in 3.6 minutes"
+  },
+  "recoveryRequest": {
+    "checkedAt": "2026-10-31T21:20:29.300Z",
+    "teacherRecoveryEmailRequest": "PASS",
+    "providerAccepted": true,
+    "inboxAndReset": "PASS: user confirmed email reset and successful re-login",
+    "scope": "Actual teacher-origin recovery UI with real Supabase SMTP; no password/token logged"
+  },
+  "pendingUserInput": {},
+  "recoveryContinuationAudit": {
+    "checkedAt": "2026-10-31T21:38:21Z",
+    "pcAppHttpStatuses": [
+      200,
+      200,
+      200
+    ],
+    "recoveryCompletion": "UNVERIFIED: no user reset/re-login result or completion evidence",
+    "connectedMailbox": "Connected Gmail profile does not match the test teacher alias; no messages searched or read",
+    "scope": "Read-only revalidation; no recovery resend, password change or source-data mutation"
+  },
+  "goalCheckpoint": {
+    "status": "PC_MILESTONE_COMPLETE",
+    "checkedAt": "2026-10-31T22:41:55.645Z",
+    "scope": "Agreed PC-hosted implementation and acceptance with real Supabase/PostgreSQL/R2, fictional data only",
+    "remainingRequiredPcWork": [],
+    "releaseLimits": [
+      "Hosted deployment and deployment testing deferred by user",
+      "Separate empty provider-target restore deferred by user; local archive restoration is separate evidence",
+      "Human microphone, school WebRTC and physical low-end Android behavior remain unverified",
+      "Real student rollout still requires operational/consent/retention approval; real student mode stays disabled"
+    ]
+  },
+  "recoveryCompletion": {
+    "status": "PASS",
+    "reportedAt": "2026-10-31T21:44:43Z",
+    "scope": "Actual user inbox/reset and new-password sign-in, confirmed by user. Read-only provider lookup confirms the teacher exists and is email-confirmed; provider timestamps support account activity but do not reveal or independently test the new password.",
+    "initialFailure": "User entered the usual email instead of the teacher plus alias; exact alias sign-in worked.",
+    "providerStatus": {
+      "checkedAt": "2026-10-31T21:44:43.697Z",
+      "teacherAccountFound": true,
+      "confirmed": true,
+      "recoverySentAt": null,
+      "lastSignInAt": "2026-10-31T21:42:54.029Z",
+      "updatedAt": "2026-10-31T21:42:54.050Z",
+      "authEvents": []
+    }
+  },
+  "nativeSeekPrecision": {
+    "status": "PASS",
+    "scope": "Actual Chromium seeks can report 1003 ms as 1002.999 ms. Player clock normalized to existing integer-ms contract; original audio remains the clock.",
+    "regression": "Deterministic actual-browser test failed before the fix and passed after it; genuinely earlier millisecond still resolves to previous chapter",
+    "focusedBrowserChecks": 2,
+    "latestTypecheck": "PASS",
+    "normalAccountBuildAndSchoolRegression": "PASS: all three normal builds and three school browser tests after the clock fix",
+    "fullRegression": "PASS: 45-case complete suite includes actual native-seek regression"
+  },
+  "finalPcAudit": {
+    "checkedAt": "2026-10-31T22:41:55.645Z",
+    "fullBrowserSuite": {
+      "passed": 45,
+      "failed": 0,
+      "lastRunStatus": "passed"
+    },
+    "apps": [
+      {
+        "name": "student",
+        "port": 5173,
+        "status": 200,
+        "normalBuildEntryMatches": true
+      },
+      {
+        "name": "teacher",
+        "port": 5174,
+        "status": 200,
+        "normalBuildEntryMatches": true
+      },
+      {
+        "name": "school",
+        "port": 5175,
+        "status": 200,
+        "normalBuildEntryMatches": true
+      }
+    ],
+    "managedIdentity": true,
+    "simulated": true,
+    "connectedTutorConfigured": true
+  },
+  "completionAudit": [
+    {
+      "requirement": "Separate branded school, teacher and student apps",
+      "status": "PASS",
+      "evidence": "Three normal account builds, desktop/mobile school screenshots and browser tests; current HTTP 200 and matching normal build entries on ports 5175/5174/5173"
+    },
+    {
+      "requirement": "School review, owners/admins, sessions, levels, streams, subjects and enrollment policies",
+      "status": "PASS",
+      "evidence": "Domain/contract tests and school browser journey; real fictional school activation, session/groups including senior streams and minimum-subject rejection"
+    },
+    {
+      "requirement": "Supabase identity, confirmation, administrative MFA and recovery",
+      "status": "PASS",
+      "evidence": "Real confirmation/sign-in, verified TOTP factor, actual recovery request and user-confirmed reset plus exact-alias re-login; mock failure/rate-limit checks separate"
+    },
+    {
+      "requirement": "Multi-school teacher affiliation and class/subject authorization",
+      "status": "PASS",
+      "evidence": "Live unaffiliated denial (403), approved membership and three assignments; domain tests cover multiple schools, withdrawal and cross-school denial"
+    },
+    {
+      "requirement": "Student credentials, placement, subject enrollment, invitations and approval",
+      "status": "PASS",
+      "evidence": "Live email-free issued credentials, enforced initial password change, JSS2A placement and compulsory/optional approval; unit tests cover guardian consent, invitation identity/expiry/reuse and one active school/placement"
+    },
+    {
+      "requirement": "Teacher-controlled sharing and private authorized lesson distribution",
+      "status": "PASS",
+      "evidence": "Reviewed real R2 publication/upload/stream/download; encrypted storage and signed-ticket regression; domain tests cover assignment rechecks, exact audience, hash/expiry/one-use and foreign access"
+    },
+    {
+      "requirement": "Offline sourced learning and independent learner progress",
+      "status": "PASS",
+      "evidence": "Real-provider closed-tab offline journey with zero API calls; full browser suite verifies prepared help, safe activity, quiz, unknown queue, profile isolation and native playback"
+    },
+    {
+      "requirement": "Acknowledged progress, teacher guidance and scoped AI oversight",
+      "status": "PASS",
+      "evidence": "Real receipt/teacher progress and sourced guidance return; actual OpenAI typed answer plus contextual follow-up and fresh assigned-teacher UI read of both"
+    },
+    {
+      "requirement": "Native clock and chapter accuracy",
+      "status": "PASS",
+      "evidence": "1003 ms native-seek browser regression failed before normalization and passed after; earlier 1002 ms remains prior chapter; full 45-case suite passes"
+    },
+    {
+      "requirement": "PostgreSQL transactions, private R2 encryption and backup implementation",
+      "status": "PASS",
+      "evidence": "Real migration/serialization/rollback and encrypted R2 round trip; four-object encrypted backup restored to separate empty local adapter with audio hash, learning records and three sourced tutor replies"
+    },
+    {
+      "requirement": "Deployment configuration and secret exclusion",
+      "status": "PASS",
+      "evidence": "Three Vercel manifests, Render blueprint, Dockerfile/.dockerignore and tested same-origin proxy; actual hosted deployment explicitly deferred"
+    },
+    {
+      "requirement": "Contracts, types, builds and regression acceptance",
+      "status": "PASS",
+      "evidence": "37 unit files / 492 tests, generated types and final TypeScript; three school browser tests after clock fix; full 45-case demo suite; valid simulated demo package"
+    },
+    {
+      "requirement": "Fictional-data-only PC milestone and honest limits",
+      "status": "PASS",
+      "evidence": "Managed identity with simulated=true verified at current runtime; real children disabled; synthetic/audio/provider scopes and deferred release checks retained"
+    }
+  ]
+}

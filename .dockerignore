@@ -1,0 +1,13 @@
+node_modules
+.git
+.env
+.env.*
+!.env.example
+.coteacher-delivery
+.npm-cache
+.task-tmp
+test-results
+playwright-report
+apps/*/dist
+
+.school-backups/
