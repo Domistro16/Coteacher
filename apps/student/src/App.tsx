@@ -67,7 +67,12 @@ export function App() {
     if (!snapshot || !session) return;
     const currentRevision = ++revision.current;
     setSaved('Saving on this device…');
-    saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveStoredProfile(session.id, session.pin, snapshot)).then(() => {
+    saveQueue.current = saveQueue.current.catch(() => {}).then(() => {
+      // Each snapshot is cumulative. Skip superseded queued writes, while the
+      // latest revision still has to finish before reporting a durable save.
+      if (currentRevision !== revision.current) return;
+      return saveStoredProfile(session.id, session.pin, snapshot);
+    }).then(() => {
       if (currentRevision === revision.current) { setSaved('Saved on this device'); setPackageReady(!snapshot.lesson.recording || !('mediaUrl' in snapshot.lesson.recording.audio)); }
     }).catch((e: Error) => { if (currentRevision === revision.current) { setSaved('Not saved — retry before leaving'); setError(e.message); } });
   }, [snapshot, session]);

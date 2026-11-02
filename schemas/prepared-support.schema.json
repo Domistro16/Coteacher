@@ -1,0 +1,342 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "schoolId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "lessonId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "lessonRevision": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "sourceRevision": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 1
+    },
+    "configuration": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved"
+      ]
+    },
+    "reviewedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "conceptId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "maxLength": 800,
+            "minLength": 1
+          },
+          "answer": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "sourceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "misconception": {
+            "type": "boolean"
+          },
+          "origin": {
+            "enum": [
+              "reviewed",
+              "generated"
+            ]
+          },
+          "quotes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceRef": {
+                  "type": "string"
+                },
+                "variantId": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "sourceRef",
+                "variantId",
+                "quote"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "conceptId",
+          "question",
+          "answer",
+          "sourceRefs",
+          "rank",
+          "misconception"
+        ]
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "explanations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "conceptId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1
+          },
+          "sourceRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 20,
+            "uniqueItems": true
+          },
+          "origin": {
+            "enum": [
+              "reviewed",
+              "generated"
+            ]
+          },
+          "quotes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceRef": {
+                  "type": "string"
+                },
+                "variantId": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 12,
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "sourceRef",
+                "variantId",
+                "quote"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "conceptId",
+          "text",
+          "sourceRefs"
+        ]
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "knowledge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": "1.0.0"
+        },
+        "schoolId": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "subjectKey": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "lessonId": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "lessonRevision": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "sourceRevision": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        "configuration": {
+          "type": "string",
+          "maxLength": 100,
+          "minLength": 1
+        },
+        "reviewedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+        },
+        "concepts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "conceptId": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "knowledgeKey": {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              "prerequisites": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1
+                },
+                "maxItems": 10,
+                "uniqueItems": true
+              },
+              "sourceRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 100,
+                  "minLength": 1
+                },
+                "minItems": 1,
+                "maxItems": 20,
+                "uniqueItems": true
+              }
+            },
+            "required": [
+              "conceptId",
+              "knowledgeKey",
+              "prerequisites",
+              "sourceRefs"
+            ]
+          },
+          "maxItems": 50,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "schoolId",
+        "subjectKey",
+        "lessonId",
+        "lessonRevision",
+        "sourceRevision",
+        "language",
+        "configuration",
+        "reviewedAt",
+        "concepts"
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "schoolId",
+    "lessonId",
+    "lessonRevision",
+    "sourceRevision",
+    "language",
+    "configuration",
+    "status",
+    "candidates",
+    "explanations",
+    "knowledge"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/prepared-support.schema.json",
+  "title": "PreparedSupport"
+}

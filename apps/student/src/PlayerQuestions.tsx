@@ -2,12 +2,13 @@ import type { LessonPackage, ProgressRecord, TutorReply } from '@coteacher/share
 import { TutorSources } from './TutorSources';
 import { Sources } from './Visual';
 import { clock } from './student-ui';
+import { preparedQuestions } from '../../../packages/shared/src/preparation';
 
 /** Question reading and answers stay in the contextual recorded player. */
 export function PlayerQuestions({ lesson, progress, saved, open, replies = [], conceptId, onHear }: { lesson: LessonPackage; progress: ProgressRecord; saved: string; open: boolean; replies?: TutorReply[]; conceptId?: string; onHear?: (reply: TutorReply) => void }) {
   const prepared = progress.events.flatMap((event, index) => {
     if (event.type !== 'question-matched' || !event.originalText || !event.recordedContext) return [];
-    const answer = lesson.questionBank.find(question => question.id === event.questionId);
+    const answer = preparedQuestions(lesson).find(question => question.id === event.questionId);
     return answer ? [{ key: 'prepared-' + index, text: event.originalText, askedAt: event.timestamp,
       conceptId: event.recordedContext.conceptId, positionMs: event.recordedContext.positionMs,
       state: 'Prepared offline answer', answer: answer.answer, refs: answer.sourceRefs }] : [];

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SchoolBackup",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "createdAt", "stateJson", "objects"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "createdAt": { "type": "string" },
+    "stateJson": { "type": "string" },
+    "objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "sha256", "byteLength"],
+        "properties": {
+          "key": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "byteLength": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

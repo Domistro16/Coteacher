@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { decryptPayload, encryptPayload, profiles, initialTutorState, observedMemory, validTutorState, recordingCueAt,
-  questionForCheck, checkPersonalization, mergeCheckAttempts, quizCaption, checkLensSource, type TutorCheck, type TutorCheckRequest,
+  questionForCheck, checkPersonalization, mergeCheckAttempts, quizCaption, checkLensSource, deferTutorSpeech, type TutorCheck, type TutorCheckRequest,
   type LessonPackage, type ProgressRecord, type TutorState, type TutorReply, type TutorCitation } from '@coteacher/shared';
 import type { ProgressReturnStore } from './progress-store';
 import type { TutorInput, TutorProvider, GeneratedAnswer, CheckInput, GeneratedCheck } from './tutor-provider';
@@ -10,6 +10,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 import liveSchema from '../schemas/live-session.schema.json' with { type: 'json' };
 import type { LiveVoiceProvider } from './live-provider';
 import checkSchema from '../schemas/tutor-check-request.schema.json' with { type: 'json' };
+import { preparedQuestions } from '../packages/shared/src/preparation';
 const validCheckRequest = new Ajv2020({ strict: true }).compile<TutorCheckRequest>(checkSchema);
 const validLiveRequest = new Ajv2020({ strict: true }).compile(liveSchema);
 
@@ -34,6 +35,9 @@ export function tutorSources(lesson: LessonPackage, conceptId: string, question:
 }
 /** Valid citations are checked against real supplied passages. This is not a guarantee of factual correctness. */
 export function checkedAnswer(answer: GeneratedAnswer, input: TutorInput): { citations: TutorReply['citations']; visual: string | null } | null {
+  // Generated text is retained in teacher oversight. Preferences may shape its
+  // wording, but explicit private profile disclosures must not be retained.
+  if (input.teachingPreferences && /\b(?:your|you have|you reported)\s+(?:(?:reported|stated|preferred)\s+)?(?:confidence|reading ease|study (?:time|minutes|habits)|interests?|preferences?|profile|questionnaire)\b|\b(?:because|since) you (?:prefer|like|chose|selected|rated|reported)\b|\bteachingPreferences\b/i.test(answer.text)) return null;
   if (answer.supported !== true || answer.safe !== true || answer.confident !== true || typeof answer.text !== 'string' || !answer.text.trim() || answer.text.length > 1800
     || !Array.isArray(answer.sourceIds) || !Array.isArray(answer.quotes) || !answer.sourceIds.length || answer.sourceIds.length > 6 || answer.sourceIds.length !== answer.quotes.length || new Set(answer.sourceIds).size !== answer.sourceIds.length
     || /(?:look|stare|point).{0,30}(?:sun|laser)|(?:mix|drink|taste).{0,30}(?:chemical|bleach|acid)|sharp knife|open flame|mains electricity/i.test(answer.text)) return null;
@@ -55,7 +59,14 @@ export function checkedCheck(check: GeneratedCheck, input: CheckInput) {
   return checkedAnswer({ supported: check.supported, confident: check.confident, safe: check.safe, text: [check.prompt, ...check.options, check.explanation].join(' '), sourceIds: check.sourceIds, quotes: check.quotes, visualAssetId: null }, input);
 }
 
-/** One local worker, atomic encrypted files, durable jobs. All learners are fictional demo profiles. */
+export interface TutorStoreOptions {
+  beforeProvider?:()=>Promise<void>;
+  providerInput?:(input:TutorInput)=>Promise<TutorInput>;
+  pin?: (id:string)=>string;
+  crypto?:{seal:(id:string,value:unknown)=>Promise<unknown>;open:(id:string,envelope:unknown)=>Promise<unknown>};
+  persistence?: {read(id:string):Promise<unknown|null>;write(id:string,envelope:unknown):Promise<void>};
+}
+/** Durable tutor worker. Defaults preserve the original simulated-file adapter. */
 export class TutorStore {
   private serial: Promise<unknown> = Promise.resolve();
   private processing = new Set<string>();
@@ -63,15 +74,21 @@ export class TutorStore {
   private liveRequests = new Map<string, number[]>();
   private liveConnecting = new Set<string>();
   private checkJobs = new Map<string, Promise<unknown>>();
-  constructor(private folder: string, private progress: ProgressReturnStore, readonly provider?: TutorProvider) {}
-  private pin(id: string) { const profile = profiles.find(profile => profile.id === id); if (!profile) throw new Error('Unknown simulated learner.'); return profile.pin; }
+  constructor(private folder: string, private progress: Pick<ProgressReturnStore,'lesson'|'received'|'receive'|'overview'>, readonly provider?: TutorProvider, private options:TutorStoreOptions = {}) {}
+  private pin(id: string) { if(this.options.pin)return this.options.pin(id); const profile = profiles.find(profile => profile.id === id); if (!profile) throw new Error('Unknown simulated learner.'); return profile.pin; }
+  private seal(id:string,value:unknown){return this.options.crypto?this.options.crypto.seal(id,value):encryptPayload(value,this.pin(id));}
+  private open(id:string,envelope:unknown){return this.options.crypto?this.options.crypto.open(id,envelope):decryptPayload(envelope,this.pin(id));}
   private path(id: string) { this.pin(id); return join(this.folder, `tutor-${id}.json`); }
   private exclusive<T>(task: () => Promise<T>): Promise<T> {
     const next = this.serial.then(task, task); this.serial = next.catch(() => {}); return next;
   }
   private async read(id: string, lesson: LessonPackage, progress: ProgressRecord): Promise<TutorState> {
     let value: unknown;
-    try { value = await decryptPayload(JSON.parse(await readFile(this.path(id), 'utf8')), this.pin(id)); }
+    try {
+      const envelope=this.options.persistence?await this.options.persistence.read(id):JSON.parse(await readFile(this.path(id), 'utf8'));
+      if(!envelope)return initialTutorState(lesson);
+      value = await this.open(id,envelope);
+    }
     catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return initialTutorState(lesson); throw error; }
     const state = value as TutorState;
     if (state.recordingId !== lesson.recording!.id) return initialTutorState(lesson);
@@ -79,20 +96,21 @@ export class TutorStore {
     return state;
   }
   private async write(state: TutorState) {
+    if(this.options.persistence){await this.options.persistence.write(state.studentId,await this.seal(state.studentId,state));return;}
     await mkdir(this.folder, { recursive: true });
     const file = join(this.folder, `tutor-${randomBytes(8).toString('hex')}.tmp`);
-    await writeFile(file, JSON.stringify(await encryptPayload(state, this.pin(state.studentId)))); await rename(file, this.path(state.studentId));
+    await writeFile(file, JSON.stringify(await this.seal(state.studentId,state))); await rename(file, this.path(state.studentId));
   }
   private async context(id: string, recordingId: string) {
     const lesson = await this.progress.lesson(id, recordingId), received = await this.progress.received(id, recordingId);
     if (!received) throw new Error('Synchronize saved learning records before asking the connected tutor.');
     return { lesson, record: received };
   }
-  async submit(id: string, recordingId: string, envelope: unknown) {
-    const submission = await decryptPayload(envelope, this.pin(id)) as { enabled?: boolean; retry?: boolean; progress?: unknown; liveTurns?: TutorState['liveTurns']; checkAttempts?: TutorState['checkAttempts'] };
+  async submit(id: string, recordingId: string, envelope: unknown, deferSpeech = false) {
+    const submission = await this.open(id,envelope) as { enabled?: boolean; retry?: boolean; progress?: unknown; liveTurns?: TutorState['liveTurns']; checkAttempts?: TutorState['checkAttempts'] };
     if (typeof submission.enabled !== 'boolean') throw new Error('Explicit connected tutoring consent is required.');
     // Existing receiver validates immutable IDs and newer state, then commits before receipt.
-    const receipt = await this.progress.receive(id, recordingId, await encryptPayload(submission.progress, this.pin(id)));
+    const receipt = await this.progress.receive(id, recordingId, await this.seal(id,submission.progress));
     const state = await this.exclusive(async () => {
       const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
       state.enabled = submission.enabled!;
@@ -129,24 +147,30 @@ export class TutorStore {
       await this.write(state); return state;
     });
     if (state.enabled) this.kick(id, recordingId);
-    return { receipt, state: await encryptPayload(state, this.pin(id)) };
+    return { receipt, state: await this.seal(id,deferSpeech ? deferTutorSpeech(state) : state) };
   }
   async returned(id: string, recordingId: string) {
-    return encryptPayload(await this.current(id, recordingId), this.pin(id));
+    return this.seal(id,await this.current(id, recordingId));
   }
   async current(id: string, recordingId: string) {
     const state = await this.exclusive(async () => {
       const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
+      let changed = false;
       for (const reply of state.replies) if (reply.status === 'queued' && record.queuedQuestions.some(question => question.id === reply.questionId && question.answered)) {
         reply.status = 'deferred'; reply.text = 'Your teacher returned guidance for this question. Open the reviewed answer in your lesson questions.'; reply.updatedAt = new Date().toISOString();
+        changed = true;
       }
-      state.memory = observedMemory(lesson, record, state.memory, state.checks, state.checkAttempts); await this.write(state); return state;
+      const memory = observedMemory(lesson, record, state.memory, state.checks, state.checkAttempts);
+      changed ||= memory.revision !== state.memory.revision;
+      state.memory = memory;
+      if (changed) await this.write(state);
+      return state;
     });
     if (state.enabled) this.kick(id, recordingId); // Recovers durable queued jobs after restart.
     return state;
   }
   async disable(id: string, recordingId: string, envelope: unknown) {
-    const value = await decryptPayload(envelope, this.pin(id)) as { enabled: boolean };
+    const value = await this.open(id,envelope) as { enabled: boolean };
     if (value.enabled !== false) throw new Error('Invalid tutor consent change.');
     return this.exclusive(async () => {
       const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
@@ -154,7 +178,7 @@ export class TutorStore {
     });
   }
   async check(id: string, recordingId: string, envelope: unknown) {
-    const request = await decryptPayload(envelope, this.pin(id));
+    const request = await this.open(id,envelope);
     if (!validCheckRequest(request)) throw new Error('The check request did not match your saved question.');
     const key = id + '/' + recordingId + '/' + JSON.stringify(request);
     const existing = this.checkJobs.get(key); if (existing) return existing;
@@ -168,7 +192,7 @@ export class TutorStore {
       const question = questionForCheck(record, request);
       if (!question) throw new Error('Save and synchronize your original question before preparing its check.');
       const reply = state.replies.find(r => r.questionId === request.questionId);
-      const bank = lesson.questionBank.find(q => q.id === request.questionId && q.conceptId === question.conceptId);
+      const bank = preparedQuestions(lesson).find(q => q.id === request.questionId && q.conceptId === question.conceptId);
       const returned = record.queuedQuestions.find(q => q.id === request.questionId);
       if (reply?.review === 'flagged') throw new Error('Your teacher flagged this answer. A new check is unavailable until reviewed.');
       const answer = returned?.answered ? returned.answer : bank?.answer ?? (reply?.status === 'answered' ? reply.text : undefined);
@@ -195,12 +219,17 @@ export class TutorStore {
         ].sort((a,b) => Date.parse(a.at) - Date.parse(b.at)).slice(-5).map(({at:_at,...attempt}) => attempt) };
       return { input, question };
     });
-    if ('cached' in work) return encryptPayload(work.cached, this.pin(id));
-    const generated = await this.provider!.check!(work.input), checked = checkedCheck(generated, work.input);
+    if ('cached' in work) return this.seal(id,work.cached);
+    await this.options.beforeProvider?.();
+    const preparedInput=this.options.providerInput?await this.options.providerInput(work.input):work.input;
+    await this.options.beforeProvider?.();
+    const generated = await this.provider!.check!({...work.input,...preparedInput}), checked = checkedCheck(generated, {...work.input,...preparedInput});
+    await this.options.beforeProvider?.();
     if (!checked) throw new Error('There is not enough reliable source support for a check of your question. Your original question is saved.');
     let speechBase64: string | null = null;
-    try { speechBase64 = Buffer.from(await this.provider!.speak(quizCaption(generated), false)).toString('base64'); }
+    try { await this.options.beforeProvider?.(); speechBase64 = Buffer.from(await this.provider!.speak(quizCaption(generated), false)).toString('base64'); }
     catch { /* Keep the sourced question readable when optional speech fails. */ }
+    await this.options.beforeProvider?.();
     return this.exclusive(async () => {
       const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
       if (!state.enabled || state.replies.some(r => r.questionId === request.questionId && r.review === 'flagged')) throw new Error('The tutor permission or reviewed answer changed. This check was not saved.');
@@ -210,7 +239,7 @@ export class TutorStore {
         engine: this.provider!.engine as TutorCheck['engine'], model: this.provider!.model, createdAt: new Date().toISOString(), speechBase64 };
       const candidate = { ...state, checks: [...(state.checks ?? []), check] };
       if (!validTutorState(candidate, lesson, record)) throw new Error('The sourced check did not match your learner and question context.');
-      await this.write(candidate); return encryptPayload(candidate, this.pin(id));
+      await this.write(candidate); return this.seal(id,candidate);
     });
   }
   private kick(id: string, recordingId: string) {
@@ -240,7 +269,7 @@ export class TutorStore {
         }
         const concept = lesson.concepts.find(concept => concept.id === reply.conceptId)!;
         const history = state.replies.filter(item => item.conceptId === reply.conceptId && item.status === 'answered' && item.review !== 'flagged').slice(-6).map(item => ({ question: item.originalText, answer: item.text }));
-        const input: TutorInput = { question: reply.originalText, objective: lesson.objective.text, concept: concept.title, classLevel: lesson.classLevel,
+        const input: TutorInput = { question: reply.originalText, objective: lesson.objective.text, concept: concept.title, classLevel: lesson.classLevel,subject:lesson.subject,
           // A spoken follow-up may say "that" without naming the lens again.
           // Retain the same approved source coverage as the recent conversation.
           sources: tutorSources(lesson, concept.id, [reply.originalText, ...history.map(item => item.question)].join('\n')),
@@ -254,8 +283,12 @@ export class TutorStore {
       let publishedAt: string | undefined;
       try {
         const unsafe = /\b(poison|weapon|suicide|self.harm|nude|sex|electric shock|burn|laser.*eye)\b/i.test(result.originalText);
-        const answer = unsafe ? null : await this.provider!.answer(work.input);
-        const checked = answer && checkedAnswer(answer, work.input);
+        await this.options.beforeProvider?.();
+        const preparedInput=this.options.providerInput?await this.options.providerInput(work.input):work.input;
+        await this.options.beforeProvider?.();
+        const answer = unsafe ? null : await this.provider!.answer(preparedInput);
+        await this.options.beforeProvider?.();
+        const checked = answer && checkedAnswer(answer, preparedInput);
         if (!checked) { result.status = 'deferred'; result.text = 'I cannot give a reliable, safe answer from the available sources. Your original question is saved for teacher guidance.'; }
         else {
           result.status = 'answered'; result.text = answer!.text; result.citations = checked.citations; result.sourceRefs = checked.citations.map(source => source.sourceId); result.visualAssetId = checked.visual;
@@ -263,7 +296,7 @@ export class TutorStore {
           result.updatedAt = new Date().toISOString();
           if (!await this.saveReply(id, recordingId, result)) continue;
           publishedAt = result.updatedAt;
-          try { result.speechBase64 = Buffer.from(await this.provider!.speak(result.text)).toString('base64'); }
+          try { await this.options.beforeProvider?.(); result.speechBase64 = Buffer.from(await this.provider!.speak(result.text)).toString('base64'); }
           catch { result.speechBase64 = null; } // Preserve sourced text; never pretend failed speech played.
         }
       } catch (error) { result.status = 'failed'; result.text = (error instanceof Error ? error.message : 'The connected tutor could not answer.') + ' Your question is still saved. Retry when the service is available.'; }
@@ -273,15 +306,18 @@ export class TutorStore {
   }
   async transcribe(id: string, recordingId: string, envelope: unknown) {
     if (!this.provider) throw new Error('Connected voice is not configured. Please type your question.');
-    const value = await decryptPayload(envelope, this.pin(id)) as { audioBase64: string; mime: string; enabled: boolean };
+    const value = await this.open(id,envelope) as { audioBase64: string; mime: string; enabled: boolean };
     const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
     if (!state.enabled || value.enabled !== true || !['audio/webm', 'audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4'].includes(value.mime)
       || typeof value.audioBase64 !== 'string' || value.audioBase64.length > 1400000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(value.audioBase64)) throw new Error('Invalid voice submission. Please type your question.');
-    return encryptPayload({ text: await this.provider.transcribe(Buffer.from(value.audioBase64, 'base64'), value.mime) }, this.pin(id));
+    await this.options.beforeProvider?.();
+    const text=await this.provider.transcribe(Buffer.from(value.audioBase64, 'base64'), value.mime);
+    await this.options.beforeProvider?.();
+    return this.seal(id,{ text });
   }
   async live(id: string, recordingId: string, envelope: unknown, provider?: LiveVoiceProvider) {
     if (!provider) throw new Error('Live avatar voice is not configured. Prepared speech and text remain available.');
-    const value = await decryptPayload(envelope, this.pin(id));
+    const value = await this.open(id,envelope);
     if (!validLiveRequest(value)) throw new Error('Invalid live voice request.');
     const request = value as { positionMs: number; sdp: string };
     const { lesson, record } = await this.context(id, recordingId), state = await this.read(id, lesson, record);
@@ -292,8 +328,9 @@ export class TutorStore {
     this.liveRequests.set(id, [...recent, Date.now()]); this.liveConnecting.add(id);
     try {
       const cue = recordingCueAt(lesson.recording!, request.positionMs);
+      await this.options.beforeProvider?.();
       const connection = await provider.create(request.sdp, { concept: lesson.concepts.find(concept => concept.id === cue.conceptId)!.title, objective: lesson.objective.text, classLevel: lesson.classLevel });
-      return encryptPayload({ ...connection, model: provider.model }, this.pin(id));
+      return this.seal(id,{ ...connection, model: provider.model });
     } finally { this.liveConnecting.delete(id); }
   }
   async overview() {
@@ -312,6 +349,15 @@ export class TutorStore {
       const lesson = await this.progress.lesson(id), { record } = await this.context(id, lesson.recording!.id), state = await this.read(id, lesson, record);
       const reply = state.replies.find(reply => reply.questionId === questionId); if (!reply) throw new Error('Unknown tutoring answer.');
       reply.review = 'flagged'; reply.speechBase64 = null; await this.write(state); return { saved: true };
+    });
+  }
+  /** Caller supplies an authorized teacher context; never starts provider work. */
+  async reviewState(id:string,lesson:LessonPackage,record:ProgressRecord,flagQuestionId?:string){
+    return this.exclusive(async()=>{
+      if(lesson.studentId!==id||record.studentId!==id)throw new Error('Teacher context belongs to another learner.');
+      const state=await this.read(id,lesson,record);
+      if(flagQuestionId){const reply=state.replies.find(r=>r.questionId===flagQuestionId);if(!reply)throw new Error('Answer not found.');reply.review='flagged';reply.speechBase64=null;await this.write(state);}
+      return {...state,memory:observedMemory(lesson,record,state.memory,state.checks,state.checkAttempts)};
     });
   }
 }

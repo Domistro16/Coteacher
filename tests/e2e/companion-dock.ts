@@ -24,8 +24,8 @@ export async function assertCompanionDock(page: Page) {
   expect(assistant!.x).toBeGreaterThanOrEqual(frame!.x - 1);
   expect(assistant!.x + assistant!.width).toBeLessThanOrEqual(frame!.x + frame!.width + 1);
   expect(assistant!.y + assistant!.height).toBeLessThanOrEqual(frame!.y + frame!.height + 1);
-  expect(assistant!.y).toBeGreaterThanOrEqual(visual!.y);
-  expect(assistant!.y + assistant!.height).toBeLessThanOrEqual(visual!.y + visual!.height + 1);
+  expect(assistant!.y).toBeGreaterThanOrEqual(frame!.y);
+  expect(assistant!.y + assistant!.height).toBeLessThanOrEqual(playback!.y + 1);
   expect(await player.evaluate(element => getComputedStyle(element).display)).toBe('block');
   expect(await dock.evaluate(element => [...element.querySelectorAll('*')].some(child => ['auto', 'scroll'].includes(getComputedStyle(child).overflowY) && child.scrollHeight > child.clientHeight))).toBe(false);
   for (const control of [dock.getByRole('button', { name: 'Close learning panel', exact: true }), dock.getByRole('button', { name: 'Return to recorded lesson', exact: true })]) {
@@ -37,7 +37,26 @@ export async function assertCompanionDock(page: Page) {
   // A non-modal companion permits keyboard focus on the original playback controls.
   await page.getByLabel('Seek recorded lesson', { exact: true }).focus();
   await expect(page.getByLabel('Seek recorded lesson', { exact: true })).toBeFocused();
-  const tools = page.locator('.companion-lesson-tools');
-  if (!await tools.evaluate(element => (element as HTMLDetailsElement).open)) await dock.getByRole('button', { name: 'Ask or explore this concept', exact: true }).click();
+  await openCompanionInput(page);
+}
+
+/** Open the current inline composer without granting microphone or AI consent. */
+export async function openCompanionInput(page: Page) {
+  const dock = page.getByRole('region', { name: 'Coteacher lesson companion', exact: true });
+  const toggle = dock.getByRole('button', { name: 'Ask or explore this concept', exact: true });
+  if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+  const typeInstead = dock.getByRole('button', { name: 'Type instead', exact: true });
+  if (await typeInstead.isVisible()) await typeInstead.click();
   await expect(page.getByLabel('Which part of this recorded concept is unclear?', { exact: true })).toBeVisible();
+}
+
+export async function resumeRecordedLesson(page: Page) {
+  const quiz = page.getByRole('dialog', {name:'Your quick check',exact:true});
+  const scope = await quiz.isVisible() ? quiz : page.getByRole('region', {name:'Coteacher lesson companion',exact:true});
+  await scope.getByRole('button', {name:'Return to recorded lesson',exact:true}).click();
+}
+
+export async function closeCompanionInput(page: Page) {
+  const toggle = page.getByRole('region', {name:'Coteacher lesson companion',exact:true}).getByRole('button', {name:'Ask or explore this concept',exact:true});
+  if (await toggle.getAttribute('aria-expanded') === 'true') await toggle.click();
 }

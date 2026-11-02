@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: coteacher-api
+    runtime: node
+    buildCommand: npm ci --include=dev && npm run check:types && npm run typecheck
+    startCommand: npm run delivery:start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: COTEACHER_PUBLIC
+        value: "true"
+      - key: COTEACHER_ALLOW_REAL_STUDENTS
+        value: "false"
+      - key: COTEACHER_SCHOOL_DATABASE_URL
+        sync: false
+      - key: COTEACHER_SUPABASE_URL
+        sync: false
+      - key: COTEACHER_SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: COTEACHER_R2_ENDPOINT
+        sync: false
+      - key: COTEACHER_R2_BUCKET
+        sync: false
+      - key: COTEACHER_R2_ACCESS_KEY_ID
+        sync: false
+      - key: COTEACHER_R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: COTEACHER_SCHOOL_URL
+        sync: false
+      - key: COTEACHER_TEACHER_URL
+        sync: false
+      - key: COTEACHER_STUDENT_URL
+        sync: false
+      - key: COTEACHER_TUTOR_STORAGE_KEY
+        generateValue: true
+      - key: COTEACHER_OPERATOR_EMAILS
+        sync: false

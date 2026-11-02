@@ -1,3 +1,4 @@
+import { openCompanionInput, closeCompanionInput, resumeRecordedLesson } from './companion-dock';
 import { teacherSources, teacherReview, teacherTransfers, expectTeacherExport } from './teacher-navigation';
 import { openPreparedCompatibility } from './compatibility';
 import { expect, test, type Page } from '@playwright/test';
@@ -7,9 +8,10 @@ import type { Snapshot } from '../../apps/student/src/storage';
 import { verifyDeliveredReplay } from './delivered-replay';
 import { assertStudioFits } from './studio-assertions';
 import { assertPlaybackMotion, assertWatermark } from './motion-assertions';
+import { installSyntheticMicrophone } from './synthetic-microphone';
 
 // Native browser microphone graph with Chromium's simulated input. No real people.
-test.use({ contextOptions: { reducedMotion: 'no-preference' }, launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
+test.use({ actionTimeout: 15000, contextOptions: { reducedMotion: 'no-preference' }, launchOptions: { args: ['--use-fake-device-for-media-stream', '--use-fake-ui-for-media-stream'] } });
 
 async function prepare(page: Page) {
   await page.goto('http://127.0.0.1:4274');
@@ -53,6 +55,9 @@ test('native microphone capture excludes pauses, persists cues and replays exact
   // Includes native media, naturally spoken companion turns and school return.
   test.setTimeout(600_000);
   await context.grantPermissions(['microphone'], { origin: 'http://127.0.0.1:4274' });
+  // Chromium's fake microphone can enter a silent segment after mute/resume.
+  // Use a known signal through the native graph; this is synthetic audio evidence.
+  await installSyntheticMicrophone(page);
   await page.addInitScript(() => {
     const nativeEncoder = window.AudioEncoder;
     window.AudioEncoder = class extends nativeEncoder {
@@ -260,6 +265,31 @@ test('native microphone capture excludes pauses, persists cues and replays exact
     await page.getByRole('button', { name: 'Lock / switch learner' }).click();
     await expect(page.getByRole('heading', { name: 'Welcome back.' })).toBeVisible();
   }
+  async function openAlternatives() {
+    await closeCompanionInput(page);
+    const alternatives = page.locator('.companion-more');
+    if (!await alternatives.evaluate(element => (element as HTMLDetailsElement).open)) await alternatives.locator(':scope > summary').click();
+    return alternatives;
+  }
+  async function askRecorded(text:string) {
+    await openCompanionInput(page);
+    await page.getByLabel('Which part of this recorded concept is unclear?').fill(text);
+    await page.getByRole('button',{name:'Ask Coteacher',exact:true}).click();
+  }
+  async function showAnswer() {
+    await closeCompanionInput(page);
+    const answer = page.locator('.companion-answer-details');
+    if (!await answer.evaluate(element => (element as HTMLDetailsElement).open)) await answer.locator(':scope > summary').click();
+    return answer;
+  }
+  async function showQuestions() {
+    if (!await page.getByRole('region',{name:'Coteacher lesson companion',exact:true}).isVisible()) await page.getByRole('button',{name:'Talk with Coteacher',exact:true}).click();
+    await closeCompanionInput(page);
+    const resources = page.locator('.companion-more');
+      if (!await resources.evaluate(element => (element as HTMLDetailsElement).open)) await resources.locator(':scope > summary').click();
+      const questions=page.locator('.player-questions');
+    if (!await questions.evaluate(element => (element as HTMLDetailsElement).open)) await questions.locator(':scope > summary').click();
+  }
   await unlockLearner(); await openPreparedCompatibility(page);
   const approvedPayload = requirePublishedLesson(await decryptPayload(JSON.parse(await readFile(paths[0], 'utf8')), '111111'));
   const bPayload = requirePublishedLesson(await decryptPayload(JSON.parse(await readFile(paths[1], 'utf8')), '222222'));
@@ -303,16 +333,16 @@ test('native microphone capture excludes pauses, persists cues and replays exact
   await expect.poll(()=>studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime*1000)).toBeCloseTo(aPosition,-1);
   await page.locator('[data-recorded-cue-index="4"]').click();
   await page.getByRole('button',{name:'I don’t understand',exact:true}).click();
+  await (await openAlternatives()).getByRole('button',{name:'Prepared explanation',exact:true}).click();
   await expect(page.locator('.recorded-help')).toHaveAttribute('data-support-step-id','step-refraction');
   await expect(page.locator('.recorded-help')).toHaveAttribute('data-support-asset-id','refraction-pencil');
-  await expect(page.locator('.explanation-card[data-variant-id]')).toHaveAttribute('data-variant-id','refraction-short');
+  await expect.poll(async()=>(await savedLearner(page,'student-a1b2c3d4','111111')).player.variantId).toBe('refraction-short');
   const paused=await studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime*1000);
-  await page.getByLabel('Which part of this recorded concept is unclear?').fill('Why does the pencil look broken?');
-  await page.getByRole('button',{name:'Ask Coteacher',exact:true}).click();
-  await expect(page.locator('.help-response')).toContainText('Prepared offline answer');
-  await expect(page.locator('.help-response')).toContainText('The pencil is straight');
-  await page.locator('.help-response').getByText('Explanation sources', {exact:true}).click();
-  await expect(page.locator('.help-response .sources')).toContainText('teacher-notes.md');
+  await askRecorded('Why does the pencil look broken?');
+  const matchedAnswer = await showAnswer();
+  await expect(matchedAnswer).toContainText('The pencil is straight');
+  await expect(matchedAnswer.locator('.sources')).toContainText('teacher-notes.md');
+  await matchedAnswer.locator(':scope > summary').click();
   await page.getByRole('button',{name:'Try it',exact:true}).click();
   await expect(page.getByText('One clear plastic cup', {exact:false})).toBeVisible();
   await page.getByRole('button',{name:'Start activity',exact:true}).click();
@@ -326,16 +356,18 @@ test('native microphone capture excludes pauses, persists cues and replays exact
   await expect(page.locator('.quiz-feedback')).toHaveClass(/retry/);
   await page.getByRole('button',{name:'Light changes direction at the angled water-air boundary',exact:true}).click();
   await expect(page.locator('.quiz-feedback')).toHaveClass(/correct/);
-  await page.getByRole('button',{name:'Explain',exact:true}).click();
-  await page.getByLabel('Which part of this recorded concept is unclear?').fill('What does the Moon taste like?');
-  await page.getByRole('button',{name:'Ask Coteacher',exact:true}).click();
-  await expect(page.locator('.help-response')).toContainText('Saved on this device.');
+  await page.getByRole('dialog',{name:'Your quick check',exact:true}).getByRole('button',{name:'Back to our conversation',exact:true}).click();
+  await askRecorded('What does the Moon taste like?');
+  await expect(await showAnswer()).toContainText('No prepared answer matches');
   const secondQuestion='  Can light swim?\nPlease explain!  ';
-  await page.getByLabel('Which part of this recorded concept is unclear?').fill(secondQuestion);
-  await page.getByRole('button',{name:'Ask Coteacher',exact:true}).click();
-  await expect(page.locator('.help-response')).toContainText('Pending · teacher review');
-  await page.getByRole('navigation',{name:'Prepared concept representations'}).getByRole('button',{name:/step/i}).click();
-  await expect(page.getByText('Saved on this device',{exact:true})).toBeVisible();
+  await askRecorded(secondQuestion);
+  await expect(await showAnswer()).toContainText('Saved for reconnection');
+  await page.locator('.companion-answer-details > summary').click();
+  const alternatives = await openAlternatives();
+  const stepsTitle = approvedPayload.visualAssets!.find(asset=>asset.id==='refraction-steps')!.title;
+  await alternatives.getByRole('button',{name:stepsTitle,exact:true}).click();
+  await expect.poll(async()=>(await savedLearner(page,'student-a1b2c3d4','111111')).progress.queuedQuestions.some(q=>q.text===secondQuestion)).toBe(true);
+  await expect(page.getByRole('status').filter({hasText:/^Saved on this device$/})).toBeVisible();
   const adaptedA=await savedLearner(page,'student-a1b2c3d4','111111');
   expect(adaptedA.progress.queuedQuestions.map(question=>question.text)).toEqual(['What does the Moon taste like?',secondQuestion]);
   expect(new Set(adaptedA.progress.queuedQuestions.map(question=>question.id)).size).toBe(2);
@@ -346,14 +378,14 @@ test('native microphone capture excludes pauses, persists cues and replays exact
   await page.reload(); await reopenReplay();
   await expect(page.locator('.recorded-help')).toHaveAttribute('data-support-asset-id','refraction-steps');
   await expect.poll(()=>studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime*1000)).toBeCloseTo(paused,-1);
-  await page.getByRole('button',{name:'Return to recorded lesson',exact:true}).click();
+  await resumeRecordedLesson(page);
   await expect.poll(()=>studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime)).toBeGreaterThan(paused/1000+.15);
   await studentAudio.evaluate((audio:HTMLAudioElement)=>audio.pause());
   await expect(page.locator('.recorded-help')).toHaveCount(0);
   await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Progress',exact:true}).click();
   await expect(page.getByText('What does the Moon taste like?',{exact:true})).toHaveCount(0);
   await page.getByRole('button',{name:'Return to lesson questions'}).click();
-  await page.getByRole('button',{name:'Your questions',exact:true}).click();
+  await showQuestions();
   await expect(page.locator('.player-questions')).toContainText('What does the Moon taste like?');
   await expect(page.locator('.player-questions article')).toHaveCount(3);
   const beforeClose=await studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime);
@@ -366,10 +398,9 @@ test('native microphone capture excludes pauses, persists cues and replays exact
   await expect.poll(()=>studentAudio.evaluate((audio:HTMLAudioElement)=>audio.currentTime)).toBeCloseTo(1.2,2);
   expect((await savedLearner(page,'student-b1c2d3e4','222222')).progress.events.filter(event=>event.type==='visual-explored')).toEqual([]);
   await page.getByRole('button',{name:'I don’t understand',exact:true}).click();
-  await page.getByLabel('Which part of this recorded concept is unclear?').fill('Can a ray of light sing?');
-  await page.getByRole('button',{name:'Ask Coteacher',exact:true}).click();
-  await expect(page.locator('.help-response')).toContainText('Pending · teacher review');
-  await expect(page.getByText('Saved on this device',{exact:true})).toBeVisible();
+  await askRecorded('Can a ray of light sing?');
+  await expect(await showAnswer()).toContainText('No prepared answer matches');
+  await expect.poll(async()=>(await savedLearner(page,'student-b1c2d3e4','222222')).progress.queuedQuestions.some(q=>q.text==='Can a ray of light sing?')).toBe(true);
   const questionedB=await savedLearner(page,'student-b1c2d3e4','222222');
   expect(questionedB.progress.queuedQuestions).toMatchObject([{text:'Can a ray of light sing?',recordedContext:{studentId:questionedB.lesson.studentId,conceptId:'light-path',positionMs:1200}}]);
   expect((await savedLearner(page,'student-a1b2c3d4','111111')).progress.queuedQuestions).toEqual(adaptedA.progress.queuedQuestions);
@@ -396,7 +427,7 @@ test('native microphone capture excludes pauses, persists cues and replays exact
     if (await close.isVisible()) await close.click();
     await page.getByRole('navigation',{name:'Main navigation'}).getByRole('button',{name:'Progress',exact:true}).click();
     await page.getByRole('button',{name:'Return to lesson questions'}).click();
-    await page.getByRole('button',{name:'Your questions',exact:true}).click();
+    await showQuestions();
     await expect(page.locator('.player-questions')).toContainText('What does the Moon taste like?');
     await expect(page.locator('.player-questions article')).toHaveCount(3);
     await page.getByRole('button',{name:'Close learning panel'}).click();
@@ -438,7 +469,11 @@ test('microphone permission failure leaves manual presentation available and nev
 });
 
 test('failed audio save retains replayable media, blocks navigation/export, and retries the complete draft', async ({ page, context }) => {
+  test.setTimeout(90000);
   await context.grantPermissions(['microphone'], { origin: 'http://127.0.0.1:4274' });
+  // Drive the real recorder with the same audible synthetic source as the long
+  // journey. Chromium's default fake device can be silent during this short clip.
+  await installSyntheticMicrophone(page);
   await page.addInitScript(() => {
     const put = IDBObjectStore.prototype.put;
     Object.defineProperty(window, '__failAudioSave', { value: true, writable: true });

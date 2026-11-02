@@ -1,0 +1,35 @@
+{
+  "result": "PASS",
+  "createdAt": "2026-11-01T15:13:20.851Z",
+  "bundleCheck": "Entry-script URLs and SHA-256 match the normal built account apps; HTML whitespace is ignored.",
+  "apps": [
+    {
+      "app": "student",
+      "url": "http://127.0.0.1:5173",
+      "normalBundle": true,
+      "managed": true,
+      "simulated": true,
+      "textProvider": "openai",
+      "profileWithoutSession": 401
+    },
+    {
+      "app": "teacher",
+      "url": "http://127.0.0.1:5174",
+      "normalBundle": true,
+      "managed": true,
+      "simulated": true,
+      "textProvider": "openai",
+      "profileWithoutSession": 401
+    },
+    {
+      "app": "school",
+      "url": "http://127.0.0.1:5175",
+      "normalBundle": true,
+      "managed": true,
+      "simulated": true,
+      "textProvider": "openai",
+      "profileWithoutSession": 401
+    }
+  ],
+  "limits": "Read-only public configuration, bundle and unauthenticated route checks after the final backend restart. No old saved credentials or real children used."
+}

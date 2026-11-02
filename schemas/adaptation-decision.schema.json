@@ -1,0 +1,78 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "learnerId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "lessonId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "conceptId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "visualAssetId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 1
+    },
+    "basis": {
+      "type": "string",
+      "enum": [
+        "explicit-choice",
+        "observed",
+        "signup",
+        "default"
+      ]
+    },
+    "evidenceIds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 250,
+        "minLength": 1
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "sourceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 100,
+        "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 20,
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "learnerId",
+    "lessonId",
+    "conceptId",
+    "visualAssetId",
+    "reason",
+    "basis",
+    "evidenceIds",
+    "sourceRefs"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/adaptation-decision.schema.json",
+  "title": "AdaptationDecision"
+}

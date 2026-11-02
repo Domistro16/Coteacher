@@ -28,7 +28,9 @@ test('studio and projector share five-second instructional motion, transitions a
   expect(Number(await svg.locator('[data-build=ray]').getAttribute('data-build-progress'))).toBeLessThan(.5);
   await projector.screenshot({ path: info.outputPath('projector-refraction-building.png') });
   await expect.poll(async () => Number(await svg.locator('[data-build=ray]').getAttribute('data-build-progress'))).toBeGreaterThan(.95);
-  await expect.poll(async () => Number(await svg.locator('[data-build=label]').last().getAttribute('data-build-progress'))).toBe(1);
+  // The final label is complete for less than a second before this five-second
+  // loop restarts. Coarse one-second polling can repeatedly miss that frame.
+  await expect.poll(async () => Number(await svg.locator('[data-build=label]').last().getAttribute('data-build-progress')), { intervals: [100], timeout: 7000 }).toBe(1);
   expect(await svg.evaluate(element => getComputedStyle(element).animationName)).toBe('lesson-visual-enter');
   await projector.screenshot({ path: info.outputPath('animated-projector.png') });
   await page.emulateMedia({ reducedMotion: 'reduce' }); await projector.emulateMedia({ reducedMotion: 'reduce' });

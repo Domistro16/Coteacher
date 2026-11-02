@@ -7,23 +7,61 @@ one light/refraction lesson, two simulated learners, a safe activity, offline
 study, and teacher insights. No real children's data. Prepared offline learning
 uses local content; explicitly enabled connected tutoring uses paid OpenAI APIs.
 
-## Run it
+The student learning extension adds age-first consent-ready onboarding, private
+editable preferences, individual offline memory across reviewed lesson mappings,
+and teacher-reviewed reusable support. Two fictional learners and a bounded
+follow-on refraction lesson exercise the full journey. See
+[student learning acceptance](docs/student-learning-acceptance.md) and
+[operations and limits](docs/student-learning-operations.md). The evaluated local
+model remains disabled; real-child rollout remains deferred.
+
+## Run the account apps
 
 Use Node.js 22.12 or later. On Windows PowerShell use `npm.cmd` instead of `npm`.
+Run each service in a separate terminal:
+
+For built app previews in one terminal, run `npm run build` followed by
+`npm run local:start`. This serves the backend and all three account apps on the
+loopback URLs below, using the gitignored local provider settings. Ctrl+C stops
+all four servers. This is local fictional-data verification, not public hosting.
 
 ```sh
 npm install
 npm run delivery:start
-npm run dev:student
+npm run dev:school
 npm run dev:teacher
+npm run dev:student
 ```
 
-Student: http://127.0.0.1:5173 · Teacher: http://127.0.0.1:5174.
-Development mode supports interaction previews; use a production build to test
-offline reopening and PWA collection:
+School: http://127.0.0.1:5175; teacher: http://127.0.0.1:5174;
+student: http://127.0.0.1:5173. Each app has its own entry point; school access
+uses the school app root. Local accounts and data are fictional acceptance data.
+Schools register for review, configure classes and subjects, affiliate teachers
+and place students before school lessons become available. See
+[school registration](docs/school-registration.md) for the complete journey and
+[deployment setup](docs/school-deployment.md) for Supabase, R2, Render and the
+three Vercel projects. Current PC-hosted verification uses Supabase and R2;
+Render and Vercel deployment testing is deferred.
+See [acceptance evidence](docs/school-acceptance.md) for tested journeys and the
+remaining live-service checks.
+
+`npm run build` builds all three account apps. Production previews support
+saved offline student study; development mode is for interface work.
+
+## Run the original two-profile demo
+
+The independent sprint demo remains available explicitly:
 
 ```sh
-npm run build
+npm run delivery:start
+npm run dev:demo:student
+npm run dev:demo:teacher
+```
+
+For offline demo verification, build in demo mode before starting previews:
+
+```sh
+npm run build:demo
 npm run preview --workspace @coteacher/student -- --host 127.0.0.1 --port 4173 --strictPort
 npm exec --workspace @coteacher/teacher -- vite preview --host 127.0.0.1 --port 4174 --strictPort
 ```
@@ -69,12 +107,13 @@ See [student redesign verification](docs/student-redesign-verification.md).
 ```sh
 npm test
 npm run pipeline -- --lesson fixtures/demo-lesson
+npm run test:e2e:school
 npm run test:e2e
 ```
 
 On first setup, install Chromium with `npx playwright install --only-shell chromium`.
-Browser tests build both apps and use in-process local preview servers on ports
-4273/4274, avoiding Windows child-server cleanup. Run checks sequentially on
+Browser tests build their corresponding app mode and use in-process local preview servers on ports
+4273/4274/4275, avoiding Windows child-server cleanup. Run checks sequentially on
 memory-constrained hosts.
 
 The CLI also generates encrypted demo packages after a review acknowledgement:

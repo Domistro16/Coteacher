@@ -99,5 +99,5 @@ export interface FutureFeature { available: false; description: string }
 export const futureFeatures: Record<string, FutureFeature> = Object.fromEntries([
   ['AutomaticSpeechFollowing', 'Automatic following of teacher speech'], ['ExamPractice', 'Full exam practice'],
   ['LocalLanguageSpeech', 'On-device local-language speech models'], ['QueuedAnswerNotifications', 'Answer notifications'],
-  ['SchoolOwnerView', 'School-owner view'], ['LocalNetworkTransfer', 'Hotspot / local-network transfer'],
+  ['LocalNetworkTransfer', 'Hotspot / local-network transfer'],
 ].map(([name, description]) => [name, { available: false as const, description }]));

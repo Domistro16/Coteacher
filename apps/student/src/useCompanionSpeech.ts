@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { LearningDisplay } from './LearningDisplay';
 import { createNarration, initialNarrationState, type Narration, type NarrationFrame } from './narration';
 import { preparedClip } from './Narrator';
 
 /** Actual bundled media only. Never substitute a cloud/device voice for missing clips. */
 export function useCompanionSpeech() {
+  const display=useContext(LearningDisplay);
   const audio = useRef<HTMLAudioElement>(null);
   const engine = useRef<Narration | null>(null);
   const frames = useRef<readonly NarrationFrame[]>([]);
@@ -29,6 +31,7 @@ export function useCompanionSpeech() {
     return () => { engine.current?.dispose(); engine.current = null; if (remote.current) URL.revokeObjectURL(remote.current.url); remote.current = null; window.removeEventListener('coteacher-lock', stop);
       window.removeEventListener('pagehide', stop); document.removeEventListener('visibilitychange', hidden); };
   }, []);
+  useEffect(()=>{engine.current?.setRate(display.slowerAudio?0.75:1);},[display.slowerAudio]);
   useEffect(() => {
     if (!speaking) return;
     let frame = 0, last = 0;

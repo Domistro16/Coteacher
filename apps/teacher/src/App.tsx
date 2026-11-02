@@ -1,3 +1,6 @@
+import type { TeacherWorkspace } from './SchoolTeacher';
+import { accountApi } from '../../shared/account-api';
+import { SchoolQuestions } from './SchoolQuestions';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { personalizedReplay, approveLessons, presentStep, startPresentation, requirePublishedLesson, decryptPayload, demoLessons, downloadFile, encryptPayload, futureFeatures, localLessonGenerator, mergeReturnedAnswers, profiles, queuedDemoQuestion, readTransferFile, reviewedMaterials, simulatedAnswerProvider, upsertSnapshot, validateProgressRecord, type LessonPackage, type LessonRecording, type ProgressRecord } from '@coteacher/shared';
 import { Sources, Visual } from '../../student/src/Visual';
@@ -11,10 +14,13 @@ import { readTeacherProgress, saveTeacherProgress } from './progress-storage';
 import { SourceUpload } from './SourceUpload';
 import { TeacherQuestions } from './TeacherQuestions';
 import { TeacherInsights } from './TeacherInsights';
+import { SchoolInsights } from './SchoolInsights';
 
-export function App() {
+export function App({workspace,onWorkspaceLock}: {workspace?:TeacherWorkspace; onWorkspaceLock?:(locked:boolean)=>void} = {}) {
+  const storage = workspace ? { getItem:(key:string)=>localStorage.getItem(`${workspace.accountId}:${workspace.offeringId}:${key}`), setItem:(key:string,value:string)=>localStorage.setItem(`${workspace.accountId}:${workspace.offeringId}:${key}`,value) } : window.localStorage;
+  const [externalSharing,setExternalSharing]=useState(false); const [privacyReviewed,setPrivacyReviewed]=useState(false);
   const [loaded] = useState(() => {
-    try { return { preparation: readPreparation(window.localStorage), error: '' }; }
+    try { return { preparation: readPreparation(storage), error: '' }; }
     catch { return { preparation: emptyPreparation(), error: 'Saved teacher preparation could not be restored. Reload the demo materials to prepare and review it again.' }; }
   });
   const [screen, setScreen] = useState<Screen>('dashboard');
@@ -81,10 +87,14 @@ export function App() {
   }
   useEffect(() => {
     let active = true;
+    if (workspace) return;
     void readTeacherProgress(localStorage, lessonFor).then(values => { if (active && !recordsRef.current.length) { recordsRef.current = values; setRecords(values); } }).catch(error => { if (active) setError(error.message); });
     return () => { active = false; };
   }, []);
   async function receiveSchoolProgress() {
+    if (workspace) {
+      try { const incoming = await accountApi(`teaching/${workspace.offeringId}/progress`); setRecords(incoming.map((entry:{progress:ProgressRecord})=>entry.progress)); setSyncStatus('School learning records received.'); } catch(e) {setSyncStatus((e as Error).message);} return;
+    }
     if (!online) { setSyncStatus('Working offline · records remain saved on this device.'); return; }
     try {
       const recording = await readRecording(preparationRef.current.drafts[0] ?? lesson);
@@ -125,7 +135,7 @@ export function App() {
   }
   function persistPreparation(next: Preparation) {
     // Persist before exposing approval/export, including storage failure handling.
-    savePreparation(window.localStorage, next);
+    savePreparation(storage, next);
     preparationRef.current = next;
     setPreparation(next);
   }
@@ -164,6 +174,17 @@ export function App() {
       if (!recording) throw new Error('Record the complete lesson in Teach / projector, then review its audio and personalized visuals before publishing.');
       lessons.push(requirePublishedLesson(personalizedReplay(draft, recording)));
     }
+    if (workspace) {
+      const personal=lessons[0];const audio=personal.recording!.audio;
+      if(!('dataBase64'in audio)||!audio.mediaKey)throw new Error('Complete recorded audio is required.');
+      const bytes=Uint8Array.from(atob(audio.dataBase64),c=>c.charCodeAt(0));const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))).map(x=>x.toString(16).padStart(2,'0')).join('');
+      const upload=await accountApi('uploads',{offeringId:workspace.offeringId,sha256,byteLength:bytes.length});
+      let payload=personal;
+      if(!upload.inline){const response=await fetch(upload.url,{method:'PUT',headers:{'Content-Type':'audio/ogg'},body:bytes});if(!response.ok)throw new Error('Private recording upload failed. Your local recording is safe.');payload={...personal,recording:{...personal.recording!,audio:{mimeType:audio.mimeType,sampleRate:audio.sampleRate,channels:1,mediaKey:audio.mediaKey,mediaUrl:`/api/v1/media/${sha256}/${upload.id}`,sha256,byteLength:bytes.length}}};}
+      const value = await accountApi('lessons/publish', {offeringId:workspace.offeringId,lesson:payload,uploadId:upload.id,external:externalSharing,privacyReviewed});
+      if(value.recordingId!==lessons[0].recording!.id) throw new Error('Publication was not confirmed.');
+      setPublication(value.recordingId); setStatus('Reviewed lesson published to your assigned class and subject.'); return;
+    }
     let response: Response;
     try { response = await fetch('/api/lessons', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lessons }) }); }
     catch { throw new Error('The local lesson service is unavailable. Start npm run delivery:start or configure the lesson service; no cloud upload has occurred.'); }
@@ -183,7 +204,7 @@ export function App() {
     setSelectedRecord(previous => previous?.studentId === studentId ? updated : previous);
     setStatus('Local simulation completed. Supported answers are sourced; other questions remain pending.');
   }
-  return <TeacherShell screen={screen} navigate={navigate} locked={captureLocked} projector={projector}
+  return <TeacherShell workspace={workspace} screen={screen} navigate={navigate} locked={captureLocked} projector={projector}
     lesson={drafts[0] ?? (notes || activity ? lesson : null)} prepared={drafts.length > 0} approved={approved} recordingPending={recordingPending} recordingRevision={recordingRevision}
     published={approved && Boolean(publication && publication === savedRecording?.id)} records={records} online={online} onRecording={setSavedRecording}>
     {error && <div className="safety" role="alert">{error}</div>}{status && <p className="answer" role="status">{status}</p>}
@@ -222,11 +243,11 @@ export function App() {
       {stage === 'ready' && <section className="content-card ready-card"><span className="ready-mark">✓</span><p className="eyebrow">APPROVED AND SAVED</p><h2>Time to bring your lesson to life.</h2><p>Your reviewed sources, explanations, visual aids and checks are ready. Record your voice as you advance through the concepts.</p><button className="primary" onClick={() => navigate('teach')}>Start recording this lesson</button><button onClick={() => setStage('review')}>Revisit approved materials</button></section>}
     </>}
     {screen === 'publish' && <><h1>Ready for your learners?</h1><p>Review the complete recording and both visual sequences before distribution.</p>
-      <section className="content-card"><h2>{lesson.title}</h2><p>{lesson.subject} · {lesson.classLevel}</p><ul className="readiness-list"><li>{approved ? '✓' : '○'} Instructional materials approved</li><li>{lesson.classroomTimeline ? '✓' : '○'} Classroom concept timeline saved</li><li>{savedRecording ? `✓ Teacher microphone audio · ${(savedRecording.durationMs / 1000).toFixed(1)} seconds · ${savedRecording.cues.length} synchronized visual transitions` : '○ Teacher recording needed'}</li><li>{savedRecording?.review.status === 'approved' ? '✓ Recording reviewed' : '○ Audio review needed'}</li><li>{savedRecording?.visualReview?.status === 'approved' ? '✓ Personalized and default visuals reviewed' : '○ Personalized visual review needed'}</li><li>{lesson.concepts.length} concepts · {lesson.quiz.length} prepared understanding checks · {lesson.concepts.flatMap(concept => concept.variants.filter(variant => variant.type === 'tryit')).length} safe activities</li><li>Four prepared visual assets · source-grounded explanations and offline answers</li><li>Two simulated learner profiles · one original teacher recording</li><li>{publication && publication === savedRecording?.id ? '✓ Publication confirmed by the local lesson service' : '○ Not confirmed as published for this revision'}</li></ul><button onClick={() => navigate('review')}>Review synchronized recording</button></section>
-        <section className="content-card"><h3>Publish the recorded classroom lesson</h3><p>Publish the approved audio, timeline and both visual sequences to the configured lesson service. The default service runs locally on this computer; this is not a cloud upload. Complete encrypted file export remains available.</p>
-          <button className="primary" disabled={!approved || busy || recordingPending || captureLocked || !savedRecording || savedRecording.review.status !== 'approved' || savedRecording.visualReview?.status !== 'approved'} onClick={() => void run(publishRecording)}>Publish recorded lesson</button></section>
+      <section className="content-card"><h2>{lesson.title}</h2><p>{lesson.subject} · {lesson.classLevel}</p><ul className="readiness-list"><li>{approved ? '✓' : '○'} Instructional materials approved</li><li>{lesson.classroomTimeline ? '✓' : '○'} Classroom concept timeline saved</li><li>{savedRecording ? `✓ Teacher microphone audio · ${(savedRecording.durationMs / 1000).toFixed(1)} seconds · ${savedRecording.cues.length} synchronized visual transitions` : '○ Teacher recording needed'}</li><li>{savedRecording?.review.status === 'approved' ? '✓ Recording reviewed' : '○ Audio review needed'}</li><li>{savedRecording?.visualReview?.status === 'approved' ? '✓ Personalized and default visuals reviewed' : '○ Personalized visual review needed'}</li><li>{lesson.concepts.length} concepts · {lesson.quiz.length} prepared understanding checks · {lesson.concepts.flatMap(concept => concept.variants.filter(variant => variant.type === 'tryit')).length} safe activities</li><li>Four prepared visual assets · source-grounded explanations and offline answers</li><li>{workspace ? 'One reviewed recording with individual learner packages' : 'Two simulated learner profiles with one original teacher recording'}</li><li>{publication && publication === savedRecording?.id ? workspace ? '✓ Publication confirmed for your assigned class' : '✓ Publication confirmed by the local lesson service' : '○ Not confirmed as published for this revision'}</li></ul><button onClick={() => navigate('review')}>Review synchronized recording</button></section>
+        <section className="content-card"><h3>Publish the recorded classroom lesson</h3><p>{workspace ? 'Publish to the students enrolled in this class and subject. Complete downloads work offline.' : 'Publish the approved audio, timeline and both visual sequences to the configured local lesson service.'}</p>{workspace && <><label className="check"><input type="checkbox" checked={privacyReviewed} onChange={e=>setPrivacyReviewed(e.target.checked)}/>I reviewed recording privacy, instructional accuracy and rights to distribute the sources.</label><label className="check"><input type="checkbox" checked={externalSharing} onChange={e=>setExternalSharing(e.target.checked)}/>Also share with signed-in students who have no school. Previously downloaded copies cannot be recalled while offline.</label></>}
+          <button className="primary" disabled={Boolean(workspace && !privacyReviewed) || !approved || busy || recordingPending || captureLocked || !savedRecording || savedRecording.review.status !== 'approved' || savedRecording.visualReview?.status !== 'approved'} onClick={() => void run(publishRecording)}>Publish recorded lesson</button></section>
 <button onClick={() => navigate('lessons')}>Back to My Lessons</button></>}
-    {screen === 'transfers' && <section className="content-card"><h2>Send a lesson back to school</h2><p>Encrypted file transfer is available when a direct school connection is unavailable. Exports without a reviewed recording contain prepared content only.</p>        <div className="export-row">{profiles.map(profile => <button key={profile.id} disabled={!approved || busy || recordingPending || captureLocked || Boolean(savedRecording && (savedRecording.review.status !== 'approved' || savedRecording.visualReview?.status !== 'approved'))} onClick={() => void run(async () => {
+    {!workspace && screen === 'transfers' && <section className="content-card"><h2>Send a lesson back to school</h2><p>Encrypted file transfer is available when a direct school connection is unavailable. Exports without a reviewed recording contain prepared content only.</p>        <div className="export-row">{profiles.map(profile => <button key={profile.id} disabled={!approved || busy || recordingPending || captureLocked || Boolean(savedRecording && (savedRecording.review.status !== 'approved' || savedRecording.visualReview?.status !== 'approved'))} onClick={() => void run(async () => {
           const personal = requirePublishedLesson(drafts.find(l => l.studentId === profile.id));
           const recording = await readRecording(personal);
           const payload = requirePublishedLesson(recording ? personalizedReplay(personal, recording) : personal);
@@ -237,14 +258,15 @@ export function App() {
       onProjector={() => setProjector(!projector)} onUpdate={transform => void run(() => updatePresentation(transform(preparationRef.current.drafts[0])))}
       onPrepare={() => { setStage('review'); navigate('prepare'); }}/></div>
       {approved && lesson.classroomTimeline && <Suspense fallback={<p role="status">Opening your recording studio…</p>}><RecordingPanel key={lesson.publication.status === 'approved' ? lesson.publication.approvedAt : ''}
-        lesson={lesson} mode={screen === 'review' ? 'review' : 'studio'} onMotion={setCaptureMotion} onReview={() => { setProjector(false); setScreen('review'); window.scrollTo(0, 0); }} onRerecord={() => navigate('teach')} onChanged={() => setRecordingRevision(n => n + 1)} onLock={setCaptureLocked} onPending={setRecordingPending} onTransitionBusy={setCaptureTransitionBusy}/></Suspense>}
+        lesson={lesson} mode={screen === 'review' ? 'review' : 'studio'} onMotion={setCaptureMotion} onReview={() => { setProjector(false); setScreen('review'); window.scrollTo(0, 0); }} onRerecord={() => navigate('teach')} onChanged={() => setRecordingRevision(n => n + 1)} onLock={value=>{setCaptureLocked(value);onWorkspaceLock?.(value);}} onPending={setRecordingPending} onTransitionBusy={setCaptureTransitionBusy}/></Suspense>}
       {screen === 'review' && !lesson.classroomTimeline && <section className="content-card"><h2>No recording to review yet</h2><p>Approve your materials and start a classroom presentation first.</p><button className="primary" onClick={() => navigate('teach')}>Open recording studio</button></section>}
       {screen === 'review' && <button className="primary" disabled={!approved || recordingPending} onClick={() => navigate('publish')}>Continue to publication</button>}</div>}
-    {screen === 'insights' && <TeacherInsights lesson={lesson} recording={savedRecording} records={records} approved={approved} busy={busy} syncStatus={syncStatus} onSync={() => void run(receiveSchoolProgress)} onReview={(conceptId, variantId) => {
+    {screen === 'insights' && workspace && <SchoolInsights offeringId={workspace.offeringId}/>}
+    {screen === 'insights' && !workspace && <TeacherInsights lesson={lesson} recording={savedRecording} records={records} approved={approved} busy={busy} syncStatus={syncStatus} onSync={() => void run(receiveSchoolProgress)} onReview={(conceptId, variantId) => {
       setConceptIndex(lesson.concepts.findIndex(concept => concept.id === conceptId)); setReviewVariant(variantId); setStage('review'); navigate('prepare');
     }}/>}
-    {screen === 'transfers' && <section className="content-card"><h2>School connection</h2><p role="status">{syncStatus}</p><button disabled={busy} onClick={() => void run(receiveSchoolProgress)}>Check school connection</button><p className="small">Direct return uses the configured local lesson service. Only its acknowledgement confirms receipt; device connectivity alone does not.</p></section>}
-    {screen === 'transfers' && <section className="content-card import-progress"><p className="eyebrow">Collect at the next school visit</p><h2>Bring progress back into the classroom.</h2><label htmlFor="teacher-pin">Learner’s six-digit PIN</label><input id="teacher-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pin} onChange={e => setPin(e.target.value)}/><label htmlFor="progress-file">Import encrypted progress</label><input id="progress-file" type="file" accept=".json" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void run(() => importProgress(file)); }}/><p className="small">Imported records are saved on this teacher device. Learner PINs are never saved. Aggregates are shown by default.</p>
+    {!workspace && screen === 'transfers' && <section className="content-card"><h2>School connection</h2><p role="status">{syncStatus}</p><button disabled={busy} onClick={() => void run(receiveSchoolProgress)}>Check school connection</button><p className="small">Direct return uses the configured local lesson service. Only its acknowledgement confirms receipt; device connectivity alone does not.</p></section>}
+    {!workspace && screen === 'transfers' && <section className="content-card import-progress"><p className="eyebrow">Collect at the next school visit</p><h2>Bring progress back into the classroom.</h2><label htmlFor="teacher-pin">Learner’s six-digit PIN</label><input id="teacher-pin" type="password" inputMode="numeric" maxLength={6} autoComplete="off" value={pin} onChange={e => setPin(e.target.value)}/><label htmlFor="progress-file">Import encrypted progress</label><input id="progress-file" type="file" accept=".json" disabled={busy} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void run(() => importProgress(file)); }}/><p className="small">Imported records are saved on this teacher device. Learner PINs are never saved. Aggregates are shown by default.</p>
       <details><summary>Review imported queued questions</summary>{!records.length && <p>No progress imported yet.</p>}{records.map(record => <button key={record.studentId} onClick={() => setSelectedRecord(record)}>Review {profiles.find(profile => profile.id === record.studentId)?.label} questions</button>)}
         {selectedRecord && <><p>{selectedRecord.queuedQuestions.length} questions in the selected snapshot.</p>{selectedRecord.queuedQuestions.map(question => <article key={question.id}><h4>{question.text}</h4>{question.answered ? <><p>{question.answer}</p>{question.answerOrigin === 'simulated-prepared' && <p className="small">Prepared demo response · simulated</p>}<Sources lesson={lesson} refs={question.sourceRefs}/></> : <p>Pending</p>}</article>)}<p>Local answer simulation supports one reviewed question: “{queuedDemoQuestion}” Other questions remain pending.</p>
           <button disabled={busy || !online} onClick={() => void run(() => prepareReturnedAnswers(selectedRecord.studentId))}>Run simulated answer return</button>
@@ -266,8 +288,10 @@ export function App() {
           })}>Export returned answers</button></>}
       </details>
     </section>}
-    {screen === 'questions' && <TeacherQuestions lesson={lesson} records={records} approved={approved} onConcept={stepId => void run(() => { updatePresentation(lesson.classroomTimeline ? presentStep(lesson, stepId) : startPresentation(lesson, stepId)); navigate('teach'); })} onReview={record => { setSelectedRecord(record); navigate('transfers'); }} onTransfer={() => navigate('transfers')}/>}
-    {screen === 'settings' && <section className="content-card"><h1>Workspace settings</h1><p>This is a local teacher workspace. Teacher accounts and an authenticated display name are not configured.</p><h2>Storage & privacy</h2><p>Preparation and classroom recordings are saved on this browser. The configured delivery service stores published audio on the school computer. Keep encrypted lesson exports as a backup.</p><p>Only the two simulated learner profiles are supported. Public demo PINs are not production security.</p></section>}
-    {screen === 'settings' && <footer className="future"><details><summary>Beyond this sprint</summary><ul>{Object.entries(futureFeatures).map(([name, feature]) => <li key={name}>{feature.description} · Described only</li>)}</ul></details></footer>}
+    {workspace && screen === 'questions' && <SchoolQuestions lesson={lesson} workspace={workspace} onSync={receiveSchoolProgress}/>}
+    {workspace && screen === 'settings' && <section className="content-card"><h1>Workspace settings</h1><p>{workspace.title}</p><p>Signed in as {workspace.teacherName}. Teaching tools are authorized by your active school assignment.</p></section>}
+    {screen === 'questions' && !workspace && <TeacherQuestions lesson={lesson} records={records} approved={approved} onConcept={stepId => void run(() => { updatePresentation(lesson.classroomTimeline ? presentStep(lesson, stepId) : startPresentation(lesson, stepId)); navigate('teach'); })} onReview={record => { setSelectedRecord(record); navigate('transfers'); }} onTransfer={() => navigate('transfers')}/>}
+    {!workspace && screen === 'settings' && <section className="content-card"><h1>Workspace settings</h1><p>This is a local teacher workspace. Teacher accounts and an authenticated display name are not configured.</p><h2>Storage & privacy</h2><p>Preparation and classroom recordings are saved on this browser. The configured delivery service stores published audio on the school computer. Keep encrypted lesson exports as a backup.</p><p>Only the two simulated learner profiles are supported. Public demo PINs are not production security.</p></section>}
+    {!workspace && screen === 'settings' && <footer className="future"><details><summary>Beyond this sprint</summary><ul>{Object.entries(futureFeatures).map(([name, feature]) => <li key={name}>{feature.description} · Described only</li>)}</ul></details></footer>}
   </TeacherShell>;
 }

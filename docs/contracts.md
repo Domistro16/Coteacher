@@ -1,5 +1,77 @@
 # Working data contracts
 
+## Student learning contracts (1 November 2026)
+
+`learner-profile` is the private age-band/onboarding/consent/draft contract.
+`learner-memory` holds owner-bound preferences, assessed/help/choice evidence,
+completion and prompt state. `lesson-knowledge` holds teacher-reviewed concept and
+prerequisite mappings. `adaptation-decision` records the selected approved asset,
+student-visible reason and evidence references. `prepared-support` holds bounded
+reusable candidates/explanations and their school/source/lesson/language/model
+revision. These are versioned strict schemas with generated types and bundled Ajv
+validators. Array bounds remain runtime checks when generated types use arrays.
+
+School restoration defaults new private/preparation/placement-request collections
+to empty; legacy declarations never acquire verified status. Profile and memory
+use separate AES-GCM purposes bound to the account inside the aggregate. Aggregate
+backup/restore includes them without new object-store references. Profile reads
+and mutations are student-only; reviewer DTOs expose only consent evidence.
+
+IndexedDB v3 adds a separately PIN-encrypted learner memory store. Lesson snapshot
+and memory commit atomically; the strict `learning-reference` contract binds a
+snapshot to that row without duplicating private preferences/evidence. Clearing
+the row from settings immediately disables optional local memory while retaining
+lessons/progress/media. Owner checks apply before reads/writes. The same
+learner uses one device PIN across lessons. Existing v2 profiles/media migrate
+without clearing them. Withdrawal carries a clearance timestamp so re-enabling
+personalization cannot resurrect old evidence from a disconnected copy.
+
+Approved support can be embedded in the lesson without changing its objective,
+recording, timeline or original bank. Generated candidates carry exact quotations
+from reviewed explanation variants and base sourceRefs; source checking does not
+prove factual correctness. Teacher approval is required before collection. The
+matcher and progress validator resolve these versioned candidates while retaining
+the original threshold/unknown-term behavior. Approved support is immutable for a
+publication; replacement needs a new publication. Old offline packages remain
+readable. Changed source/lesson revisions are never served through an old cache.
+
+Profile endpoints: `GET/POST learner/profile`, `POST learner/withdraw`,
+`POST learner/guardian`. Anonymous `POST guardian/details` and `guardian/verify`
+accept only bounded single-use bearer tokens with origin/rate guards. Tokens are
+hashed at rest. Authenticated `guardian/reviews` requires an independent active
+school owner/admin or, for unaffiliated learners, an operator; administrative MFA
+still applies in managed mode. Default expiry is seven days.
+Student registration asks the age band before name/email fields. Adults have a
+self-authorized route, minors a guardian-assisted route, and school-issued accounts
+retain their existing sign-in/password-change path. Only explicit new registration
+choices initialize a private age band; old guardian checkboxes do not. Verification
+records distinguish `simulated-token` from `email-token`; simulated links do not
+prove mailbox control. Verification/authority/review lifecycle checks supplement
+the structural schema.
+
+`lessons/:publicationId/preparation` is assignment-authorized preparation/review;
+`lessons/:publicationId/learning` is private authorized context/completion sync.
+No onboarding/context request is made when opening downloaded learning. Raw answers
+and structured private decisions are excluded from teacher tutor memory and
+progress exports. Generated text can still paraphrase permitted preferences;
+prompt rules and disclosure rejection are not a semantic privacy guarantee.
+
+Tutor engine enums include `llama.cpp`; local text permission (`local-ai`) is
+separate from external-provider permission. No speech/transcription is implied by
+a local text model. Provider context is explicitly projected and permission is
+checked immediately before dispatch and before retaining generated results.
+
+Tutor sync may request `?speech=defer` during live conversation. This projects
+answer speechBase64 to null in the encrypted response only; it uses the existing
+TutorState contract and retains quiz audio, source identities, receipts and all
+school records. The client preserves downloaded answer clips only for identical
+answer content/review state, and requests full speech again after live capture
+ends. Response ETags are scoped to the requested representation. No schema or
+progress-prefix validation is relaxed.
+During capture, transcript additions remain encrypted locally; the existing
+complete live-turn upload resumes after capture ends. Question/progress receipts
+still apply during the conversation. Neither local nor received history is reset.
+
 Visual exploration now optionally carries `origin`: `learner-choice`,
 `prepared-help` or `connected-help`. Existing events without origin remain valid
 observations; missing/automatic origin must not be labelled an explicit preference.
@@ -288,3 +360,52 @@ TutorState optionally contains server-authored checks (maximum 40) and append-on
 POST /api/tutor/{studentId}/{recordingId}/check accepts an encrypted TutorCheckRequest. The server resolves the acknowledged original question and checked answer, derives support from received evidence, generates/validates a check, and returns the encrypted TutorState. It never accepts check content or personalization from the device. Offline use reads already saved checks.
 
 The existing tutoring POST optionally carries checkAttempts. The server merges stable attempt IDs, rejects modified content and invalid selections/correctness, and never replaces server-authored checks. Returned state is merged with newer device attempts before local saving. Quiz evidence is visible in teacher tutor oversight and learner memory, separate from legacy prepared-quiz progress events. Existing school progress prefix/answer safeguards are unchanged.
+
+
+## Account-based school contracts
+
+`schemas/school-state.schema.json` defines account identities, affiliations,
+sessions, level policies, class groups, subject offerings, teaching assignments,
+placements, selections, publications and private object references. Generated types
+live in `packages/shared/src/generated/school-state.ts`. Each repository commit also
+checks ownership and referential consistency in `delivery/school-integrity.ts`.
+Access checks require current school status, membership, assignment or approved
+placement and subject access.
+
+`POST /api/v1/auth/recover` normalizes the email address and uses the originating
+app callback. Issuer errors and throttling return an error; they never claim that
+a recovery link was sent. Successful requests retain a generic response that
+does not disclose account existence.
+
+`POST /api/v1/auth/resend` accepts an email address and requests a managed signup
+confirmation email using the originating app's approved callback URL. It works
+before sign-in, shares anonymous authentication rate limits and origin/JSON
+guards, and rejects school-issued usernames. A successful response is generic;
+provider failures and throttling never claim an email was sent. Managed login
+reports `email_not_confirmed` with an actionable confirmation instruction and
+never opens an unverified session.
+
+`schemas/server-envelope.schema.json` defines backend tutor envelopes. These use
+a high-entropy server key and contextual authentication, separate from the unchanged
+six-digit device-PIN transfer contract. Final private storage objects are also
+encrypted whenever R2 is configured, including PC-hosted development verification.
+The R2 credentials and a stable server storage key are required together; local
+filesystem-only simulated adapters keep their existing behavior.
+`schemas/school-backup.schema.json` defines the encrypted backup manifest
+and object checksums. Restore validates the aggregate and revokes local sessions
+and pending uploads.
+
+Lesson packages allow authorized `/api/v1/media/<sha256>/<publication-id>` media
+URLs alongside the original restricted demo path. Publication IDs distinguish
+school deliveries of the same instructional lesson. Device keys combine the
+pseudonymous learner ID and publication ID; progress retains the original learner,
+lesson and recording context. The student core stays local after a complete
+download. Connected tutoring is optional and separately consented.
+
+
+Native media events are normalized to integer milliseconds before the recorded
+player resolves visual cues, matching cue offsets and saved position contracts.
+Chromium can report a seek requested at 1003 ms as 1002.999 ms; this must not
+restore the preceding chapter. The audio element remains the playback clock;
+there is no independent visual timer. The shared cue matcher retains its strict
+boundary behavior for already-specified timestamps.

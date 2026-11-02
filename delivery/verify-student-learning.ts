@@ -1,0 +1,42 @@
+import { existsSync } from 'node:fs';
+import { mkdir,mkdtemp,writeFile } from 'node:fs/promises';
+import { resolve,join } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { emptyProgress,type TutorState } from '@coteacher/shared';
+import { SchoolService,LocalSchoolRepository } from './school-store';
+import { LocalPrivateStorage } from './private-storage';
+import { SchoolLessons } from './school-lessons';
+import { SchoolTutor } from './school-tutor';
+import { LearnerService } from './learner-service';
+import { OpenAITutor } from './tutor-provider';
+import { PreparationService } from './preparation-service';
+import { schoolFixture,schoolRecording } from '../tests/school-fixture';
+for(const file of ['.env.local','.env'])if(existsSync(file))process.loadEnvFile(file);
+if(!process.env.OPENAI_API_KEY)throw new Error('No configured OpenAI key. No live request was made.');
+await mkdir('.task-tmp',{recursive:true});const folder=await mkdtemp(resolve('.task-tmp/learning-live-'));
+const school=new SchoolService(new LocalSchoolRepository(folder)),storage=new LocalPrivateStorage(join(folder,'private')),lessons=new SchoolLessons(school,storage),secret=randomBytes(32).toString('hex'),learners=new LearnerService(school,secret);
+const fixture=await schoolFixture(school);
+await learners.update(fixture.student.id,{revision:0,ageBand:'adult',permissions:{essential:true,personalization:true,externalAI:true},answers:{preferredName:'PRIVATE-FICTIONAL-NAME',comfort:1,studyTime:'evening',interests:['football'],readingEase:'ok',confidence:[{subject:'Science',rating:2}]}});
+const calls:{path:string;status:number;requestId:string|null;privateFieldsExcluded:boolean;preferencesPresent:boolean;usage?:unknown}[]=[];
+const request:typeof fetch=async(input,init)=>{
+ const path=new URL(String(input)).pathname,body=String(init?.body??'');
+ const privateFieldsExcluded=!['PRIVATE-FICTIONAL-NAME','preferredName','guardianEmail','comfort','studyTime','under-18'].some(x=>body.includes(x));
+ if(!privateFieldsExcluded)throw new Error('Private data projection failed before dispatch.');
+ const response=await fetch(input,init);const usage=path==='/v1/responses'?(await response.clone().json() as {usage?:unknown}).usage:undefined;calls.push({path,status:response.status,requestId:response.headers.get('x-request-id'),privateFieldsExcluded,preferencesPresent:body.includes('teachingPreferences'),usage});
+ console.log(JSON.stringify({path,status:response.status}));return response;
+};
+const provider=new OpenAITutor(process.env.OPENAI_API_KEY,request),tutor=new SchoolTutor(school,lessons,storage,secret,provider,undefined,learners);
+const published=await lessons.publish(fixture.teacher.id,fixture.offerings[0].id,schoolRecording().lesson,false,true),lesson=await lessons.package(fixture.student.id,published.id),progress=emptyProgress(lesson);
+const evidence:{question:string;status:string;answer:string;sourceRefs:string[]}[]=[];
+for(const [i,question]of ['Why does the pencil look bent even though it stays straight?','So is the pencil itself physically bent, or does the light change direction?'].entries()){
+ progress.queuedQuestions.push({id:'fictional-live-'+i,text:question,askedAt:new Date().toISOString(),answered:false,timelineStepId:'step-refraction',recordedContext:{studentId:lesson.studentId,lessonId:lesson.lessonId,recordingId:lesson.recording!.id,conceptId:'refraction',positionMs:1300}});
+ await tutor.request(fixture.student.id,published.id,'submit',{enabled:true,progress});await tutor.idle();
+ const state=await tutor.request(fixture.student.id,published.id,'current') as TutorState;const reply=state.replies.find(r=>r.questionId==='fictional-live-'+i)!;
+ evidence.push({question,status:reply.status,answer:reply.text,sourceRefs:reply.sourceRefs});
+}
+const preparation=new PreparationService(school,lessons,storage,provider),started=performance.now(),before=calls.length;
+const support=await preparation.generate(fixture.teacher.id,published.id);
+const preparationEvidence={latencyMs:Math.round(performance.now()-started),externalCalls:calls.length-before,bytes:Buffer.byteLength(JSON.stringify(support)),generatedCandidates:support.candidates.filter(c=>c.origin==='generated').length,status:support.status,teacherReview:'Required before collection; live generated draft was not published automatically',pricing:'Token usage recorded per response; no unverified currency conversion or savings percentage claimed'};
+const result=evidence.every(e=>e.status==='answered'&&e.sourceRefs.length)&&calls.every(c=>c.privateFieldsExcluded)&&preparationEvidence.generatedCandidates===lesson.concepts.length?'PASS':'FAIL';
+await writeFile('docs/student-learning-provider-evidence.json',JSON.stringify({result,simulated:true,createdAt:new Date().toISOString(),identity:'Isolated authorization-checked SchoolService fixture with scripted fictional actor IDs; no populated provider database or user credentials used',transport:'Real OpenAI Responses and speech requests; synthetic recording; scripted fictional student submissions, not a human browser/microphone check',provider:provider.model,calls,replies:evidence,preparation:preparationEvidence},null,2)+'\n');
+console.log(JSON.stringify({result,calls:calls.length}));if(result!=='PASS')process.exitCode=1;

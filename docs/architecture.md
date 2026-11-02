@@ -1,8 +1,16 @@
 # Architecture
 
+Student learning extension: private onboarding records use owner/purpose-bound
+AES-GCM envelopes inside the existing transactional school aggregate. They are
+excluded as structured fields from account snapshots, progress exports and
+teacher tutor memory. Generated text can still paraphrase permitted preferences;
+this is not a semantic non-disclosure guarantee. Inline
+envelopes travel with encrypted aggregate backups, requiring no second database or
+private-object reference lifecycle. See student-learning-acceptance.md.
+
 ## Working stack
 
-- Student PWA and teacher workspace: Vite + React + TypeScript.
+- Student PWA, teacher workspace and separate school app: Vite + React + TypeScript.
 - Service worker: a small Vite build plugin generates a complete static app-shell
   precache, including bundled SVG/icon/manifest assets. Native IndexedDB stores
   encrypted learner snapshots. No extra Workbox/idb dependencies are needed for
@@ -66,8 +74,9 @@ for its published recording. It validates owner, lesson, source references and
 recording revision, writes the encrypted snapshot atomically, then returns a
 schema-validated SHA-256 receipt. Only that receipt confirms synchronization.
 Teacher requests retrieve validated snapshots; prepared reviewed answers return
-to the matching learner on a subsequent background sync. No external LLM or
-production cloud synchronization is implemented. An empty connected learner home
+to the matching learner on a subsequent background sync. This paragraph describes the original demo path. Account mode additionally
+supports configured managed storage and opt-in external tutoring; hosted production
+operation has not been verified. An empty connected learner home
 discovers the published personal manifest; playing/downloading are explicit.
 An already-collected profile needs no catalogue call, and the downloaded student
 core path remains entirely local.
@@ -139,8 +148,9 @@ replaces the paired encrypted manifest index last. Service restart verifies the
 saved checksum and manifests. An empty/unconfigured service never invents a
 recording or substitutes the legacy notes fixture.
 
-There is no configured cloud bucket, public delivery deployment or production
-teacher authentication. The local service uses a server-side publication token
+The original demo path has no authenticated cloud delivery. Account mode can
+use configured managed identity, PostgreSQL and private object storage; public
+hosted deployment/testing remains deferred. The local service uses a server-side publication token
 and a random media capability; the default token and PINs are public fixtures.
 Server audio is plaintext on the local filesystem. See recorded-delivery-verification.md.
 
@@ -287,3 +297,15 @@ records. New conversation controls and self-reports have no invented mastery sta
 The complete speech manifest remains in the existing production app-shell precache.
 No teacher speech-following, new backend, live tutoring AI or cloud recognition is
 introduced. See companion-verification.md for implementation and tested scope.
+
+## School enrollment extension (30 October 2026)
+
+School registration, reviewed school activation, multi-school teacher assignments,
+student affiliation and approved subject enrollment are now explicitly authorized.
+The school app and authenticated versioned service are separate from the simulated
+lesson-delivery demo. Supabase Auth/Postgres and private R2 storage back the public
+path; Vercel same-origin proxies forward to a Render Node service. Local adapters
+exercise the same domain services with fictional data. Public mode rejects legacy
+demo endpoints and requires provider configuration. Live release checks remain
+mandatory. Fixtures and
+local account registration remain fictional-data-only. See school-registration.md.

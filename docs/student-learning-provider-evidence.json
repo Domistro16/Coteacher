@@ -1,0 +1,133 @@
+{
+  "result": "PASS",
+  "simulated": true,
+  "createdAt": "2026-11-01T15:41:29.200Z",
+  "identity": "Isolated authorization-checked SchoolService fixture with scripted fictional actor IDs; no populated provider database or user credentials used",
+  "transport": "Real OpenAI Responses and speech requests; synthetic recording; scripted fictional student submissions, not a human browser/microphone check",
+  "provider": "gpt-4.1-mini",
+  "calls": [
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_be6c889fb83a40ec9643aa18ec92b0c8",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": true,
+      "usage": {
+        "input_tokens": 1298,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 158,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1456
+      }
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_abdf7ef7f75848edba973e67df7ce101",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": false
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_6af4e649316742e68cca0527acf162f9",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": true,
+      "usage": {
+        "input_tokens": 1379,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 136,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1515
+      }
+    },
+    {
+      "path": "/v1/audio/speech",
+      "status": 200,
+      "requestId": "req_d4e1baa15c79459cb6f795339a78de23",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": false
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_7deb6cb5f112491b971054a7e0d3f98f",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": false,
+      "usage": {
+        "input_tokens": 1160,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 165,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1325
+      }
+    },
+    {
+      "path": "/v1/responses",
+      "status": 200,
+      "requestId": "req_31e40163aec24782bb3f65bfd5eee453",
+      "privateFieldsExcluded": true,
+      "preferencesPresent": false,
+      "usage": {
+        "input_tokens": 1162,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 248,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1410
+      }
+    }
+  ],
+  "replies": [
+    {
+      "question": "Why does the pencil look bent even though it stays straight?",
+      "status": "answered",
+      "answer": "The pencil looks bent because light travels from the submerged part of the pencil through water and then into air, changing direction at the angled boundary between these two mediums. This change in direction of light, called refraction, makes the straight pencil appear bent to your eyes even though it remains straight.",
+      "sourceRefs": [
+        "notes-light:refraction-original",
+        "notes-light:refraction-short"
+      ]
+    },
+    {
+      "question": "So is the pencil itself physically bent, or does the light change direction?",
+      "status": "answered",
+      "answer": "The pencil is not physically bent; it stays straight. The light changes direction when it passes from water to air at an angle, which makes the pencil look bent to our eyes.",
+      "sourceRefs": [
+        "notes-light:refraction-original",
+        "notes-light:refraction-short"
+      ]
+    }
+  ],
+  "preparation": {
+    "latencyMs": 4951,
+    "externalCalls": 2,
+    "bytes": 8006,
+    "generatedCandidates": 2,
+    "status": "draft",
+    "teacherReview": "Required before collection; live generated draft was not published automatically",
+    "pricing": "Token usage recorded per response; no unverified currency conversion or savings percentage claimed"
+  },
+  "review": {
+    "sourcedTutorReplies": "2/2 checked against supplied fictional teacher excerpts after final privacy hardening; objective preserved; no explicit private preference values disclosed in returned answers",
+    "scope": "Functional grounding and payload inspection, not independent educational-effectiveness evidence"
+  }
+}

@@ -1,0 +1,450 @@
+{
+  "scope": "Real configured GPT-Live WebRTC and production live controller, simulated microphone WAV, deliberately delayed fixture backend; no human hearing or school record writes",
+  "startedAt": "2026-10-26T16:23:46.764Z",
+  "result": "PASS",
+  "delegations": [
+    {
+      "text": "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+      "at": 19710.09999999404
+    }
+  ],
+  "commands": [
+    {
+      "type": "session.instructions.append",
+      "id": null,
+      "content": "Give the short listening greeting supplied next, then wait for the student. Delegate the learner's teaching questions; do not start an explanation or invent a question before they ask.",
+      "at": 4403.700000017881
+    },
+    {
+      "type": "session.commentary.append",
+      "id": null,
+      "content": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening.",
+      "at": 4403.800000011921
+    },
+    {
+      "type": "session.instructions.append",
+      "id": "item_EdHmQGRf0VYeRlfEmOhGo",
+      "content": "While the source-checked answer is pending, immediately say the following progress commentary once: \"Hmm, checking your lesson sources.\" Do not add a teaching claim or start an explanation. Wait for the verified answer.",
+      "at": 19864
+    },
+    {
+      "type": "session.commentary.append",
+      "id": "item_EdHmQGRf0VYeRlfEmOhGo",
+      "content": "Hmm, checking your lesson sources.",
+      "at": 19864.09999999404
+    },
+    {
+      "type": "session.commentary.append",
+      "id": "item_EdHmQGRf0VYeRlfEmOhGo",
+      "content": "A lens bends light passing through it, just like the approved lens excerpt explains.",
+      "at": 29716
+    }
+  ],
+  "events": [
+    {
+      "type": "session.started",
+      "at": 4402.4000000059605
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": "The teacher",
+      "at": 5281.700000017881
+    },
+    {
+      "type": "session.instructions.appended",
+      "at": 5282
+    },
+    {
+      "type": "session.commentary.appended",
+      "at": 5283.5999999940395
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": "'s",
+      "at": 5470.800000011921
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " recording",
+      "at": 5642.4000000059605
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " is",
+      "at": 6165.9000000059605
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " paused.",
+      "at": 6361.200000017881
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " So,",
+      "at": 6885.300000011921
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " what's",
+      "at": 7265.200000017881
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " the",
+      "at": 7457.300000011921
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " problem?",
+      "at": 7649.5
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " Tell",
+      "at": 8256.300000011921
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " me",
+      "at": 8480.5
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " which",
+      "at": 8661.300000011921
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " part",
+      "at": 8866.200000017881
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " you're",
+      "at": 9065.40000000596
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " struggling",
+      "at": 9306.700000017881
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " with.",
+      "at": 9685
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " I'm",
+      "at": 9855.700000017881
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " listening.",
+      "at": 10042.300000011921
+    },
+    {
+      "type": "saved-avatar",
+      "delta": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening.",
+      "at": 11545.59999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " How",
+      "at": 14371.59999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " can a",
+      "at": 14546.40000000596
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " lens",
+      "at": 14754.90000000596
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " in",
+      "at": 14893.90000000596
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " eyeglasses",
+      "at": 15542.59999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " bend",
+      "at": 15970.200000017881
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " light",
+      "at": 16094.200000017881
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": ", and",
+      "at": 16750.90000000596
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " how",
+      "at": 16954.5
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " does",
+      "at": 17160.80000001192
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " that",
+      "at": 17333.70000001788
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " connect",
+      "at": 17754.09999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " to",
+      "at": 17952.09999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " this",
+      "at": 18140.5
+    },
+    {
+      "type": "session.usage.updated",
+      "at": 18154.09999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " water",
+      "at": 18311.59999999404
+    },
+    {
+      "type": "session.input_transcript.delta",
+      "delta": " lesson",
+      "at": 19101.70000001788
+    },
+    {
+      "type": "session.delegation.created",
+      "at": 19101.90000000596
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " Hmm,",
+      "at": 19290
+    },
+    {
+      "type": "saved-student",
+      "delta": "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+      "at": 19709.80000001192
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " good",
+      "at": 19888
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " question.",
+      "at": 20522.70000001788
+    },
+    {
+      "type": "session.instructions.appended",
+      "at": 20543.5
+    },
+    {
+      "type": "session.commentary.appended",
+      "at": 20543.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": "Hmm,",
+      "at": 20722.09999999404
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " checking",
+      "at": 20888.20000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " your",
+      "at": 21318.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " lesson",
+      "at": 21500.59999999404
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " sources.",
+      "at": 21678.90000000596
+    },
+    {
+      "type": "saved-avatar",
+      "delta": " Hmm, good question.Hmm, checking your lesson sources.",
+      "at": 23179.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": "It",
+      "at": 30496.30000001192
+    },
+    {
+      "type": "session.commentary.appended",
+      "at": 30497.30000001192
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " bends",
+      "at": 30737.20000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " light",
+      "at": 31082.30000001192
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " as",
+      "at": 31542.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " it",
+      "at": 31745.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " passes",
+      "at": 31879.09999999404
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " through,",
+      "at": 32295.70000001788
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " just",
+      "at": 33089.40000000596
+    },
+    {
+      "type": "session.usage.updated",
+      "at": 33155.59999999404
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " like",
+      "at": 33513.09999999404
+    },
+    {
+      "type": "session.output_transcript.delta",
+      "delta": " the approved",
+      "at": 33687
+    }
+  ],
+  "audibleProgressAt": 21065.40000000596,
+  "answerReturnedAt": 29715.70000001788,
+  "progressStates": [
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": "How can a lens in eyeglasses bend light, and how does that connect to this water lesson",
+      "speaking": false,
+      "timeMs": 14484,
+      "muted": true,
+      "at": 19709.80000001192
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm,",
+      "speaking": false,
+      "timeMs": 15425,
+      "muted": false,
+      "at": 20722.40000000596
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking",
+      "speaking": false,
+      "timeMs": 15595,
+      "muted": false,
+      "at": 20888.40000000596
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking",
+      "speaking": true,
+      "timeMs": 15845,
+      "muted": false,
+      "at": 21065.40000000596
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking your",
+      "speaking": true,
+      "timeMs": 16055,
+      "muted": false,
+      "at": 21318.90000000596
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking your lesson",
+      "speaking": true,
+      "timeMs": 16212,
+      "muted": false,
+      "at": 21500.80000001192
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking your lesson sources.",
+      "speaking": true,
+      "timeMs": 16361,
+      "muted": false,
+      "at": 21678.90000000596
+    },
+    {
+      "status": "working",
+      "message": "Microphone on · checking your lesson sources…",
+      "caption": " Hmm, good question.Hmm, checking your lesson sources.",
+      "speaking": false,
+      "timeMs": 18279,
+      "muted": false,
+      "at": 23647
+    }
+  ],
+  "progressDelayMs": 1355.300000011921,
+  "finishedAt": "2026-10-26T16:24:22.105Z",
+  "humanHearing": "UNVERIFIED: real provider test uses simulated microphone and decoded media, not operator hearing",
+  "build": {
+    "entry": "index-DMK16-ND.js",
+    "player": "StudentPlayer-CyBeKSLv.js",
+    "studentBuild": "PASS",
+    "teacherBuild": "PASS earlier in this task",
+    "servedFilesMatch": true
+  },
+  "tests": {
+    "controlAndCompanion": "15 PASS",
+    "finalFragmentAndPrefaceRegression": "PASS"
+  },
+  "preliminaryRuns": [
+    "Looped Chromium microphone repeated the question and interrupted progress; replaced with a one-shot Web Audio fixture.",
+    "Phrase-only progress gating failed on split and unrecognized natural prefaces; final gating recovers at the requested Hmm utterance and still rejects teaching text."
+  ]
+}

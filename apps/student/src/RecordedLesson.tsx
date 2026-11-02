@@ -1,9 +1,15 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { LearningDisplay } from './LearningDisplay';
 import { recordingAudioBytes, recordingCueAt, type LessonPackage, type LessonRecording, type PlayerState } from '@coteacher/shared';
 import { Sources, Visual } from './Visual';
 import { ReplayVisual } from './ReplayVisual';
 import { Icon, clock } from './student-ui';
 import { CompanionToolsTarget } from './CompanionDock';
+
+// Cues and saved positions use integer milliseconds. Native seeks can return a
+// timestamp one microsecond below the requested millisecond, so normalize before
+// resolving a cue instead of briefly restoring the previous chapter.
+function mediaTimeMs(element: HTMLMediaElement) { return Math.round(element.currentTime * 1000); }
 
 export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onExplainMoment, onExploreVisual, onCheckMoment, onActivityMoment, support, positionMs = 0, onPosition, immersive = false, companion, supportTimeMs = 4500 }: {
   companion?: ReactNode; supportTimeMs?: number;
@@ -19,7 +25,9 @@ export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onEx
   const [companionToolsTarget, setCompanionToolsTarget] = useState<HTMLDivElement | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
-  const [speed, setSpeed] = useState("1");
+  const display=useContext(LearningDisplay);
+  const [speed, setSpeed] = useState(display.slowerAudio?'0.75':'1');
+  useEffect(()=>{const rate=display.slowerAudio?'0.75':'1';setSpeed(rate);if(audio.current)audio.current.playbackRate=Number(rate);},[display.slowerAudio]);
   const seekId = useId();
   const helpId = useId();
   const [detail, setDetail] = useState('');
@@ -37,14 +45,14 @@ export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onEx
   }, []);
   function savePosition(force = false) {
     if (!audio.current || !Number.isFinite(audio.current.duration)) return;
-    const current = Math.min(recording.durationMs, Math.max(0, Math.round((audio.current?.currentTime ?? 0) * 1000)));
+    const current = Math.min(recording.durationMs, Math.max(0, mediaTimeMs(audio.current)));
     if (current !== lastSaved.current && (force || Math.abs(current - lastSaved.current) >= 5000)) {
       lastSaved.current = current; positionCallback.current?.(current);
     }
   }
   useEffect(() => {
     const element = audio.current;
-    resumeAt.current = element && Number.isFinite(element.duration) ? Math.round(element.currentTime * 1000) : positionMs;
+    resumeAt.current = element && Number.isFinite(element.duration) ? mediaTimeMs(element) : positionMs;
     try {
       if ('mediaUrl' in recording.audio) {
         setUrl(recording.audio.mediaUrl); setError('');
@@ -60,7 +68,7 @@ export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onEx
     let frame: number, lastFrame = 0;
     const update = (now: number) => {
       // Ten visual frames per second; encrypted checkpoints every five seconds.
-      if (now - lastFrame >= 100 && audio.current && !audio.current.paused) { setTimeMs(audio.current.currentTime * 1000); lastFrame = now; }
+      if (now - lastFrame >= 100 && audio.current && !audio.current.paused) { setTimeMs(mediaTimeMs(audio.current)); lastFrame = now; }
       frame = requestAnimationFrame(update);
     };
     frame = requestAnimationFrame(update); return () => cancelAnimationFrame(frame);
@@ -87,7 +95,7 @@ export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onEx
     ? lesson.visualAssets?.find(entry => entry.id === support.visualAssetId && entry.conceptId === concept.id) : undefined;
   function pauseAtMoment() {
     audio.current?.pause(); savePosition(true);
-    const position = Math.min(recording.durationMs, Math.max(0, Math.round((audio.current?.currentTime ?? 0) * 1000)));
+    const position = Math.min(recording.durationMs, Math.max(0, audio.current ? mediaTimeMs(audio.current) : 0));
     return { position, stepId: recordingCueAt(recording, position).timelineStepId };
   }
   useEffect(() => {
@@ -109,8 +117,8 @@ export function RecordedLesson({ lesson, recording, onPlayed, onOpenMoment, onEx
 
   const media = <audio ref={audio} src={url || undefined} controls={!immersive} preload="metadata" aria-label="Classroom audio"
       onLoadedMetadata={event => { const target = Math.min(resumeAt.current, recording.durationMs); event.currentTarget.currentTime = target / 1000; event.currentTarget.playbackRate = Number(speed); setTimeMs(target); }}
-      onTimeUpdate={event => { setTimeMs(event.currentTarget.currentTime * 1000); savePosition(); }}
-      onSeeked={event => { setTimeMs(event.currentTarget.currentTime * 1000); savePosition(true); }}
+      onTimeUpdate={event => { setTimeMs(mediaTimeMs(event.currentTarget)); savePosition(); }}
+      onSeeked={event => { setTimeMs(mediaTimeMs(event.currentTarget)); savePosition(true); }}
       onPlay={() => { setPlaying(true); onPlayed?.(); }}
       onPause={() => { setPlaying(false); savePosition(true); }} onEnded={() => { setPlaying(false); savePosition(true); }}
       onError={() => setError('mediaUrl' in recording.audio ? 'The streamed recording is unavailable. Connect to the lesson service or download the complete lesson while connected.' : 'This browser could not play the saved audio. Try current Chrome or Edge; the complete recording remains saved.')}/>;

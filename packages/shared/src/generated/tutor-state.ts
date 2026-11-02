@@ -44,7 +44,7 @@ export interface TutorReply {
     | [TutorCitation, TutorCitation, TutorCitation, TutorCitation, TutorCitation, TutorCitation];
   sourceRefs: string[];
   visualAssetId: string | null;
-  engine: "openai" | "mock" | "unavailable";
+  engine: "openai" | "mock" | "unavailable" | "llama.cpp";
   model: string;
   updatedAt: string;
   speechBase64: string | null;
@@ -1433,7 +1433,7 @@ export interface TutorCheck {
     | [TutorCitation, TutorCitation, TutorCitation, TutorCitation, TutorCitation]
     | [TutorCitation, TutorCitation, TutorCitation, TutorCitation, TutorCitation, TutorCitation];
   personalization: CheckPersonalization;
-  engine: "openai" | "mock";
+  engine: "openai" | "mock" | "llama.cpp";
   model: string;
   createdAt: string;
   speechBase64?: string | null;

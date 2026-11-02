@@ -1,0 +1,193 @@
+@import "../../teacher/src/teacher-theme.css";
+.school-app .school-brand-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.13em;
+  color: var(--muted);
+  padding: 0 1rem 1.5rem;
+  font-weight: 800;
+}
+.school-app .school-portal {
+  max-width: 1240px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.school-app .content-card {
+  margin: 1.25rem 0;
+}
+.school-app [hidden] {
+  display: none !important;
+}
+.school-app .school-portal form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.school-app .school-portal label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 160px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+.school-app .school-portal input,
+.school-app .school-portal select {
+  box-sizing: border-box;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  min-width: 0;
+  max-width: 100%;
+  background: #fff;
+  color: var(--ink);
+}
+.school-app .school-portal button {
+  padding: 0.75rem 1rem;
+}
+.school-app .school-portal form > button {
+  background: var(--purple);
+  color: #fff;
+  border-color: var(--purple);
+}
+.school-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+.school-stats article {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.school-stats strong {
+  font-size: 2.2rem;
+}
+.school-stats span {
+  color: var(--muted);
+}
+.school-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.school-app .school-portal article {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.school-app code {
+  overflow-wrap: anywhere;
+}
+.school-app .school-consent {
+  flex-direction: row !important;
+  align-items: center;
+}
+.school-app input[type="checkbox"],
+.consent-row input {
+  min-width: 22px;
+  min-height: 22px;
+  accent-color: #7040d8;
+}
+.school-app .school-portal .answer {
+  overflow-wrap: anywhere;
+}
+.student-app .consent-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: start;
+  font-size: 0.8rem;
+}
+.school-app .profile-avatar {
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+.school-app .mobile-brand {
+  display: none;
+}
+@media (max-width: 900px) {
+  .school-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .school-app .sidebar {
+    position: static;
+    width: auto;
+    min-width: 0;
+    padding: 1rem;
+    display: block;
+  }
+  .school-app.app-shell {
+    display: block;
+  }
+  .school-app .sidebar nav {
+    display: flex;
+    overflow-x: auto;
+  }
+  .school-app .sidebar nav button {
+    flex-shrink: 0;
+  }
+  .school-app .sidebar-note,
+  .school-brand-label {
+    display: none;
+  }
+  .school-app .app-body {
+    margin: 0;
+  }
+  .school-app .sidebar .brand {
+    margin-bottom: 0.75rem;
+  }
+}
+@media (max-width: 600px) {
+  .school-app .school-portal form > * {
+    flex-basis: 100%;
+  }
+  .school-app .topbar-actions .connection-dot {
+    display: none;
+  }
+  .school-app .student-content {
+    padding: 1rem;
+  }
+  .school-app .page-heading h1 {
+    font-size: 1.8rem;
+  }
+}
+
+.school-app .school-portal .school-stats article {
+  padding: 1.25rem;
+}
+.school-mobile-nav {
+  display: none;
+}
+@media (max-width: 900px) {
+  .school-app .sidebar {
+    display: none;
+  }
+  .school-app .mobile-brand {
+    display: inline-flex;
+  }
+  .school-app .app-topbar > strong {
+    display: none;
+  }
+  .school-mobile-nav {
+    display: flex;
+    background: white;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .school-mobile-nav label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+  .school-mobile-nav select {
+    padding: 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+}

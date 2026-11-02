@@ -1,0 +1,22 @@
+{
+  "simulated": true,
+  "result": "PASS",
+  "createdAt": "2026-11-02T05:55:32.108Z",
+  "learners": 2,
+  "lessons": 2,
+  "downloadedProfiles": 4,
+  "offlineApiCalls": 0,
+  "sharedDeviceIsolation": "PASS",
+  "assessmentDrivenCrossLessonSupport": "PASS",
+  "preparedGeneratedAnswer": "PASS",
+  "unsupportedQuestionQueued": "PASS",
+  "reconnectReceipt": "PASS",
+  "optionalMemoryClearedOnThisDevice": true,
+  "otherLearnerMemoryRetained": true,
+  "lessonAndProgressRetainedAfterWithdrawal": true,
+  "deduplicatedEvidence": 5,
+  "preparedSupportBytes": 5347,
+  "externalProviderCalls": 0,
+  "recording": "Synthetic Opus fixture; not human microphone verification",
+  "generation": "Mocked source-checked provider; real local/provider results are separate"
+}

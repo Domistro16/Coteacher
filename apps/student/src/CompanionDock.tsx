@@ -21,6 +21,7 @@ export function CompanionDock({ lessonId, conceptId, conceptTitle, positionMs, v
   useEffect(() => { if (voiceActive) setToolsOpen(false); }, [voiceActive]);
   useEffect(() => {
     if (!toolsOpen) return;
+    overlay.current?.querySelectorAll<HTMLDetailsElement>('.companion-session-actions details[open]').forEach(details => { details.open = false; });
     overlay.current?.querySelector<HTMLTextAreaElement>('textarea')?.focus({ preventScroll: true });
   }, [toolsOpen]);
   useLayoutEffect(() => {
@@ -33,14 +34,23 @@ export function CompanionDock({ lessonId, conceptId, conceptTitle, positionMs, v
       // A sourced answer can replace the SVG without changing the concept ID.
       const currentVisual = player.querySelector('.replay-stage svg');
       if (!currentVisual) return;
-      element.style.setProperty('--companion-bottom', `${player.getBoundingClientRect().bottom - (toolsOpen && controls ? controls.getBoundingClientRect().top : currentVisual.getBoundingClientRect().bottom) + 8}px`);
+      const bounds = player.getBoundingClientRect();
+      const controlsTop = controls?.getBoundingClientRect().top ?? bounds.bottom;
+      const minimum = bounds.bottom - controlsTop + 8;
+      const preferred = bounds.bottom - (toolsOpen ? controlsTop : currentVisual.getBoundingClientRect().bottom) + 8;
+      const maximum = bounds.height - element.getBoundingClientRect().height - 8;
+      const voiceHeight = element.querySelector('.companion-voice')?.getBoundingClientRect().height ?? 0;
+      element.style.setProperty('--companion-details-height', `${Math.max(44, controlsTop - bounds.top - voiceHeight - 74)}px`);
+      // Short mobile canvases must not clip the bubble above the player. Keep
+      // native playback controls free while allowing the dock over its header.
+      element.style.setProperty('--companion-bottom', `${Math.max(minimum, Math.min(preferred, maximum))}px`);
     };
     place();
     const observer = new ResizeObserver(place);
-    observer.observe(player); observer.observe(visual);
+    observer.observe(player); observer.observe(visual); observer.observe(element);
     return () => observer.disconnect();
   }, [conceptId, toolsOpen]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     dismiss.current?.focus({ preventScroll: true });
     return () => { if (previous?.isConnected) previous.focus({ preventScroll: true }); };

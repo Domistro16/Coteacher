@@ -1,0 +1,441 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "accountId": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "simulated": {
+      "const": true
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "ageBand": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "under-18",
+        "adult"
+      ]
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "complete": {
+      "type": "boolean"
+    },
+    "noticeVersion": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "permissions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "essential": {
+          "type": "boolean"
+        },
+        "personalization": {
+          "type": "boolean"
+        },
+        "externalAI": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "essential",
+        "personalization",
+        "externalAI"
+      ]
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preferredName": {
+          "type": "string",
+          "maxLength": 60,
+          "minLength": 1
+        },
+        "classLevel": {
+          "type": "string",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1
+          },
+          "maxItems": 15,
+          "uniqueItems": true
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 40,
+          "minLength": 1
+        },
+        "readingEase": {
+          "type": "string",
+          "enum": [
+            "easy",
+            "ok",
+            "hard",
+            "not-sure"
+          ]
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "picture",
+              "try-it",
+              "steps",
+              "example",
+              "hearing"
+            ]
+          },
+          "maxItems": 2,
+          "uniqueItems": true
+        },
+        "length": {
+          "type": "string",
+          "enum": [
+            "short",
+            "detailed",
+            "depends",
+            "not-sure"
+          ]
+        },
+        "medium": {
+          "type": "string",
+          "enum": [
+            "listening",
+            "reading",
+            "both",
+            "not-sure"
+          ]
+        },
+        "confusion": {
+          "type": "string",
+          "enum": [
+            "teacher",
+            "friend",
+            "quiet",
+            "later",
+            "myself",
+            "not-sure"
+          ]
+        },
+        "comfort": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "input": {
+          "type": "string",
+          "enum": [
+            "speak",
+            "type",
+            "not-sure"
+          ]
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1
+          },
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "aspiration": {
+          "type": "string",
+          "maxLength": 120,
+          "minLength": 1
+        },
+        "favoriteSubject": {
+          "type": "string",
+          "maxLength": 60,
+          "minLength": 1
+        },
+        "hardestSubject": {
+          "type": "string",
+          "maxLength": 60,
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "subject": {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              "rating": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              }
+            },
+            "required": [
+              "subject",
+              "rating"
+            ]
+          },
+          "maxItems": 15,
+          "uniqueItems": true
+        },
+        "feedback": {
+          "type": "string",
+          "enum": [
+            "encouragement",
+            "direct",
+            "hints",
+            "not-sure"
+          ]
+        },
+        "studyMinutes": {
+          "type": "string",
+          "enum": [
+            "under-15",
+            "15-30",
+            "30-60",
+            "over-60",
+            "not-sure"
+          ]
+        },
+        "studyTime": {
+          "type": "string",
+          "enum": [
+            "morning",
+            "after-school",
+            "evening",
+            "weekends",
+            "not-sure"
+          ]
+        },
+        "environment": {
+          "type": "string",
+          "enum": [
+            "quiet",
+            "noisy",
+            "not-sure"
+          ]
+        },
+        "device": {
+          "type": "string",
+          "enum": [
+            "shared",
+            "own",
+            "not-sure"
+          ]
+        },
+        "internet": {
+          "type": "string",
+          "enum": [
+            "wifi",
+            "limited",
+            "school-only",
+            "not-sure"
+          ]
+        },
+        "largerText": {
+          "type": "boolean"
+        },
+        "captions": {
+          "type": "boolean"
+        },
+        "slowerAudio": {
+          "type": "boolean"
+        },
+        "reducedMotion": {
+          "type": "boolean"
+        },
+        "exam": {
+          "type": "string",
+          "enum": [
+            "class-tests",
+            "WAEC",
+            "NECO",
+            "JAMB",
+            "other",
+            "not-sure"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "enum": [
+            "catch-up",
+            "understand",
+            "grade",
+            "not-sure"
+          ]
+        }
+      },
+      "required": []
+    },
+    "requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "guardianEmail": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1
+          },
+          "tokenHash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "createdAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+          },
+          "noticeVersion": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "scopes": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "essential": {
+                "type": "boolean"
+              },
+              "personalization": {
+                "type": "boolean"
+              },
+              "externalAI": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "essential",
+              "personalization",
+              "externalAI"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verified",
+              "approved",
+              "rejected",
+              "withdrawn"
+            ]
+          },
+          "schoolId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "verifiedAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+          },
+          "authorityDeclared": {
+            "type": "boolean"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+          },
+          "reviewerId": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 1
+          },
+          "deliveryMethod": {
+            "enum": [
+              "simulated-link",
+              "email"
+            ]
+          },
+          "verificationMethod": {
+            "enum": [
+              "simulated-token",
+              "email-token"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "guardianEmail",
+          "tokenHash",
+          "createdAt",
+          "expiresAt",
+          "noticeVersion",
+          "scopes",
+          "status"
+        ]
+      },
+      "maxItems": 30,
+      "uniqueItems": true
+    },
+    "withdrawnAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "optionalClearedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "accountId",
+    "simulated",
+    "revision",
+    "ageBand",
+    "step",
+    "complete",
+    "noticeVersion",
+    "updatedAt",
+    "permissions",
+    "answers",
+    "requests"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/learner-profile.schema.json",
+  "title": "LearnerProfile"
+}

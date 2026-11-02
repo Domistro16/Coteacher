@@ -10,7 +10,7 @@ function rememberOffline(value: boolean) { try { if (value) localStorage.setItem
 export function useProgressSync(session: { id: string; pin: string } | null, snapshot: Snapshot | null, online: boolean, saved: string, update: (snapshot: Snapshot) => void, live?: { current: Snapshot | null }) {
   const [phase, setPhase] = useState<'waiting' | 'sending' | 'received' | 'failed'>('waiting');
   const [retry, setRetry] = useState(0);
-  const [schoolOffline, setSchoolOffline] = useState(savedOfflineHint);
+  const [rememberedOffline, setSchoolOffline] = useState(savedOfflineHint);
   const [schoolReachable, setSchoolReachable] = useState(false);
   const [connectionChecking, setConnectionChecking] = useState(false);
   const [connectionError, setConnectionError] = useState('');
@@ -21,6 +21,16 @@ export function useProgressSync(session: { id: string; pin: string } | null, sna
   const updating = useRef(update); updating.current = update;
   const wake = useRef<() => void>(() => {});
   const recordingId = snapshot?.lesson.recording?.id;
+  const openedSession = useRef<{id:string;pin:string}|null>(null);
+  const cachedStart = Boolean(session && openedSession.current !== session && snapshot?.lesson.recording && !('mediaUrl' in snapshot.lesson.recording.audio) && !schoolReachable);
+  const schoolOffline = rememberedOffline || cachedStart;
+  useEffect(() => {
+    if (openedSession.current === session) return;
+    openedSession.current = session;
+    // A cached reopening starts locally even when navigator.onLine is wrong or
+    // the previous tab closed before receiving its final connectivity event.
+    if (cachedStart) { rememberOffline(true); setSchoolOffline(true); }
+  }, [session, cachedStart]);
   useEffect(() => {
     const disconnected = () => { connectionRequest.current?.abort(); rememberOffline(true); setSchoolOffline(true); setSchoolReachable(false); };
     const connected = () => { rememberOffline(false); setSchoolOffline(false); setConnectionError(''); };

@@ -1,5 +1,14 @@
 # Scope for the sprint
 
+## Approved student learning extension (1 November 2026)
+
+The approved plan in [handover-student-onboarding.md](handover-student-onboarding.md)
+extends the historical within-lesson limitation below: private onboarding, verified
+consent readiness, individual cross-lesson memory, reviewed reusable preparation
+and replaceable local/external generation are authorized. Pooled training remains
+deferred. See [student-learning-acceptance.md](student-learning-acceptance.md) for
+implemented/tested scope, milestone evidence and remaining release gates.
+
 ## Build for real
 
 - Package generator (notes + sources to lesson package, validated against the schema)
@@ -39,7 +48,8 @@ questions and evidence-backed within-lesson learner memory are implemented behin
 the existing local Node service. See connected-tutor-acceptance.md. Generated
 answers need source validation and teacher oversight, not individual preapproval;
 offline prepared packages and publication still require approval. Only fictional
-profiles are supported; real-child deployment and cross-lesson memory are deferred.
+profiles are supported; real-child deployment remains deferred. The earlier
+cross-lesson deferral is superseded by the approved extension above.
 The user explicitly extended this to GPT-Live avatar speech with client delegation
 to the same backend tutor. It remains an opt-in connected student interaction,
 not automatic teacher speech-following or offline real-time AI. Existing approved
@@ -56,6 +66,14 @@ infrastructure is introduced. See contextual-quiz-acceptance.md.
 - Full exam-practice mode
 - On-device speech models for local languages
 - Notifications for queued answers
-- School-owner view
-- Hotspot transfer, public cloud hosting and production delivery/authentication
-  (the explicitly requested loopback demo delivery service is implemented)
+- Hotspot transfer (public school hosting/authentication is separately authorized below)
+
+## School enrollment extension (30 October 2026)
+
+School registration, reviewed school activation, multi-school teacher assignments,
+student affiliation and approved subject enrollment are now explicitly authorized.
+The school app and authenticated versioned service are implemented separately from
+the simulated lesson-delivery demo. Supabase Auth/Postgres, private R2 objects,
+Vercel proxies and Render configuration are included. Live deployment and real
+student data require the provider and operational release checks to pass. Fixtures and
+local account registration remain fictional-data-only. See school-registration.md.

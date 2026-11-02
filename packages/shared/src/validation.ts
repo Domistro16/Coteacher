@@ -7,6 +7,7 @@ import type { LessonPackage, Variant } from './generated/lesson-package';
 import type { ProgressRecord, RecordedQuestionContext } from './generated/progress-record';
 import { checkRecordingAudio, recordingCueAt } from './recording';
 import { checkPersonalizedReplay } from './personalized-replay';
+import { preparedQuestions } from './preparation';
 
 export interface ValidationIssue {
   stage: 'schema' | 'integrity';
@@ -89,7 +90,9 @@ function lessonIndex(lesson: LessonPackage, issues: ValidationIssue[]) {
   const sources = indexById(lesson.sources, '/sources', issues);
   const concepts = indexById(lesson.concepts, '/concepts', issues);
   const timeline = indexById(lesson.timeline, '/timeline', issues);
-  const questions = indexById(lesson.questionBank, '/questionBank', issues);
+  let allQuestions=lesson.questionBank;
+  try { allQuestions=preparedQuestions(lesson); } catch { issue(issues,'prepared.invalid','/preparedSupport','Prepared content failed source/review checks.'); }
+  const questions = indexById(allQuestions, '/questionBank', issues);
   const quiz = indexById(lesson.quiz, '/quiz', issues);
   const variants = new Map<string, OwnedVariant>();
   lesson.concepts.forEach((concept, c) => concept.variants.forEach((variant, v) => {
@@ -172,7 +175,8 @@ function lessonIntegrity(lesson: LessonPackage): ValidationIssue[] {
       issue(issues, 'recording.time', '/recording/startedAt', 'Capture and review must follow lesson approval');
     }
     if (!checkRecordingAudio(recording)) issue(issues, 'recording.audio', '/recording/audio', 'Expected complete WAV or checksummed Opus audio with matching duration');
-    if ('mediaUrl' in recording.audio && !recording.audio.mediaUrl.startsWith(`/api/recorded-lessons/${recording.audio.sha256}/audio?key=`)) {
+    if ('mediaUrl' in recording.audio && !recording.audio.mediaUrl.startsWith(`/api/recorded-lessons/${recording.audio.sha256}/audio?key=`)
+      && !recording.audio.mediaUrl.startsWith(`/api/v1/media/${recording.audio.sha256}/`)) {
       issue(issues, 'recording.remote-identity', '/recording/audio/mediaUrl', 'Delivered audio must address its declared checksum');
     }
     if (recording.visualReview?.status === 'approved' && Date.parse(recording.visualReview.reviewedAt) < Date.parse(recording.startedAt)) {

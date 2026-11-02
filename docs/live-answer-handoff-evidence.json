@@ -1,0 +1,188 @@
+{
+  "scope": "Actual production UI, isolated copy of current school histories, actual encrypted sync; mocked microphone/live transport and teaching provider; no OpenAI/human audio",
+  "startedAt": "2026-10-26T12:50:48.496Z",
+  "api": [
+    {
+      "method": "POST",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 409,
+      "bytes": 55,
+      "at": "2026-10-26T12:51:00.375Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 562822,
+      "at": "2026-10-26T12:51:03.398Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/live",
+      "query": "",
+      "status": 200,
+      "bytes": 303,
+      "at": "2026-10-26T12:51:05.571Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 562515,
+      "at": "2026-10-26T12:51:09.080Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 564138,
+      "at": "2026-10-26T12:51:17.580Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 563831,
+      "at": "2026-10-26T12:51:21.992Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "?speech=defer",
+      "status": 200,
+      "bytes": 564667,
+      "at": "2026-10-26T12:51:31.258Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 19419826,
+      "at": "2026-10-26T12:51:45.703Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/progress/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 59279,
+      "at": "2026-10-26T12:51:51.866Z"
+    },
+    {
+      "method": "POST",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9/check",
+      "query": "",
+      "status": 200,
+      "bytes": 19421519,
+      "at": "2026-10-26T12:51:53.883Z"
+    },
+    {
+      "method": "GET",
+      "path": "/api/tutor/student-a1b2c3d4/recording-a0c10d35-66ec-47dd-ba8d-2fc6f21732d9",
+      "query": "",
+      "status": 200,
+      "bytes": 19421519,
+      "at": "2026-10-26T12:51:57.622Z"
+    }
+  ],
+  "result": "PASS",
+  "controls": {
+    "sent": [
+      {
+        "event": {
+          "type": "session.instructions.append",
+          "delegation_id": null,
+          "content": "Give the short listening greeting supplied next, then wait for the student. Delegate the learner's teaching questions; do not start an explanation or invent a question before they ask."
+        },
+        "at": 1793019065793
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": null,
+          "content": "The teacher's recording is paused. So, what's the problem? Tell me which part you're struggling with. I'm listening."
+        },
+        "at": 1793019065793
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "diagnostic-pencil",
+          "content": "Hmm, checking your lesson sources."
+        },
+        "at": 1793019067178
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "empty-repeated-notice",
+          "content": "I did not receive a usable question transcript. Please repeat it or type it; I will not guess."
+        },
+        "at": 1793019075205
+      },
+      {
+        "event": {
+          "type": "session.commentary.append",
+          "delegation_id": "diagnostic-pencil",
+          "content": "Light from the submerged part of a pencil travels from water into air. At an angled boundary its direction changes. This refraction makes the straight pencil appear bent. Does that make more sense? You can ask me another question, or we can try a quick check."
+        },
+        "at": 1793019091763
+      }
+    ],
+    "stopped": 0
+  },
+  "providerCalls": 1,
+  "originalHistoryAndAudioRetained": true,
+  "quizOpenedAndAnswered": true,
+  "resume": true,
+  "newAnswerAudioDownloadedAfterLive": true,
+  "finishedAt": "2026-10-26T12:52:03.699Z",
+  "validation": {
+    "focusedTests": "32 distinct tests PASS across the focused run and corrected no-network store test rerun",
+    "typecheck": "PASS",
+    "generatedTypes": "PASS",
+    "studentBuild": "PASS",
+    "teacherBuild": "PASS",
+    "existingBundleSizeAdvisories": true
+  },
+  "baseline": {
+    "populatedHistoryBytes": 19334911,
+    "firstControlRun": "FAIL: no checked result within 65 seconds",
+    "secondControlRun": "Checked result returned after approximately 55 seconds; no human audio or provider call",
+    "repeatedEmptyDelegation": "Focused regression failed on the original control; passes with the fix"
+  },
+  "limits": [
+    "Live transport, microphone and teaching provider were mocked in this browser regression. No human hearing or OpenAI generation is established by this test.",
+    "The final control run still took approximately 26 seconds from greeting to checked result with a six-second mock provider; low conversation latency is not established.",
+    "An earlier expanded browser run failed the quiz assertion because its seed paired the refraction native playhead with the light-path player metadata. Final setup explicitly selects refraction through the UI.",
+    "An initial HTTP unit test was blocked by the repository no-network guard. It was changed to exercise the actual encrypted stores without enabling network access; browser regression verifies HTTP routes."
+  ],
+  "servedBuild": {
+    "entry": "index-qbYORbAP.js",
+    "player": "StudentPlayer-aEFlPEKo.js",
+    "matchesLocalBuild": true
+  },
+  "backend": {
+    "session": 15867,
+    "log": ".task-tmp/demo-recording-backend-handoff.log",
+    "healthHTTP": 200
+  },
+  "originalSchoolRecords": {
+    "publicationRetained": true,
+    "eventsRetained": true,
+    "questionsRetained": true,
+    "liveHistoryRetained": true,
+    "savedAnswerAudioRetained": true,
+    "events": 125,
+    "questions": 29,
+    "liveTurns": 131,
+    "replies": 29
+  },
+  "humanRetest": "UNVERIFIED"
+}

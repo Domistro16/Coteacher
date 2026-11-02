@@ -36,3 +36,7 @@ export type { TutorCheckRequest } from './generated/tutor-check-request';
 export * from './tutor-check';
 export type { LiveSessionRequest } from './generated/live-session';
 export * from './tutor-memory';
+export * from './tutor-speech';
+export * from './learner-profile';
+export * from './learning-engine';
+export * from './preparation';

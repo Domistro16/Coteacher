@@ -1,11 +1,12 @@
 # Browser acceptance
 
+
 `npm.cmd run verify:adaptive:live` performs the real-provider adaptive demo against
 an isolated empty school service: native simulated teacher capture/approval,
 actual A/B UI questions and checks, distinct evidence-based prepared help, local
 memory without AI consent, downloads, closed-page offline reopening, backend
 restart, real OpenAI return, repeated acknowledged uploads and teacher indicators/
-recommendations. Configure the existing server key and build both apps first.
+recommendations. Configure the existing server key and run `npm run build:demo` first.
 This explicitly incurs API calls; no learner events are injected into storage.
 See `docs/adaptive-learning-evidence.json` and its verification report. Microphone
 input is synthetic and physical phone/OS restart behavior is not established.
@@ -15,14 +16,14 @@ npx playwright install --only-shell chromium
 npm run test:e2e
 ```
 
-Use `npm.cmd` on restricted Windows PowerShell. The command builds both apps.
-Global setup serves their production bundles in-process on ports 4273 and 4274;
+Use `npm.cmd` on restricted Windows PowerShell. The command builds the original demo app mode.
+Global setup serves their production bundles in-process on ports 4273, 4274 and 4275;
 it also starts a real persistent delivery service on an ephemeral loopback port
 with an empty isolated publication directory. Teardown closes the HTTP servers
 without spawning a process tree. Keep those
 ports free. Run checks sequentially on memory-constrained hosts.
 
-For the explicitly billable real-provider journey, build both apps, configure a
+For the explicitly billable real-provider journey, run `npm run build:demo`, configure a
 server-only `OPENAI_API_KEY` in `.env.local` or `.env`, and publish a reviewed demo
 recording first. Run `npm.cmd run verify:tutoring:live`. This reuses the actual
 student player/backend with an isolated copy of the publication. Only microphone
@@ -224,11 +225,81 @@ and labels. See docs/explainer-animation-verification.md for current evidence.
 ## Prepared speaking companion
 
 The native microphone scenario calls companion-conversation.ts during actual
-offline delivered playback. Only speech-recognition input is simulated. Teacher
-audio capture, bundled companion MP3 decoding (including measured audio energy),
+offline delivered playback. Speech-recognition input and microphone audio are
+synthetic; capture still uses the browser's actual recorder and encoder. Short
+capture tests use a constant test tone to avoid silent fake-device intervals.
+Bundled companion MP3 decoding (including measured audio energy),
 pause position, animated approved representations, questions, quiz records and
 subsequent school receipts use real application paths. It also tests unavailable
 recognition, exact spoken interruption, reduced motion and 320px/desktop layouts.
 The longer scenario allows ten minutes for natural spoken turns and school replay;
 it does not impose an arbitrary maximum recording duration. Real-device offline
 recognition and physical microphone/speaker checks remain manual requirements.
+
+
+## Account-based school acceptance
+
+`npm run test:e2e:school` builds the account apps and runs the separate school
+suite. It uses fictional owner/reviewer/teacher/student accounts, operator review,
+session and class setup, compulsory/optional subjects, teaching assignment and
+student placement. The complete journey captures synthetic native microphone
+audio, publishes it through the authorized service, studies with a mock connected
+tutor, downloads, reopens offline, plays local audio and returns progress. Its first
+tutoring submission is delayed for 16 seconds to verify that the school provider
+transport survives beyond the demo deadline without aborting the request. Its
+downloaded path blocks API calls even when `navigator.onLine` reports true.
+
+This suite uses local persistence and a mock tutor. Managed email, MFA, actual
+PostgreSQL/R2 and deployed origins require the additional checks in
+`docs/school-deployment.md`. The app modes are separate: running the demo suite
+replaces local student/teacher build output with demo bundles. Run `npm run build`
+again to restore account-app previews.
+
+
+To keep PC account previews available during demo regressions, build the demo
+student and teacher with `--outDir ../../.task-tmp/e2e-demo/<app>` from their
+workspace scripts, place a school build at `.task-tmp/e2e-demo/school`, then set
+`COTEACHER_E2E_BUILD_ROOT=.task-tmp/e2e-demo` when invoking Playwright directly.
+The default build/test scripts continue to use `apps/*/dist`.
+
+Unit acceptance disables Vite env-file loading. Browser global setup likewise
+uses `envDir:false`, bypasses proxy env files, and supplies only the public
+fictional seed key, local repositories and injected mock providers. It clears
+configured database/identity/storage/mail/provider selection in that test process;
+it does not alter private env files or running services. For isolated acceptance
+builds without private configuration, set `COTEACHER_TEST_NO_ENV_FILES=true` and
+use Vite's programmatic `build({envDir:false, ...})` with the normal app config.
+
+
+Set `COTEACHER_TEST_TUTOR=mock` for the complete demo run; otherwise the explicit
+connected-tutor scenario is skipped. Clear both task-specific variables afterwards.
+For example, after creating the isolated builds above:
+
+```powershell
+$env:COTEACHER_E2E_BUILD_ROOT = (Resolve-Path .task-tmp/e2e-demo).Path
+$env:COTEACHER_TEST_TUTOR = 'mock'
+try { npx.cmd playwright test } finally {
+  Remove-Item Env:COTEACHER_E2E_BUILD_ROOT
+  Remove-Item Env:COTEACHER_TEST_TUTOR
+}
+```
+
+The school suite also covers age-first adult/minor onboarding, guardian authority
+and independent review, teacher preparation/source quotes, and two fictional
+learners downloading two authorized lessons. It asserts assessed cross-lesson
+support, shared-device isolation, withdrawal without deleting lesson progress,
+acknowledged reconnect and zero offline API requests. See
+`docs/student-learning-acceptance.md` for actual results and provider/device limits.
+
+The long recording journey uses the same constant-tone helper as school/tutor
+acceptance. Chromium's default fake device can be silent after mute/resume.
+This verifies the native media graph and persistence with synthetic input; it
+never establishes physical microphone quality or human speech intelligibility.
+Its offline quiz check reads the actual encrypted IndexedDB event with a
+30-second persistence window rather than assuming feedback implies a saved row.
+
+
+`recorded-seek.spec.ts` imports a synthetic Opus fixture with a 1003 ms cue and
+uses actual native chapter seeking. It verifies that browser time quantization
+keeps that cue selected, while a genuinely earlier millisecond selects the prior
+chapter. The fixture proves media-clock behavior, not microphone or audibility.

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { demoLessons, emptyProgress } from '@coteacher/shared';
 import { createPlayerModel, initialPlayerState } from '../apps/student/src/player';
-import { saveStoredProfile, type Snapshot } from '../apps/student/src/storage';
+import { readStoredProfile, saveStoredProfile, type Snapshot } from '../apps/student/src/storage';
 
 const fixture = (): Snapshot => {
   const lesson = demoLessons()[0];
@@ -10,6 +10,7 @@ const fixture = (): Snapshot => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('profile storage ownership before writes', () => {
+  it('rejects a foreign per-lesson storage key before touching IndexedDB',async()=>{const open=vi.fn(()=>{throw new Error('Foreign keys must not reach storage');});vi.stubGlobal('indexedDB',{open});const value=fixture();await expect(saveStoredProfile(value.lesson.studentId,'111111',value,'student-b1c2d3e4:lesson')).rejects.toThrow('another learner');await expect(readStoredProfile(value.lesson.studentId,'111111','student-b1c2d3e4:lesson')).rejects.toThrow('another learner');expect(open).not.toHaveBeenCalled();});
   it.each([
     ['another learner row', (value: Snapshot) => value, 'student-b1c2d3e4'],
     ['foreign learner progress', (value: Snapshot) => { value.progress.studentId = 'student-b1c2d3e4'; return value; }],

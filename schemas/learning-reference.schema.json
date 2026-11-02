@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/learning-reference.schema.json",
+  "title": "LearningReference",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "learnerId"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "learnerId": { "type": "string", "minLength": 1, "maxLength": 100 }
+  }
+}

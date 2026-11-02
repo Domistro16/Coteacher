@@ -1,4 +1,5 @@
 import type { LessonPackage, Question } from './generated/lesson-package';
+import { preparedQuestions } from './preparation';
 
 export type MatchResult = { match: Question; score: number } | { noMatch: true; score: number };
 const stop = new Set('a an the is does do why what how in on at to of for it this that me please explain can you i my'.split(' '));
@@ -10,7 +11,7 @@ function tokens(text: string): Set<string> {
 export function matchQuestion(text: string, stepId: string, lesson: LessonPackage): MatchResult {
   const query = tokens(text);
   let best: Question | undefined; let score = 0;
-  for (const question of lesson.questionBank) {
+  for (const question of preparedQuestions(lesson)) {
     for (const phrase of [question.question, ...question.alternatePhrasings]) {
       const candidate = tokens(phrase);
       const overlap = [...query].filter(t => candidate.has(t)).length;

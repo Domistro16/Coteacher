@@ -16,24 +16,42 @@
     "dev:student": "npm run dev --workspace @coteacher/student",
     "dev:teacher": "npm run dev --workspace @coteacher/teacher",
     "delivery:start": "tsx delivery/start.ts",
+    "local:start": "tsx scripts/serve-local.ts",
     "verify:tutor:live": "tsx delivery/verify-live-tutor.ts",
     "verify:avatar:live": "tsx delivery/verify-live-avatar.ts",
     "verify:tutoring:live": "tsx delivery/verify-tutoring-journey.ts",
     "verify:adaptive:live": "tsx delivery/verify-adaptive-learning.ts",
-    "build": "npm run build --workspace @coteacher/student && npm run build --workspace @coteacher/teacher",
+    "build": "npm run build --workspace @coteacher/student && npm run build --workspace @coteacher/teacher && npm run build --workspace @coteacher/school",
     "pipeline": "tsx pipeline/src/cli.ts",
     "generate:audio": "tsx pipeline/src/narrate.ts",
     "generate:types": "node scripts/generate-types.mjs",
     "check:types": "node scripts/generate-types.mjs --check",
     "typecheck": "tsc --noEmit",
     "test": "npm run check:types && npm run typecheck && vitest run",
-    "test:e2e": "npm run build && playwright test"
+    "test:e2e": "npm run build:demo && playwright test",
+    "school:operator": "tsx delivery/school-admin.ts",
+    "dev:school": "npm run dev --workspace @coteacher/school",
+    "dev:demo:teacher": "npm run dev --workspace @coteacher/teacher -- --mode demo",
+    "dev:demo:student": "npm run dev --workspace @coteacher/student -- --mode demo",
+    "build:demo": "npm run build --workspace @coteacher/student -- --mode demo && npm run build --workspace @coteacher/teacher -- --mode demo && npm run build --workspace @coteacher/school",
+    "test:e2e:school": "npm run build && playwright test --config playwright.school.config.ts",
+    "verify:school:live": "tsx delivery/verify-school-live.ts",
+    "school:backup": "tsx delivery/school-backup-cli.ts backup",
+    "school:restore": "tsx delivery/school-backup-cli.ts restore"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
     "@types/node": "^24.0.0",
     "json-schema-to-typescript": "^15.0.4",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.12"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1160.0",
+    "@aws-sdk/s3-request-presigner": "^3.1160.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "@types/pg": "^8.23.1",
+    "pg": "^8.23.1",
+    "tsx": "^4.23.15"
   }
 }
