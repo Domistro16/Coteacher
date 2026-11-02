@@ -458,3 +458,44 @@ PR review corrections before Batch 3:
   borrowing evidence for the unselected recommendation. Unavailable representation
   families use an honestly labelled approved fallback. Earlier ledger entries are
   historical and are not retroactively relabelled.
+
+## Improvement-data consent and training events, Batch 3
+
+`learner-profile.permissions.improvementData` is an optional, default-off purpose
+separate from personalization and external AI. Granting it requires the explicit
+`fictional-improvement-v1` notice. The encrypted profile records the accepted notice
+and server time. Missing legacy fields and existing guardian approvals grant
+nothing for this purpose. Old clients omitting the new field preserve an existing
+choice instead of borrowing or revoking permission from another purpose.
+
+Guardian requests may carry `purpose: improvementData`, requesting only that scope
+while retaining learning permissions, answers and completion. Token/authority
+verification and independent authorized relationship review are still required.
+The private row's `improvementExcludedAt` and authorized fresh-request ID prevent
+old approvals, including those restored from a backup, from lifting a withdrawal.
+Adults must explicitly reconfirm the current notice; minors need a fresh request.
+
+`POST learner/improvement/withdraw` excludes the signed-in learner from improvement
+use and deletes the reserved `improvementFeaturesEnvelope`, without clearing
+separately authorized personalization. Unchecking that processing choice and full
+withdrawal also purge it. No feature producer exists. Backup restore removes this
+slot and its pending authorization and sets an exclusion requiring renewed consent;
+historical archives are not retroactively erased. These are current-state/future-use
+protections, not a claim to remove data from an already trained model.
+
+`training-event.schema.json` / `ImprovementTrainingEvent` allow only a version,
+simulated marker, check-outcome kind, tenant UUID, school-scoped pseudonymous
+learner/event/concept keys, canonical assessment fingerprint, UTC day, attempt
+number and correctness. Optional context is a broad school-placement band,
+approved lesson language code and measured connectivity. Questionnaire responses
+are not a context source. Raw text, audio, names, account IDs, raw event IDs,
+questionnaire answers and unknown fields fail structural validation. Validation
+requires the expected school ID and rejects a foreign tenant or invalid date.
+
+The schema alone does not establish anonymity. A future collector must implement
+the stated keyed tenant scoping and undergo privacy/legal review; no such
+collector/projection, dataset builder or exporter is added here. Collection,
+feature-production and export capabilities are fixed false in `improvement-data.ts`,
+with no environment switch. Even a consented learner is currently ineligible for
+training. No training collection/export endpoint exists and no cross-school
+training data is pooled.

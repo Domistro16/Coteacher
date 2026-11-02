@@ -172,4 +172,24 @@ ledger; server backups do not reconstruct a lost device-only decision history.
 Records expire after 90 days or outside the last five completed lessons, with
 current unfinished work retained within 90 days, capped at 1,000 records.
 Personalization withdrawal clears the private ledger when the device participates.
-This is not improvement-data consent or a training export. Those remain disabled.
+This ledger does not grant improvement-data consent or enable a training export.
+The separate purpose below controls consent; collection and export remain off.
+
+## Improvement-data purpose (Batch 3)
+
+The optional improvement-data choice is independent of personalization and external
+AI, defaults off for legacy records, and needs its own notice. Minors require a
+purpose-specific guardian declaration and independent relationship review; existing
+learning permission alone cannot authorize it. These remain fictional consent
+readiness flows, not real guardian authority or legal certification.
+
+Improvement withdrawal clears only improvement-purpose features and blocks future
+improvement use. Full withdrawal clears this purpose too. A backup restore drops
+its derived-feature slot and requires renewed permission; it does not erase
+historical archives. Separate authorized private learning memory is retained.
+
+The training-event allowlist excludes raw questions, audio, names and questionnaire
+answers and is validated against one school. Pseudonymous identifiers are not an
+anonymity guarantee. Collection, feature production and export are fixed off, even
+after consent; no collector or exporter has been built. There is no pooled dataset
+or neural training. See student-learning-batch3-acceptance.md for evidence and limits.

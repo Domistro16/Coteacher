@@ -40,4 +40,5 @@ export * from './tutor-speech';
 export * from './learner-profile';
 export * from './learning-engine';
 export * from './student-model';
+export * from './improvement-data';
 export * from './preparation';

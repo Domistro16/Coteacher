@@ -54,6 +54,10 @@
         },
         "externalAI": {
           "type": "boolean"
+        },
+        "improvementData": {
+          "type": "boolean",
+          "description": "Separate optional permission to use de-identified learning interactions to improve Coteacher. Missing means declined; collection/export remain disabled."
         }
       },
       "required": [
@@ -341,6 +345,10 @@
               },
               "externalAI": {
                 "type": "boolean"
+              },
+              "improvementData": {
+                "type": "boolean",
+                "description": "Missing/legacy guardian scopes never authorize improvement use."
               }
             },
             "required": [
@@ -396,6 +404,18 @@
               "simulated-token",
               "email-token"
             ]
+          },
+          "purpose": {
+            "enum": [
+              "learning",
+              "improvementData"
+            ],
+            "description": "Missing means the legacy learning authorization purpose."
+          },
+          "improvementNoticeVersion": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
           }
         },
         "required": [
@@ -417,6 +437,15 @@
       "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
     },
     "optionalClearedAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "improvementNoticeVersion": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "improvementAcceptedAt": {
       "type": "string",
       "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
     }

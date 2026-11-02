@@ -63,6 +63,14 @@ function setup(options: SchoolHttpOptions = {}) {
 }
 afterEach(() => vi.unstubAllEnvs());
 describe("school HTTP authentication boundaries (in-process transport)", () => {
+  it('protects improvement withdrawal and exposes no training collection/export endpoint',async()=>{
+    const request=setup();expect((await request('learner/improvement/withdraw',{})).status).toBe(401);
+    await request('register',{email:'improvement@fictional.invalid',name:'Fictional learner',role:'student',password:'fictional-password',simulated:true});
+    const login=await request('login',{email:'improvement@fictional.invalid',password:'fictional-password'}),cookie=String(login.headers['Set-Cookie']).split(';')[0];
+    const withdrawn=await request('learner/improvement/withdraw',{}, {cookie});expect(withdrawn.status).toBe(200);expect(withdrawn.headers['Cache-Control']).toBe('no-store');expect(withdrawn.body.improvementDataAllowed).toBe(false);
+    expect((await request('learner/training-events',{}, {cookie})).status).toBe(404);expect((await request('learner/training-export',undefined,{cookie})).status).toBe(404);
+    expect((await request('learner/profile',{revision:withdrawn.body.revision,trainingEvents:[]},{cookie})).status).toBe(400);
+  });
   it('keeps profile routes authenticated and guardian token routes narrow',async()=>{
     const request=setup();
     expect((await request('learner/profile')).status).toBe(401);

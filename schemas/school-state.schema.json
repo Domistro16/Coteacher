@@ -952,6 +952,51 @@
                 "pattern": "^[A-Za-z0-9+/]+={0,2}$"
               }
             }
+          },
+          "improvementExcludedAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$",
+            "description": "Purpose-specific exclusion. Withdrawal and backup restore set this marker; only renewed explicit permission may clear it."
+          },
+          "improvementFeaturesEnvelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "algorithm",
+              "iv",
+              "tag",
+              "ciphertext"
+            ],
+            "properties": {
+              "algorithm": {
+                "const": "aes-256-gcm-server-v1"
+              },
+              "iv": {
+                "type": "string",
+                "minLength": 16,
+                "maxLength": 16,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "tag": {
+                "type": "string",
+                "minLength": 24,
+                "maxLength": 24,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              },
+              "ciphertext": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 48000000,
+                "pattern": "^[A-Za-z0-9+/]+={0,2}$"
+              }
+            },
+            "description": "Reserved encrypted improvement-purpose derived features. No producer is enabled; withdrawal/restore remove this slot."
+          },
+          "improvementAuthorizationRequestId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Only this newly created guardian request can lift an active improvement exclusion. Withdrawal and restore remove the authorization."
           }
         },
         "required": [

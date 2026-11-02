@@ -113,6 +113,23 @@ export interface SchoolState {
       tag: string;
       ciphertext: string;
     };
+    /**
+     * Purpose-specific exclusion. Withdrawal and backup restore set this marker; only renewed explicit permission may clear it.
+     */
+    improvementExcludedAt?: string;
+    /**
+     * Reserved encrypted improvement-purpose derived features. No producer is enabled; withdrawal/restore remove this slot.
+     */
+    improvementFeaturesEnvelope?: {
+      algorithm: "aes-256-gcm-server-v1";
+      iv: string;
+      tag: string;
+      ciphertext: string;
+    };
+    /**
+     * Only this newly created guardian request can lift an active improvement exclusion. Withdrawal and restore remove the authorization.
+     */
+    improvementAuthorizationRequestId?: string;
   }[];
   preparedSupport: {
     publicationId: string;

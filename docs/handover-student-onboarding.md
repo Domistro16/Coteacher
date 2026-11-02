@@ -11,8 +11,11 @@ gates. Batch 1 now adds a transparent, unvalidated student-model baseline and
 private device decision records; current verification is in
 `student-learning-acceptance.md`. Batch 2 now adds browser access/export/cache
 checks and broader external-provider serialization assertions; see
-`student-learning-batch2-acceptance.md` for verification and limits. Batch 3
-improvement consent/events remain pending separate review. Evaluation, speech
+`student-learning-batch2-acceptance.md` for verification and limits. PRs #4 and #5
+were merged, in order, on 2 November 2026. Batch 3 adds independent improvement
+consent, withdrawal/restore exclusions and an allowlisted event schema, with
+collection/export still off; see `student-learning-batch3-acceptance.md` for review.
+Evaluation, speech
 assessment and trained-model replacement are not implemented or authorized here.
 The original inspection checkpoint below is historical and superseded.
 
@@ -31,8 +34,8 @@ local HTTP and persistence with a mocked identity issuer/AAL claims. The private
 learning route rejects adults before progress checks, the static worker bypasses
 API cache lookup, and external serializers project allowed fields. This is not
 hosted identity, real TOTP, provider retention or semantic de-identification
-verification. No local-model or speech evaluation was run. Batch 3 and the
-separately gated milestones have not started.
+verification. No local-model or speech evaluation was run. Batch 3 has a separate
+implementation/review record; the separately gated milestones have not started.
 
 Batch 2 verification: 44 unit files / 533 tests; 4 privacy, 7 school and 46 demo
 browser scenarios, no skips; three account and three demo builds. Browser
@@ -48,7 +51,7 @@ callers use adapters. Actual support selections persist privately on the device,
 with five-lesson/90-day retention, a 1,000-record cap and withdrawal clearing.
 This is not a new server ledger/upload. A completion-ordering race found during
 browser verification was corrected: completion now follows a progress receipt.
-Do not start Batch 3, evaluation, speech, broader interface refactoring or
+Do not start evaluation, speech, broader interface refactoring or
 local-model work until the user approves the next step. Configured services and
 private fixtures/env files were not edited or migrated by this batch.
 

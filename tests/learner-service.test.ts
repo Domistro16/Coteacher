@@ -5,6 +5,9 @@ import { LearnerService } from '../delivery/learner-service';
 import { schoolFixture } from './school-fixture';
 import { teachingPreferences, initialLearnerProfile } from '../packages/shared/src/learner-profile';
 import { ResendGuardianDelivery } from '../delivery/guardian-mail';
+import {improvementDataNoticeVersion} from '../packages/shared/src/improvement-data';
+import {sealServer} from '../delivery/server-encryption';
+import {createHash} from 'node:crypto';
 
 async function setup() {
   let state=emptySchoolState();
@@ -17,6 +20,61 @@ async function setup() {
 const permissions={essential:true,personalization:true,externalAI:true};
 const answers={preferredName:'Fictional learner',classLevel:'JSS2',subjects:['Science'],language:'English',readingEase:'ok',formats:['steps'],length:'short',medium:'both',confusion:'quiet',input:'type',comfort:1,interests:['football']};
 describe('private onboarding and verified consent readiness (fictional records)',()=>{
+  it('defaults improvement off and requires a separate current notice without inheriting personalization/external AI',async()=>{
+    const f=await setup(),id=f.student.id;
+    let p=await f.learners.update(id,{revision:0,ageBand:'adult',permissions,answers});
+    expect(p.improvementDataAllowed).toBe(false);expect(p.permissions.improvementData).toBe(false);
+    await expect(f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true}})).rejects.toThrow('notice');
+    p=await f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion});
+    expect(p.improvementDataAllowed).toBe(true);
+    p=await f.learners.update(id,{revision:p.revision,permissions:{essential:true,personalization:false,externalAI:false}});
+    expect(p.improvementDataAllowed).toBe(true);expect(p.personalizationAllowed).toBe(false);expect(p.externalAIAllowed).toBe(false);
+    const status=await f.learners.improvementEligibility(id,f.group.schoolId);
+    expect(status).toMatchObject({consentAllowed:true,eligibleForTraining:false,collectionEnabled:false,featureProductionEnabled:false,exportEnabled:false});
+    expect((await f.learners.improvementEligibility(id,'another-school')).consentAllowed).toBe(false);
+  });
+  it('withdraws only improvement use and durably deletes its features while preserving private personalization',async()=>{
+    const f=await setup(),id=f.student.id;
+    let p=await f.learners.update(id,{revision:0,ageBand:'adult',permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion,answers});
+    await f.learners.learningContext(id);
+    const memory=f.state().privateLearners[0].memoryEnvelope;
+    await f.school.repository.transaction(s=>{s.privateLearners.find(r=>r.accountId===id)!.improvementFeaturesEnvelope=sealServer({conceptCounts:[1,2]},createHash('sha256').update('learner-profile-v1:'+f.secret).digest(),'learner-improvement-features-v1:'+id);});
+    p=await f.learners.withdrawImprovement(id);
+    expect(p.improvementDataAllowed).toBe(false);expect(p.answers).toEqual(answers);expect(p.personalizationAllowed).toBe(true);expect(p.externalAIAllowed).toBe(true);
+    const row=f.state().privateLearners.find(r=>r.accountId===id)!;expect(row.improvementFeaturesEnvelope).toBeUndefined();expect(row.improvementExcludedAt).toBeTruthy();expect(row.memoryEnvelope).toEqual(memory);
+    expect((await f.learners.improvementEligibility(id,f.group.schoolId)).consentAllowed).toBe(false);
+    await expect(f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true}})).rejects.toThrow('notice');
+    expect((await f.learners.get(id)).permissions.improvementData).toBe(false);
+    await expect(f.learners.withdrawImprovement(f.teacher.id)).rejects.toThrow('Student account');
+  });
+  it('requires a purpose-specific guardian declaration/review and cannot reuse it after withdrawal',async()=>{
+    const f=await setup(),id=f.student.id;await f.learners.update(id,{revision:0,ageBand:'under-18'});
+    const learning=await f.learners.requestGuardian(id,{email:'guardian@fictional.invalid',scopes:permissions});
+    await f.learners.verifyGuardian({token:learning.verificationToken,authorityDeclared:true});
+    await f.learners.review(f.owner.id,{studentId:id,id:learning.profile.requests[0].id,approved:true,reason:'Fictional learning review'});
+    let p=await f.learners.get(id);p=await f.learners.update(id,{revision:p.revision,answers});const before=p.answers;
+    expect(p.improvementDataAllowed).toBe(false);
+    await expect(f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion})).rejects.toThrow('Guardian');
+    const request=await f.learners.requestGuardian(id,{purpose:'improvementData',email:'guardian@fictional.invalid',improvementNoticeVersion:improvementDataNoticeVersion,scopes:{essential:false,personalization:false,externalAI:false,improvementData:true}});
+    expect(request.profile.essentialReady).toBe(true);expect(request.profile.personalizationAllowed).toBe(true);expect(request.profile.answers).toEqual(before);
+    const review={studentId:id,id:request.profile.requests.at(-1)!.id,approved:true,reason:'Fictional improvement relationship review'};
+    await expect(f.learners.review(f.owner.id,review)).rejects.toThrow('verified');
+    await f.learners.verifyGuardian({token:request.verificationToken,authorityDeclared:true});
+    await expect(f.learners.review(f.teacher.id,review)).rejects.toThrow('reviewer');await f.learners.review(f.owner.id,review);
+    p=await f.learners.get(id);expect(p.improvementDataAllowed).toBe(true);expect(p.personalizationAllowed).toBe(true);expect(p.answers).toEqual(before);
+    p=await f.learners.withdrawImprovement(id);expect(p.essentialReady).toBe(true);expect(p.improvementDataAllowed).toBe(false);
+    await expect(f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion})).rejects.toThrow('Guardian');
+    expect((await f.learners.get(id)).improvementDataAllowed).toBe(false);
+  });
+  it('clears improvement features through the processing checkbox and full withdrawal paths too',async()=>{
+    const f=await setup(),id=f.student.id;
+    let p=await f.learners.update(id,{revision:0,ageBand:'adult',permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion,answers});
+    const seed=()=>f.school.repository.transaction(s=>{s.privateLearners.find(r=>r.accountId===id)!.improvementFeaturesEnvelope=sealServer({schoolId:f.group.schoolId,counts:[1]},createHash('sha256').update('learner-profile-v1:'+f.secret).digest(),'learner-improvement-features-v1:'+id);});
+    await seed();p=await f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:false}});
+    expect(p.personalizationAllowed).toBe(true);expect(p.answers).toEqual(answers);expect(f.state().privateLearners[0].improvementFeaturesEnvelope).toBeUndefined();
+    p=await f.learners.update(id,{revision:p.revision,permissions:{...permissions,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion});
+    await seed();p=await f.learners.withdraw(id);expect(p.improvementDataAllowed).toBe(false);expect(p.answers).toEqual({});expect(f.state().privateLearners[0].improvementFeaturesEnvelope).toBeUndefined();
+  });
   it('shares only explicit placement-change requests and never grants class or subject access from preferences',async()=>{
     const f=await setup(),before=await f.school.snapshot(f.student.id);
     await f.school.command(f.student.id,'request-learning-placement',{schoolId:before.schools[0].id,classLevel:'SS1',subjects:['Physics']});
