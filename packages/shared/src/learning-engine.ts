@@ -10,6 +10,7 @@ import type { ProgressRecord } from './generated/progress-record';
 import type { TutorState } from './generated/tutor-state';
 import { validateProgressRecord } from './validation';
 import { validTutorState } from './tutor-memory';
+import { evaluateStudentModel, bayesianEvidenceBaseline, type StudentModel, type StudentModelInput, type StudentDecision } from './student-model';
 export type { PrivateLearnerMemory, LessonKnowledge, AdaptationDecision };
 const ajv=new Ajv({strict:true});
 const memoryShape=ajv.compile<PrivateLearnerMemory>(memorySchema);
@@ -17,17 +18,22 @@ export function validPrivateMemory(value:unknown):value is PrivateLearnerMemory 
   return memoryShape(value) && new Set(value.evidence.map(e=>e.id)).size===value.evidence.length &&
     new Set(value.completedLessons.map(e=>e.lessonId)).size===value.completedLessons.length &&
     value.evidence.every(e=>Number.isFinite(Date.parse(e.at)) && (e.kind!=='assessment'||typeof e.correct==='boolean') && (e.kind!=='choice'||!!e.representation)) &&
-    value.completedLessons.every(e=>Number.isFinite(Date.parse(e.completedAt)));
+    value.completedLessons.every(e=>Number.isFinite(Date.parse(e.completedAt))) &&
+    new Set((value.decisions??[]).map(d=>d.id)).size===(value.decisions??[]).length &&
+    new Set((value.decisions??[]).map(d=>d.lessonId+':'+d.selectionId)).size===(value.decisions??[]).length &&
+    (value.decisions??[]).every(d=>d.learnerId===value.learnerId && Number.isFinite(Date.parse(d.at)));
 }
 export const validLessonKnowledge=ajv.compile<LessonKnowledge>(knowledgeSchema);
 export const validAdaptationDecision=ajv.compile<AdaptationDecision>(decisionSchema);
-export const emptyPrivateMemory=(learnerId:string):PrivateLearnerMemory=>({schemaVersion:'1.0.0',learnerId,simulated:true,consentRevision:0,personalization:false,preferences:{},evidence:[],completedLessons:[],promptedLessons:[]});
+export const emptyPrivateMemory=(learnerId:string):PrivateLearnerMemory=>({schemaVersion:'1.0.0',learnerId,simulated:true,consentRevision:0,personalization:false,preferences:{},evidence:[],completedLessons:[],promptedLessons:[],decisions:[]});
 export function mergePrivateMemory(local:PrivateLearnerMemory|null,server:PrivateLearnerMemory,now:string):PrivateLearnerMemory {
   if(!validPrivateMemory(server) || (local && (!validPrivateMemory(local)||local.learnerId!==server.learnerId)))throw new Error('Cannot merge another learner’s memory.');
   if(!server.personalization || !local)return pruneEvidence(server,now);
   const evidence=new Map(server.evidence.map(e=>[e.id,e]));for(const e of local.evidence){const previous=evidence.get(e.id);if(previous && JSON.stringify(previous)!==JSON.stringify(e))throw new Error('Conflicting learning evidence.');evidence.set(e.id,e);}
   const completed=new Map(server.completedLessons.map(e=>[e.lessonId,e]));for(const e of local.completedLessons)if(!completed.has(e.lessonId))completed.set(e.lessonId,e);
-  return pruneEvidence({...server,evidence:[...evidence.values()],completedLessons:[...completed.values()],promptedLessons:[...new Set([...server.promptedLessons,...(local.clearedBefore===server.clearedBefore?local.promptedLessons:[])])].slice(0,3)},now);
+  const decisions=new Map((server.decisions??[]).map(d=>[d.id,d]));
+  for(const d of local.decisions??[]){const previous=decisions.get(d.id);if(previous && JSON.stringify(previous)!==JSON.stringify(d))throw new Error('Conflicting private decisions.');decisions.set(d.id,d);}
+  return pruneEvidence({...server,evidence:[...evidence.values()],decisions:[...decisions.values()],completedLessons:[...completed.values()],promptedLessons:[...new Set([...server.promptedLessons,...(local.clearedBefore===server.clearedBefore?local.promptedLessons:[])])].slice(0,3)},now);
 }
 export function checkedKnowledge(knowledge:unknown,lesson:LessonPackage):asserts knowledge is LessonKnowledge {
   if(!validLessonKnowledge(knowledge) || knowledge.lessonId!==lesson.lessonId ||
@@ -39,32 +45,46 @@ function checkedOwner(memory:PrivateLearnerMemory,lesson:LessonPackage) {
 }
 export function pruneEvidence(memory:PrivateLearnerMemory,now:string):PrivateLearnerMemory {
   if(!Number.isFinite(Date.parse(now)))throw new Error('Invalid learning-memory time.');
-  if(!memory.personalization)return {...memory,evidence:[],completedLessons:[],promptedLessons:[]};
+  if(!memory.personalization)return {...memory,evidence:[],decisions:[],completedLessons:[],promptedLessons:[]};
   const cutoff=Math.max(Date.parse(now)-90*86400000,memory.clearedBefore?Date.parse(memory.clearedBefore)+1:0);
   const completed=memory.completedLessons.filter(x=>Date.parse(x.completedAt)>=cutoff && Date.parse(x.completedAt)<=Date.parse(now)).sort((a,b)=>Date.parse(a.completedAt)-Date.parse(b.completedAt)).slice(-5);
   const relevant=new Set(completed.map(x=>x.lessonId));
   const incomplete=memory.evidence.filter(e=>!memory.completedLessons.some(l=>l.lessonId===e.lessonId));
   const active=new Set(incomplete.map(e=>e.lessonId));
-  return {...memory,completedLessons:completed,evidence:memory.evidence.filter(e=>Date.parse(e.at)>=cutoff && Date.parse(e.at)<=Date.parse(now) && (relevant.has(e.lessonId)||active.has(e.lessonId))).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.id.localeCompare(b.id)).slice(-1000)};
+  const decisions=(memory.decisions??[]).filter(d=>Date.parse(d.at)>=cutoff && Date.parse(d.at)<=Date.parse(now) &&
+    (relevant.has(d.lessonId)||!memory.completedLessons.some(l=>l.lessonId===d.lessonId))).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.id.localeCompare(b.id)).slice(-1000);
+  return {...memory,completedLessons:completed,decisions,evidence:memory.evidence.filter(e=>Date.parse(e.at)>=cutoff && Date.parse(e.at)<=Date.parse(now) && (relevant.has(e.lessonId)||active.has(e.lessonId))).sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)||a.id.localeCompare(b.id)).slice(-1000)};
+}
+/** Conservative identity for the same assessed content across lessons/retries.
+ * The bounded fingerprint is not an authentication hash. A collision only
+ * under-counts evidence; raw prompts/options are not retained in model input. */
+function assessmentItemKey(item:{prompt:string;options:readonly string[];correctIndex:number}) {
+  const normalize=(s:string)=>s.trim().toLowerCase().replace(/\s+/g,' ');
+  const content=JSON.stringify([normalize(item.prompt),item.options.map(normalize).sort(),normalize(item.options[item.correctIndex])]);
+  let hash=14695981039346656037n;
+  for(const char of content)hash=BigInt.asUintN(64,(hash^BigInt(char.codePointAt(0)!))*1099511628211n);
+  return 'assessed-content-v2:'+hash.toString(16).padStart(16,'0');
 }
 export function updateLearnerEvidence(memory:PrivateLearnerMemory,lesson:LessonPackage,progress:ProgressRecord,knowledge:LessonKnowledge,now:string,tutor?:TutorState):PrivateLearnerMemory {
   checkedOwner(memory,lesson);checkedKnowledge(knowledge,lesson);
   if(!validateProgressRecord(progress,lesson).valid)throw new Error('Only validated lesson events can update learner evidence.');
   if(tutor && !validTutorState(tutor,lesson,progress))throw new Error('Only validated check attempts can update learner evidence.');
-  if(!memory.personalization)return {...memory,evidence:[],completedLessons:[],promptedLessons:[]};
+  if(!memory.personalization)return {...memory,evidence:[],decisions:[],completedLessons:[],promptedLessons:[]};
   const next=structuredClone(memory), ids=new Set(next.evidence.map(e=>e.id));
   const lessonKey=knowledge.lessonId+'@'+knowledge.lessonRevision;
   const append=(entry:PrivateLearnerMemory['evidence'][number])=>{if(!ids.has(entry.id)){next.evidence.push(entry);ids.add(entry.id);}};
   progress.events.forEach((e,index)=>{
     const map=knowledge.concepts.find(c=>c.conceptId===e.conceptId);if(!map)return;
     const base={id:lessonKey+':'+(e.eventId??'legacy-'+index),lessonId:lessonKey,subjectKey:knowledge.subjectKey,knowledgeKey:map.knowledgeKey,at:e.timestamp,sourceRefs:[...map.sourceRefs]};
-    if(e.type==='quiz-answered' && e.selectedIndex!==undefined && e.sourceRefs?.length) append({...base,kind:'assessment',correct:e.correctness});
+    if(e.type==='quiz-answered' && e.selectedIndex!==undefined && e.sourceRefs?.length) append({...base,kind:'assessment',correct:e.correctness,
+      ...(!progress.events.slice(0,index).some(previous=>previous.type==='quiz-answered' && previous.quizId===e.quizId)?{assessmentKey:assessmentItemKey(lesson.quiz.find(q=>q.id===e.quizId)!)}:{})});
     if(e.type==='explain-again')append({...base,kind:'help'});
     if(e.type==='visual-explored' && e.origin==='learner-choice')append({...base,kind:'choice',representation:e.visualAssetId.includes('steps')?'steps':'picture'});
   });
   for(const a of tutor?.checkAttempts??[]){
     const check=tutor?.checks?.find(c=>c.id===a.checkId);const map=knowledge.concepts.find(c=>c.conceptId===check?.conceptId);
-    if(check && map)append({id:lessonKey+':check:'+a.id,lessonId:lessonKey,subjectKey:knowledge.subjectKey,knowledgeKey:map.knowledgeKey,at:a.answeredAt,kind:'assessment',correct:a.correctness,sourceRefs:[...check.sourceRefs]});
+    if(check && map)append({id:lessonKey+':check:'+a.id,lessonId:lessonKey,subjectKey:knowledge.subjectKey,knowledgeKey:map.knowledgeKey,at:a.answeredAt,kind:'assessment',correct:a.correctness,sourceRefs:[...check.sourceRefs],
+      ...(tutor!.checkAttempts!.find(first=>first.checkId===a.checkId)?.id===a.id?{assessmentKey:assessmentItemKey(check)}:{})});
   }
   return pruneEvidence(next,now);
 }
@@ -74,7 +94,16 @@ export function completeLearnerLesson(memory:PrivateLearnerMemory,knowledge:Less
   return pruneEvidence({...memory,completedLessons:[...memory.completedLessons,{lessonId,completedAt:now}]},now);
 }
 /** Current explicit choice wins. Assessment is evidence; pauses and self-confirmation are not mastery. */
-export function selectApprovedSupport(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,now:string,explicit?:'picture'|'steps'):AdaptationDecision {
+export function studentModelInput(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,now:string):StudentModelInput {
+  checkedOwner(memory,lesson);checkedKnowledge(knowledge,lesson);
+  const map=knowledge.concepts.find(c=>c.conceptId===conceptId);if(!map)throw new Error('Unknown mapped concept.');
+  const recent=pruneEvidence(memory,now);
+  return {schemaVersion:'1.0.0',learnerId:memory.learnerId,schoolId:knowledge.schoolId,subjectKey:knowledge.subjectKey,knowledgeKey:map.knowledgeKey,
+    conceptId,lessonId:lesson.lessonId,lessonRevision:knowledge.lessonRevision,asOf:now,personalization:memory.personalization,simulated:true,
+    assessments:recent.evidence.filter(e=>e.kind==='assessment' && /^assessed-content-v2:[0-9a-f]{16}$/.test(e.assessmentKey??'') && e.subjectKey===knowledge.subjectKey && e.knowledgeKey===map.knowledgeKey)
+      .map(e=>({evidenceId:e.id,assessmentKey:e.assessmentKey!,subjectKey:e.subjectKey,knowledgeKey:e.knowledgeKey,at:e.at,correct:e.correct!}))};
+}
+function supportSelection(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,now:string,explicit?:'picture'|'steps',studentModel:StudentModel=bayesianEvidenceBaseline) {
   checkedOwner(memory,lesson);checkedKnowledge(knowledge,lesson);
   const map=knowledge.concepts.find(c=>c.conceptId===conceptId);if(!map)throw new Error('Unknown mapped concept.');
   const recent=pruneEvidence(memory,now);
@@ -82,6 +111,7 @@ export function selectApprovedSupport(memory:PrivateLearnerMemory,lesson:LessonP
   let representation:'picture'|'steps'='picture',basis:AdaptationDecision['basis']='default';
   let reason='Use the teacher-approved default while evidence is limited.';
   const assessed=evidence.filter(e=>e.kind==='assessment');
+  const estimate=evaluateStudentModel(studentModelInput(memory,lesson,knowledge,conceptId,now),studentModel);
   const meaningfulLessons=new Set(recent.evidence.filter(e=>e.subjectKey===knowledge.subjectKey && ['assessment','help'].includes(e.kind) && recent.completedLessons.some(l=>l.lessonId===e.lessonId)).map(e=>e.lessonId));
   if(memory.personalization && memory.preferences.formats?.length){representation=memory.preferences.formats.includes('steps')?'steps':'picture';basis='signup';reason='You asked for '+(representation==='steps'?'step-by-step support.':'pictures to help explain ideas.');}
   const reportedConfidence=memory.preferences.confidence?.find(c=>c.subject===lesson.subject)?.rating;
@@ -93,12 +123,43 @@ export function selectApprovedSupport(memory:PrivateLearnerMemory,lesson:LessonP
     const choice=evidence.filter(e=>e.kind==='choice').at(-1);
     representation=choice?.representation??representation;basis='observed';reason=choice?'Recent relevant lesson interactions guide this suggestion; you can switch it.':'Recent relevant lesson interactions guide support; your saved explanation preference breaks the tie between approved representations.';
   }
+  if(memory.personalization && estimate.status==='estimate' && estimate.nextCheckProbability<0.5 && assessed.at(-1)?.correct!==false){
+    representation='steps';basis='observed';reason='Recent check responses suggest trying the approved steps. You can switch.';
+  }
   if(explicit){representation=explicit;basis='explicit-choice';reason='Use the representation you chose for this moment.';}
   const assets=lesson.visualAssets?.filter(a=>a.conceptId===conceptId)??[];
-  const selected=assets.find(a=>representation==='steps'?a.id.includes('steps'):!a.id.includes('steps'))??assets[0];
+  const matching=assets.find(a=>representation==='steps'?a.id.includes('steps'):!a.id.includes('steps'));
+  const selected=matching??assets[0];
   if(!selected)throw new Error('No approved support exists for this concept.');
+  if(!matching){basis='default';reason='Use the available teacher-approved visual for this concept.';}
   const decision:AdaptationDecision={schemaVersion:'1.0.0',learnerId:memory.learnerId,lessonId:lesson.lessonId,conceptId,visualAssetId:selected.id,basis,reason,evidenceIds:basis==='observed'?evidence.slice(-100).map(e=>e.id):[],sourceRefs:[...selected.sourceRefs]};
-  if(!validAdaptationDecision(decision))throw new Error('Invalid adaptation decision.');return decision;
+  if(!validAdaptationDecision(decision))throw new Error('Invalid adaptation decision.');return {decision,estimate};
+}
+/** Compatibility adapter: callers still receive the original approved-support contract. */
+export function selectApprovedSupport(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,now:string,explicit?:'picture'|'steps',model:StudentModel=bayesianEvidenceBaseline):AdaptationDecision {
+  return supportSelection(memory,lesson,knowledge,conceptId,now,explicit,model).decision;
+}
+/** Called for an actual selected support event, never for a render or media timer. */
+export function recordSupportSelection(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,at:string,selectionId:string,selectedVisualId:string,explicit?:'picture'|'steps',model:StudentModel=bayesianEvidenceBaseline):PrivateLearnerMemory {
+  checkedOwner(memory,lesson);checkedKnowledge(knowledge,lesson);
+  if(!memory.personalization)return pruneEvidence(memory,at);
+  const lessonId=knowledge.lessonId+'@'+knowledge.lessonRevision;
+  const previous=(memory.decisions??[]).find(d=>d.lessonId===lessonId && d.selectionId===selectionId);
+  if(previous){if(previous.selectedVisualId!==selectedVisualId || previous.at!==at)throw new Error('An existing private selection cannot be rewritten.');return memory;}
+  const asset=lesson.visualAssets?.find(a=>a.id===selectedVisualId && a.conceptId===conceptId);
+  if(!asset)throw new Error('Only selected approved support may be recorded.');
+  const selectionEvidenceId=lessonId+':'+selectionId;
+  const context={...memory,evidence:memory.evidence.filter(e=>e.id!==selectionId && e.id!==selectionEvidenceId)};
+  const {decision:selected,estimate}=supportSelection(context,lesson,knowledge,conceptId,at,explicit,model);
+  const matches=selected.visualAssetId===selectedVisualId;
+  const explicitAlternative=explicit!==undefined && (explicit==='steps'?asset.id.includes('steps'):!asset.id.includes('steps'));
+  const basis=matches?selected.basis:explicitAlternative?'explicit-choice':'default';
+  const reason=matches?selected.reason:explicitAlternative?'Use this approved visual for your chosen representation: '+asset.title+'.':'Use this teacher-approved alternative: '+asset.title+'.';
+  const record:StudentDecision={schemaVersion:'1.0.0',id:'decision-'+selectionId,selectionId,learnerId:memory.learnerId,lessonId,subjectKey:knowledge.subjectKey,
+    knowledgeKey:knowledge.concepts.find(c=>c.conceptId===conceptId)!.knowledgeKey,conceptId,selectedVisualId,basis,reason,
+    at,simulated:true,model:estimate,evidenceIds:matches?selected.evidenceIds:[],sourceRefs:[...asset.sourceRefs]};
+  const next=pruneEvidence({...memory,decisions:[...(memory.decisions??[]),record]},at);
+  if(!validPrivateMemory(next))throw new Error('Invalid private support decision.');return next;
 }
 /** Reorders existing sourced variants only. The objective, recording and concepts are unchanged. */
 export function preferredHelpLesson(lesson:LessonPackage,memory?:PrivateLearnerMemory):LessonPackage {

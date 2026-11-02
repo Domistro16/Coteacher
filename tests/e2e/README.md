@@ -1,5 +1,37 @@
 # Browser acceptance
 
+## Batch 2 privacy review (isolated, no project env files)
+
+See [Batch 2 evidence](../../docs/student-learning-batch2-acceptance.md). Run
+sequentially with ports 4273–4275 free. The managed privacy suite uses `localhost`
+so Chromium can exercise the unchanged Secure `__Host-` cookie on loopback. The
+issuer and AAL claims are mocked, with an issued-token map and revocation checks;
+no deployed Supabase account or real TOTP is involved. No provider call is made.
+
+```powershell
+node scripts/build-isolated-acceptance.mjs account .task-tmp/privacy-review-account
+$env:COTEACHER_E2E_BUILD_ROOT=(Resolve-Path .task-tmp/privacy-review-account).Path
+try { npx.cmd playwright test --config playwright.privacy.config.ts } finally { Remove-Item Env:COTEACHER_E2E_BUILD_ROOT }
+```
+
+The actual encrypted download/IndexedDB exclusion test runs in original demo
+mode, where the manual transfer UI exists. It imports fictional encrypted private
+memory, then uses the real profile unlock, save and download implementation:
+
+```powershell
+node scripts/build-isolated-acceptance.mjs demo .task-tmp/privacy-review-demo
+$env:COTEACHER_E2E_BUILD_ROOT=(Resolve-Path .task-tmp/privacy-review-demo).Path
+$env:COTEACHER_TEST_TUTOR='mock'
+try { npx.cmd playwright test tests/e2e/progress-privacy.spec.ts } finally { Remove-Item Env:COTEACHER_E2E_BUILD_ROOT; Remove-Item Env:COTEACHER_TEST_TUTOR }
+```
+
+Omit the file argument for the complete original demo suite. School regressions
+use the account build and `--config playwright.school.config.ts`. A green privacy
+suite establishes the listed application boundaries in this environment; it does
+not establish provider-side retention, semantic anonymity, real speech or managed
+deployment suitability.
+
+## Existing journeys
 
 `npm.cmd run verify:adaptive:live` performs the real-provider adaptive demo against
 an isolated empty school service: native simulated teacher capture/approval,
@@ -270,6 +302,11 @@ it does not alter private env files or running services. For isolated acceptance
 builds without private configuration, set `COTEACHER_TEST_NO_ENV_FILES=true` and
 use Vite's programmatic `build({envDir:false, ...})` with the normal app config.
 
+The student-model Batch 1 journey additionally selects approved visuals through
+the real UI, decrypts the resulting private IndexedDB ledger, checks model version
+and abstention, reopens offline, verifies media ticks do not append decisions,
+and confirms withdrawal clears decisions while retaining explicit visual choices.
+These synthetic assessment sequences are plumbing checks, not model performance.
 
 Set `COTEACHER_TEST_TUTOR=mock` for the complete demo run; otherwise the explicit
 connected-tutor scenario is skipped. Clear both task-specific variables afterwards.

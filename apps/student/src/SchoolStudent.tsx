@@ -22,7 +22,7 @@ import { Brand, Icon, LearningArt, clock } from "./student-ui";
 import { StudentPlayer } from "./StudentPlayer";
 import { GuardianVerification, LearningPreferences } from './LearningPreferences';
 import { clearPrivateLearning,readPrivateLearning, readStoredProfile, saveStoredProfile, type Snapshot } from "./storage";
-import { completeLearnerLesson, emptyPrivateMemory,mergePrivateMemory, optionalPrompt, updateLearnerEvidence } from '../../../packages/shared/src/learning-engine';
+import { completeLearnerLesson, emptyPrivateMemory,mergePrivateMemory, optionalPrompt, updateLearnerEvidence, recordSupportSelection } from '../../../packages/shared/src/learning-engine';
 import { initialPlayerState, createPlayerModel } from "./player";
 import {
   downloadRecordedLesson,
@@ -703,6 +703,14 @@ function SchoolStudy({
     if(checked.learning?.support){
       const knowledge=checked.learning.support.knowledge;
       let memory=updateLearnerEvidence(checked.learning.memory,checked.lesson,progress,knowledge,new Date().toISOString(),checked.tutor);
+      // Persist actual selections, not render-time recommendations or audio ticks.
+      for(const event of progress.events.slice(current.current.progress.events.length)){
+        if(event.type!=='visual-explored' || !event.eventId)continue;
+        const choice=progress.events.filter(e=>e.type==='visual-explored' && e.conceptId===event.conceptId && e.origin==='learner-choice' && Date.parse(e.timestamp)<=Date.parse(event.timestamp)).at(-1);
+        const explicit=event.origin==='learner-choice'?(event.visualAssetId.includes('steps')?'steps':'picture'):
+          choice?.type==='visual-explored'?(choice.visualAssetId.includes('steps')?'steps':'picture'):undefined;
+        memory=recordSupportSelection(memory,checked.lesson,knowledge,event.conceptId,event.timestamp,event.eventId,event.visualAssetId,explicit);
+      }
       checked={...checked,learning:{...checked.learning,memory}};
     }
     current.current = checked;

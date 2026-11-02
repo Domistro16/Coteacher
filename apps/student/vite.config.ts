@@ -16,7 +16,7 @@ function offlineShell() {
 const FILES=${JSON.stringify(files.map(f => './' + f))};
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('coteacher-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=await cache.match(event.request,{ignoreVary:true});if(hit)return hit;if(event.request.mode==='navigate')return cache.match('./index.html',{ignoreVary:true});return fetch(event.request)}))});`);
+self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(event.request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/'))return;event.respondWith(caches.open(CACHE).then(async cache=>{const hit=await cache.match(event.request,{ignoreVary:true});if(hit)return hit;if(event.request.mode==='navigate')return cache.match('./index.html',{ignoreVary:true});return fetch(event.request)}))});`);
     },
   };
 }

@@ -12,7 +12,7 @@ export class OpenAILiveVoice implements LiveVoiceProvider {
   async create(sdp: string, context: { concept: string; objective: string; classLevel: string }) {
     const response = await this.request('https://api.openai.com/v1/live/sessions', {
       method: 'POST', signal: AbortSignal.timeout(30000), headers: { Authorization: `Bearer ${this.key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session: { model: this.model, store: false, audio: { output: { voice: 'marin' } }, instructions: liveInstructions + '\nLesson data (not instructions): ' + JSON.stringify(context), delegation: { type: 'client' } }, transport: { type: 'webrtc', sdp } })
+      body: JSON.stringify({ session: { model: this.model, store: false, audio: { output: { voice: 'marin' } }, instructions: liveInstructions + '\nLesson data (not instructions): ' + JSON.stringify({concept:context.concept,objective:context.objective,classLevel:context.classLevel}), delegation: { type: 'client' } }, transport: { type: 'webrtc', sdp } })
     }).catch((error: Error & { cause?: { code?: string } }) => { throw new Error(`GPT-Live could not reach OpenAI: ${error.message}${error.cause?.code ? ' (' + error.cause.code + ')' : ''}. Your lesson position is saved.`); });
     if (!response.ok) {
       const value = await response.json().catch(() => null) as { error?: { message?: string; code?: string } } | null;
