@@ -29,7 +29,8 @@
     "confidence": {
       "type": "number",
       "minimum": 0,
-      "maximum": 1
+      "maximum": 1,
+      "description": "Evidence-adequacy confidence is bounded by n/(n+10) for the cited distinct assessments. Estimates require at least ten cited assessments regardless of confidence kind."
     },
     "confidenceKind": {
       "enum": [
@@ -57,7 +58,8 @@
     "correctCount": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 1000
+      "maximum": 1000,
+      "description": "Number of correct outcomes among the cited eligible assessments, verified by the caller boundary."
     },
     "explanation": {
       "type": "string",
@@ -103,5 +105,31 @@
   ],
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://coteacher.local/schemas/student-model-output.schema.json",
-  "title": "StudentModelOutput"
+  "title": "StudentModelOutput",
+  "if": {
+    "properties": {
+      "status": {
+        "const": "estimate"
+      }
+    }
+  },
+  "then": {
+    "properties": {
+      "sampleCount": {
+        "type": "integer",
+        "minimum": 10
+      },
+      "evidenceIds": {
+        "type": "array",
+        "minItems": 10
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0.5
+      },
+      "abstainReason": {
+        "const": "none"
+      }
+    }
+  }
 }

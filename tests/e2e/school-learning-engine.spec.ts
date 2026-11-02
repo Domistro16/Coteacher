@@ -41,7 +41,7 @@ async function signOut(page:Page){
 async function privateDecisions(page:Page,learnerId:string,pin:string){
   const envelope=await page.evaluate(id=>new Promise<unknown>((resolve,reject)=>{const opening=indexedDB.open('coteacher-sprint');opening.onsuccess=()=>{const db=opening.result,q=db.transaction('learning').objectStore('learning').get(id);q.onsuccess=()=>{db.close();resolve(q.result);};q.onerror=()=>reject(q.error);};}),learnerId);
   if(!envelope)return [];
-  const memory=await decryptPayload(envelope,pin) as {decisions?:{id:string;learnerId:string;selectedVisualId:string;model:{modelVersion:string;status:string;confidence:number;sampleCount:number;calibration:string}}[]};
+  const memory=await decryptPayload(envelope,pin) as {decisions?:{id:string;selectionId:string;learnerId:string;selectedVisualId:string;evidenceIds:string[];model:{modelVersion:string;status:string;confidence:number;sampleCount:number;calibration:string}}[]};
   return memory.decisions??[];
 }
 async function selectRecommended(page:Page){
@@ -82,6 +82,10 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   const firstDecision=(await privateDecisions(page,learnerA,'111111'))[0];
   expect(firstDecision).toMatchObject({learnerId:learnerA,selectedVisualId:'refraction-steps',model:{modelVersion:'bayesian-evidence-count-v1',status:'abstain',sampleCount:1,calibration:'unvalidated'}});
   expect(firstDecision.model.confidence).toBeCloseTo(1/11);
+  expect(firstDecision.evidenceIds).not.toContain(firstDecision.selectionId);
+  expect(firstDecision.evidenceIds.some(id=>id.endsWith(':'+firstDecision.selectionId))).toBe(false);
+  // The recommendation uses assessment evidence; clicking it is an explicit choice.
+  expect(firstDecision).toMatchObject({basis:'explicit-choice',evidenceIds:[]});
   await expect(page.locator('body')).not.toContainText('bayesian-evidence-count-v1');
   await page.getByRole('button',{name:'Return to recorded lesson',exact:true}).click();
   await page.getByRole('button',{name:'Finish this lesson',exact:true}).click();await page.getByRole('button',{name:'Dismiss preference prompt'}).click();

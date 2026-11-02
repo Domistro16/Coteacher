@@ -19,6 +19,7 @@ export const validStudentModelInput = ajv.compile<StudentModelInput>(inputSchema
 export const validStudentModelOutput = ajv.compile<StudentModelOutput>(outputSchema);
 export const validStudentDecision = ajv.compile<StudentDecision>(decisionSchema);
 export const minimumPredictionConfidence = 0.5;
+function evidenceAdequacy(sampleCount:number) { return sampleCount / (sampleCount + 10); }
 
 function eligibleAssessments(input: StudentModelInput) {
   const seenItems = new Set<string>(), seenEvents = new Set<string>();
@@ -45,7 +46,7 @@ export const bayesianEvidenceBaseline: StudentModel = {
     if (!input.personalization) return abstention(this.version, 'personalization-off');
     const evidence = eligibleAssessments(input), n = evidence.length;
     const correct = evidence.filter(a => a.correct).length;
-    const mean = (1 + correct) / (2 + n), confidence = n / (n + 10);
+    const mean = (1 + correct) / (2 + n), confidence = evidenceAdequacy(n);
     const status = confidence < minimumPredictionConfidence ? 'abstain' : 'estimate';
     return { schemaVersion: '1.0.0', modelVersion: this.version, status, understanding: mean, nextCheckProbability: mean,
       confidence, confidenceKind: 'evidence-adequacy', estimateKind: 'response-evidence-proxy', calibration: 'unvalidated',
@@ -62,9 +63,11 @@ export function evaluateStudentModel(input: StudentModelInput, model: StudentMod
   if (!input.personalization) return abstention(model.version, 'personalization-off');
   try {
     const result = model.evaluate(structuredClone(input));
-    const allowed = new Set(eligibleAssessments(input).map(a => a.evidenceId));
+    const allowed = new Map(eligibleAssessments(input).map(a => [a.evidenceId,a]));
     if (!validStudentModelOutput(result) || result.modelVersion !== model.version || result.correctCount > result.sampleCount ||
       result.evidenceIds.length !== result.sampleCount || result.evidenceIds.some(id => !allowed.has(id)) ||
+      result.correctCount !== result.evidenceIds.filter(id => allowed.get(id)?.correct).length ||
+      result.confidenceKind === 'evidence-adequacy' && result.confidence > evidenceAdequacy(result.sampleCount) ||
       result.status === 'estimate' && (result.confidence < minimumPredictionConfidence || result.abstainReason !== 'none') ||
       result.status === 'abstain' && result.abstainReason === 'none') return abstention(model.version, 'invalid-output');
     return result;

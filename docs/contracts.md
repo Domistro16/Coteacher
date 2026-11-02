@@ -437,3 +437,24 @@ to decisions as well as evidence. Rendering and media timers do not create recor
 The selectApprovedSupport adapter preserves the original AdaptationDecision shape.
 The broader Brain interface refactor, training consent/event export and evaluation
 harness remain outside Batch 1. See student-model-roadmap.md for replacement gates.
+
+PR review corrections before Batch 3:
+
+- Independent item identity uses `assessed-content-v2`: normalized prompt,
+  sorted normalized options, and correct-answer text. Reordering answers or
+  presenting the same item under a new quiz ID does not create another trial.
+  Missing/order-sensitive v1 keys remain readable rule evidence but do not count
+  toward model confidence; the system does not guess their corrected identities.
+- An `estimate` requires ten cited eligible independent assessments and confidence
+  of at least 0.5. Reported correctness must equal the cited outcomes. An
+  `evidence-adequacy` score cannot exceed `n/(n+10)` for those cited assessments;
+  an uncertainty-based replacement retains its own confidence convention after
+  satisfying the same evidence minimum. Invalid results safely abstain. The
+  baseline cold start and abstention formula are unchanged.
+- `selectionId` identifies the selected-support event. Its raw and lesson-qualified
+  IDs are excluded from the context used to justify that same selection and from
+  the record's supporting `evidenceIds`. A visual different from the recommendation
+  gets its actual explicit-choice/default basis and a matching reason, without
+  borrowing evidence for the unselected recommendation. Unavailable representation
+  families use an honestly labelled approved fallback. Earlier ledger entries are
+  historical and are not retroactively relabelled.

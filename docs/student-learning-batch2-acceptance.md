@@ -52,7 +52,7 @@ The optional local-model adapter still serializes more check/personalization con
 
 Batch 3, training-event collection/export, evaluation harness, speech evaluation, interface refactor and local-model milestones remain deferred. No real-child release or production security certification is claimed.
 
-## Regression record
+## Original Batch 2 regression record
 
 | Check | Result and scope |
 | --- | --- |
@@ -75,3 +75,21 @@ Review the access matrix first, then the verified/mocked/not-established table.
 Reproduction commands are in `tests/e2e/README.md`. Local full-run JSON reports
 are in `.task-tmp/privacy-batch2-20261101/{privacy,school,demo}-report.json`.
 Batch 3 remains unstarted and requires the user's next review decision.
+
+## PR review fixes before Batch 3
+
+Regression criteria: option reordering across lessons/retries cannot add an
+independent assessment; confident estimates need truthful, adequate cited
+evidence; decision selection IDs remain separate from supporting evidence, with
+reason/basis matching the actual visual and approved fallback.
+
+The focused model/learning-engine suite passes 22 tests. The full follow-up
+passes generated-contract/type checks and 44 unit files / 540 tests. All three
+isolated account builds pass. The targeted two-learner/two-lesson school browser
+journey passes, including explicit-choice provenance, no self-cited selection,
+offline reopening, media-tick deduplication, isolation and withdrawal. Chromium,
+local HTTP, encryption and IndexedDB execute for real; identities/recordings and
+preparation are fictional or mocked. These are plumbing checks, not prediction
+performance measurements. The complete original browser suites were not repeated
+for this follow-up. Batch 3 remains unstarted. See contracts.md for fingerprint
+compatibility and record semantics.

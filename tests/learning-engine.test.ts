@@ -1,5 +1,5 @@
 import { describe,it,expect } from 'vitest';
-import { emptyProgress,personalizedReplay } from '@coteacher/shared';
+import { emptyProgress,personalizedReplay,validateProgressRecord } from '@coteacher/shared';
 import { schoolRecording } from './school-fixture';
 import { checkedKnowledge,emptyPrivateMemory,updateLearnerEvidence,selectApprovedSupport,completeLearnerLesson,mergePrivateMemory,optionalPrompt,studentModelInput,recordSupportSelection,pruneEvidence,validPrivateMemory,type LessonKnowledge } from '../packages/shared/src/learning-engine';
 import { evaluateStudentModel, type StudentModel } from '../packages/shared/src/student-model';
@@ -27,12 +27,56 @@ describe('private individual cross-lesson adaptation',()=>{
   });
   it('persists source-linked private decision output with encryption and idempotent selection identity',async()=>{
     const f=fixture();const memory=recordSupportSelection(f.memory,f.lesson,f.knowledge,'refraction',now,'event-selection','refraction-steps','steps');
-    const record=memory.decisions![0];expect(record).toMatchObject({selectedVisualId:'refraction-steps',basis:'explicit-choice',sourceRefs:['notes-light'],evidenceIds:['event-selection'],model:{status:'abstain',abstainReason:'cold-start',confidence:0}});
+    const record=memory.decisions![0];expect(record).toMatchObject({selectionId:'event-selection',selectedVisualId:'refraction-steps',basis:'explicit-choice',sourceRefs:['notes-light'],evidenceIds:[],model:{status:'abstain',abstainReason:'cold-start',confidence:0}});
     expect(recordSupportSelection(memory,f.lesson,f.knowledge,'refraction',now,'event-selection','refraction-steps','steps').decisions).toHaveLength(1);
     expect(()=>recordSupportSelection(memory,f.lesson,f.knowledge,'refraction',now,'event-selection','refraction-pencil')).toThrow('cannot be rewritten');
     const encrypted=await encryptPayload(memory,'111111');expect(JSON.stringify(encrypted)).not.toContain(record.reason);
     const restored=await decryptPayload(encrypted,'111111');expect(validPrivateMemory(restored)).toBe(true);expect(restored).toEqual(memory);
     expect(validPrivateMemory({...memory,decisions:[{...record,learnerId:'another'}]})).toBe(false);
+  });
+  it('counts a reordered approved question once across lessons, preserving the first outcome',()=>{
+    const first=fixture(),q=first.lesson.quiz.find(q=>q.conceptId==='refraction')!;
+    first.progress.events.push({type:'quiz-answered',eventId:'first-wrong',timestamp:now,conceptId:q.conceptId,quizId:q.id,selectedIndex:(q.correctIndex+1)%q.options.length,correctness:false,sourceRefs:q.sourceRefs});
+    let memory=updateLearnerEvidence(first.memory,first.lesson,first.progress,first.knowledge,now);
+    const later=fixture('later-lesson'),reordered=later.lesson.quiz.find(item=>item.id===q.id)!;
+    const correctAnswer=q.options[q.correctIndex];reordered.options.reverse();reordered.correctIndex=reordered.options.indexOf(correctAnswer);
+    const at='2026-11-01T10:01:00Z';
+    later.progress.events.push({type:'quiz-answered',eventId:'later-correct',timestamp:at,conceptId:q.conceptId,quizId:q.id,selectedIndex:reordered.correctIndex,correctness:true,sourceRefs:q.sourceRefs});
+    memory=updateLearnerEvidence(memory,later.lesson,later.progress,later.knowledge,at);
+    expect(new Set(memory.evidence.map(e=>e.assessmentKey)).size).toBe(1);
+    expect(evaluateStudentModel(studentModelInput(memory,later.lesson,later.knowledge,q.conceptId,at))).toMatchObject({sampleCount:1,correctCount:0,status:'abstain'});
+  });
+  it('does not count a reshuffled retry under another quiz ID as a new independent item',()=>{
+    const f=fixture(),q=f.lesson.quiz.find(q=>q.conceptId==='refraction')!;
+    const retry=structuredClone(q);retry.id=q.id+'-retry';retry.options.reverse();retry.correctIndex=retry.options.indexOf(q.options[q.correctIndex]);f.lesson.quiz.push(retry);
+    f.progress.events.push({type:'quiz-answered',eventId:'first',timestamp:now,conceptId:q.conceptId,quizId:q.id,selectedIndex:(q.correctIndex+1)%q.options.length,correctness:false,sourceRefs:q.sourceRefs},
+      {type:'quiz-answered',eventId:'retry',timestamp:'2026-11-01T10:00:01Z',conceptId:q.conceptId,quizId:retry.id,selectedIndex:retry.correctIndex,correctness:true,sourceRefs:q.sourceRefs});
+    const at='2026-11-01T10:01:00Z',memory=updateLearnerEvidence(f.memory,f.lesson,f.progress,f.knowledge,at);
+    expect(evaluateStudentModel(studentModelInput(memory,f.lesson,f.knowledge,q.conceptId,at))).toMatchObject({sampleCount:1,correctCount:0,status:'abstain'});
+  });
+  it('does not combine legacy order-sensitive fingerprints with the corrected independent counts',()=>{
+    const f=fixture(),q=f.lesson.quiz.find(q=>q.conceptId==='refraction')!;
+    f.progress.events.push({type:'quiz-answered',eventId:'first',timestamp:now,conceptId:q.conceptId,quizId:q.id,selectedIndex:q.correctIndex,correctness:true,sourceRefs:q.sourceRefs});
+    const current=updateLearnerEvidence(f.memory,f.lesson,f.progress,f.knowledge,now);
+    const legacy={...current,evidence:current.evidence.map(e=>({...e,id:'legacy-event',assessmentKey:'assessed-content-v1:0123456789abcdef'}))};
+    expect(evaluateStudentModel(studentModelInput(legacy,f.lesson,f.knowledge,q.conceptId,now)).sampleCount).toBe(0);
+    const mixed={...current,evidence:[...legacy.evidence,...current.evidence]};
+    expect(evaluateStudentModel(studentModelInput(mixed,f.lesson,f.knowledge,q.conceptId,now)).sampleCount).toBe(1);
+  });
+  it('keeps the selection event out of supporting evidence and attributes an actual alternative honestly',()=>{
+    const f=fixture(),q=f.lesson.quiz.find(q=>q.conceptId==='refraction')!,selectionId='chosen-alternative';
+    f.progress.events.push({type:'quiz-answered',eventId:'wrong-check',timestamp:now,conceptId:q.conceptId,quizId:q.id,selectedIndex:(q.correctIndex+1)%q.options.length,correctness:false,sourceRefs:q.sourceRefs},
+      {type:'visual-explored',origin:'learner-choice',eventId:selectionId,timestamp:now,conceptId:q.conceptId,timelineStepId:'step-refraction',recordingId:f.lesson.recording!.id,positionMs:1300,visualAssetId:'refraction-pencil',sourceRefs:f.lesson.visualAssets!.find(a=>a.id==='refraction-pencil')!.sourceRefs});
+    const valid=validateProgressRecord(f.progress,f.lesson);expect(valid.valid,valid.valid?'':JSON.stringify(valid.issues)).toBe(true);
+    const memory=updateLearnerEvidence(f.memory,f.lesson,f.progress,f.knowledge,now);
+    const selected=recordSupportSelection(memory,f.lesson,f.knowledge,q.conceptId,now,selectionId,'refraction-pencil').decisions![0];
+    expect(selected).toMatchObject({selectionId,selectedVisualId:'refraction-pencil',basis:'default',evidenceIds:[],sourceRefs:['notes-light']});
+    expect(selected.reason).not.toContain('steps');expect(selected.reason).not.toContain('recent check');
+    const recommended=recordSupportSelection(memory,f.lesson,f.knowledge,q.conceptId,now,selectionId,'refraction-steps').decisions![0];
+    expect(recommended.basis).toBe('observed');expect(recommended.evidenceIds).toEqual([f.knowledge.lessonId+'@'+f.knowledge.lessonRevision+':wrong-check']);
+    expect(recommended.evidenceIds).not.toContain(selectionId);
+    const explicit=recordSupportSelection(memory,f.lesson,f.knowledge,q.conceptId,now,'another-selection','refraction-pencil','picture').decisions![0];
+    expect(explicit.basis).toBe('explicit-choice');expect(explicit.evidenceIds).toEqual([]);
   });
   it('bounds private decisions, drops expired/completed history and prevents withdrawal resurrection',()=>{
     const f=fixture();const memory=recordSupportSelection(f.memory,f.lesson,f.knowledge,'refraction',now,'selection','refraction-pencil');
@@ -48,13 +92,20 @@ describe('private individual cross-lesson adaptation',()=>{
     expect(recordSupportSelection({...f.memory,personalization:false},f.lesson,f.knowledge,'refraction',now,'off','refraction-pencil').decisions).toEqual([]);
   });
   it('keeps adapter defaults on low confidence/model failure and explicit choices override an eligible prediction',()=>{
-    const f=fixture();const evidence=Array.from({length:10},(_,i)=>({id:'event-'+i,assessmentKey:'unique-item-'+i,lessonId:'lesson-one',subjectKey:f.knowledge.subjectKey,knowledgeKey:'science:refraction',at:now,kind:'assessment' as const,correct:i===9,sourceRefs:['notes-light']}));
+    const f=fixture();const evidence=Array.from({length:10},(_,i)=>({id:'event-'+i,assessmentKey:'assessed-content-v2:'+i.toString(16).padStart(16,'0'),lessonId:'lesson-one',subjectKey:f.knowledge.subjectKey,knowledgeKey:'science:refraction',at:now,kind:'assessment' as const,correct:i===9,sourceRefs:['notes-light']}));
     const limited={...f.memory,evidence:evidence.slice(1)};
     expect(selectApprovedSupport(limited,f.lesson,f.knowledge,'refraction',now).visualAssetId).toBe('refraction-pencil');
     const enough={...f.memory,evidence};expect(selectApprovedSupport(enough,f.lesson,f.knowledge,'refraction',now).visualAssetId).toBe('refraction-steps');
     expect(selectApprovedSupport(enough,f.lesson,f.knowledge,'refraction',now,'picture').basis).toBe('explicit-choice');
     const broken:StudentModel={version:'failed-model',evaluate(){throw new Error('unavailable');}};
     expect(selectApprovedSupport(enough,f.lesson,f.knowledge,'refraction',now,undefined,broken).visualAssetId).toBe('refraction-pencil');
+  });
+  it('describes the actual default when the requested representation is unavailable',()=>{
+    const f=fixture();for(let i=f.lesson.visualAssets!.length-1;i>=0;i--)if(f.lesson.visualAssets![i].id.includes('steps'))f.lesson.visualAssets!.splice(i,1);
+    const selected=selectApprovedSupport(f.memory,f.lesson,f.knowledge,'refraction',now,'steps');
+    expect(selected).toMatchObject({visualAssetId:'refraction-pencil',basis:'default',evidenceIds:[]});expect(selected.reason).not.toContain('steps');
+    const memory=recordSupportSelection(f.memory,f.lesson,f.knowledge,'refraction',now,'fallback-selection',selected.visualAssetId,'steps');
+    expect(memory.decisions![0]).toMatchObject({basis:'default',reason:selected.reason,evidenceIds:[]});
   });
   it('changes support after an assessment, deduplicates evidence and carries it only through approved mappings',()=>{
     const f=fixture();const quiz=f.lesson.quiz.find(q=>q.conceptId==='refraction')!;

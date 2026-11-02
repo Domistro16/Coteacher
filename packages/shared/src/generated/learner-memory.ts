@@ -45,6 +45,9 @@ export interface PrivateLearnerMemory {
      * @maxItems 20
      */
     sourceRefs: string[];
+    /**
+     * The assessed-content-v2 fingerprint sorts normalized options and identifies the correct answer by text. Order-sensitive v1 and absent keys remain rule evidence but are excluded from independent model assessment counts.
+     */
     assessmentKey?: string;
   }[];
   /**
@@ -65,6 +68,9 @@ export interface PrivateLearnerMemory {
   decisions?: {
     schemaVersion: "1.0.0";
     id: string;
+    /**
+     * Identifier of the selection event; separate from supporting evidence identifiers.
+     */
     selectionId: string;
     learnerId: string;
     lessonId: string;
@@ -82,11 +88,17 @@ export interface PrivateLearnerMemory {
       status: "estimate" | "abstain";
       understanding: number;
       nextCheckProbability: number;
+      /**
+       * Evidence-adequacy confidence is bounded by n/(n+10) for the cited distinct assessments. Estimates require at least ten cited assessments regardless of confidence kind.
+       */
       confidence: number;
       confidenceKind: "evidence-adequacy" | "model-uncertainty";
       estimateKind: "response-evidence-proxy" | "model-estimate";
       calibration: "unvalidated" | "evaluated";
       sampleCount: number;
+      /**
+       * Number of correct outcomes among the cited eligible assessments, verified by the caller boundary.
+       */
       correctCount: number;
       explanation: string;
       abstainReason:
@@ -107,6 +119,8 @@ export interface PrivateLearnerMemory {
      */
     sourceRefs: string[];
     /**
+     * Prior evidence supporting the actual selected visual. Excludes the selectionId and its lesson-qualified event ID; empty for a selection without an observed-evidence basis.
+     *
      * @maxItems 1000
      */
     evidenceIds: string[];

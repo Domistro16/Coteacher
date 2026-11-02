@@ -48,4 +48,20 @@ describe('student-model contract and Bayesian baseline (simulated plumbing, not 
     expect(validStudentModelInput({...input(),question:'not part of this inference contract'})).toBe(false);
     expect(()=>evaluateStudentModel({...input(),asOf:'2026-99-99T00:00:00Z'})).toThrow('Invalid student-model input');
   });
+  it('rejects confident estimates without ten cited independent assessments, for either confidence kind',()=>{
+    for(const n of [0,1,9])for(const confidenceKind of ['evidence-adequacy','model-uncertainty'] as const){
+      const replacement:StudentModel={version:'unsupported-confidence',evaluate(value){return {...bayesianEvidenceBaseline.evaluate(value),modelVersion:this.version,status:'estimate',abstainReason:'none',confidence:0.99,confidenceKind};}};
+      expect(evaluateStudentModel(input(Array(n).fill(true)),replacement)).toMatchObject({status:'abstain',abstainReason:'invalid-output',confidence:0,evidenceIds:[]});
+    }
+  });
+  it('checks reported correctness and evidence-adequacy confidence against the cited assessments',()=>{
+    const value=input([false,...Array(9).fill(true)]);
+    for(const change of [{correctCount:10},{confidence:1},{sampleCount:9,evidenceIds:value.assessments.slice(0,9).map(a=>a.evidenceId)},
+      {sampleCount:1,correctCount:0,evidenceIds:['event-0'],confidenceKind:'model-uncertainty' as const,confidence:0.99}]){
+      const replacement:StudentModel={version:'incorrect-evidence-report',evaluate(data){return {...bayesianEvidenceBaseline.evaluate(data),modelVersion:this.version,...change};}};
+      expect(evaluateStudentModel(value,replacement).abstainReason).toBe('invalid-output');
+    }
+    const supported:StudentModel={version:'uncertainty-fixture',evaluate(data){return {...bayesianEvidenceBaseline.evaluate(data),modelVersion:this.version,confidenceKind:'model-uncertainty',confidence:0.95};}};
+    expect(evaluateStudentModel(value,supported)).toMatchObject({status:'estimate',sampleCount:10,correctCount:9,confidence:0.95});
+  });
 });

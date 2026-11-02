@@ -6,11 +6,17 @@ export interface StudentModelOutput {
   status: "estimate" | "abstain";
   understanding: number;
   nextCheckProbability: number;
+  /**
+   * Evidence-adequacy confidence is bounded by n/(n+10) for the cited distinct assessments. Estimates require at least ten cited assessments regardless of confidence kind.
+   */
   confidence: number;
   confidenceKind: "evidence-adequacy" | "model-uncertainty";
   estimateKind: "response-evidence-proxy" | "model-estimate";
   calibration: "unvalidated" | "evaluated";
   sampleCount: number;
+  /**
+   * Number of correct outcomes among the cited eligible assessments, verified by the caller boundary.
+   */
   correctCount: number;
   explanation: string;
   abstainReason:

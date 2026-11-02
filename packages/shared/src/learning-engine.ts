@@ -60,10 +60,10 @@ export function pruneEvidence(memory:PrivateLearnerMemory,now:string):PrivateLea
  * under-counts evidence; raw prompts/options are not retained in model input. */
 function assessmentItemKey(item:{prompt:string;options:readonly string[];correctIndex:number}) {
   const normalize=(s:string)=>s.trim().toLowerCase().replace(/\s+/g,' ');
-  const content=JSON.stringify([normalize(item.prompt),item.options.map(normalize),item.correctIndex]);
+  const content=JSON.stringify([normalize(item.prompt),item.options.map(normalize).sort(),normalize(item.options[item.correctIndex])]);
   let hash=14695981039346656037n;
   for(const char of content)hash=BigInt.asUintN(64,(hash^BigInt(char.codePointAt(0)!))*1099511628211n);
-  return 'assessed-content-v1:'+hash.toString(16).padStart(16,'0');
+  return 'assessed-content-v2:'+hash.toString(16).padStart(16,'0');
 }
 export function updateLearnerEvidence(memory:PrivateLearnerMemory,lesson:LessonPackage,progress:ProgressRecord,knowledge:LessonKnowledge,now:string,tutor?:TutorState):PrivateLearnerMemory {
   checkedOwner(memory,lesson);checkedKnowledge(knowledge,lesson);
@@ -100,7 +100,7 @@ export function studentModelInput(memory:PrivateLearnerMemory,lesson:LessonPacka
   const recent=pruneEvidence(memory,now);
   return {schemaVersion:'1.0.0',learnerId:memory.learnerId,schoolId:knowledge.schoolId,subjectKey:knowledge.subjectKey,knowledgeKey:map.knowledgeKey,
     conceptId,lessonId:lesson.lessonId,lessonRevision:knowledge.lessonRevision,asOf:now,personalization:memory.personalization,simulated:true,
-    assessments:recent.evidence.filter(e=>e.kind==='assessment' && e.assessmentKey && e.subjectKey===knowledge.subjectKey && e.knowledgeKey===map.knowledgeKey)
+    assessments:recent.evidence.filter(e=>e.kind==='assessment' && /^assessed-content-v2:[0-9a-f]{16}$/.test(e.assessmentKey??'') && e.subjectKey===knowledge.subjectKey && e.knowledgeKey===map.knowledgeKey)
       .map(e=>({evidenceId:e.id,assessmentKey:e.assessmentKey!,subjectKey:e.subjectKey,knowledgeKey:e.knowledgeKey,at:e.at,correct:e.correct!}))};
 }
 function supportSelection(memory:PrivateLearnerMemory,lesson:LessonPackage,knowledge:LessonKnowledge,conceptId:string,now:string,explicit?:'picture'|'steps',studentModel:StudentModel=bayesianEvidenceBaseline) {
@@ -128,8 +128,10 @@ function supportSelection(memory:PrivateLearnerMemory,lesson:LessonPackage,knowl
   }
   if(explicit){representation=explicit;basis='explicit-choice';reason='Use the representation you chose for this moment.';}
   const assets=lesson.visualAssets?.filter(a=>a.conceptId===conceptId)??[];
-  const selected=assets.find(a=>representation==='steps'?a.id.includes('steps'):!a.id.includes('steps'))??assets[0];
+  const matching=assets.find(a=>representation==='steps'?a.id.includes('steps'):!a.id.includes('steps'));
+  const selected=matching??assets[0];
   if(!selected)throw new Error('No approved support exists for this concept.');
+  if(!matching){basis='default';reason='Use the available teacher-approved visual for this concept.';}
   const decision:AdaptationDecision={schemaVersion:'1.0.0',learnerId:memory.learnerId,lessonId:lesson.lessonId,conceptId,visualAssetId:selected.id,basis,reason,evidenceIds:basis==='observed'?evidence.slice(-100).map(e=>e.id):[],sourceRefs:[...selected.sourceRefs]};
   if(!validAdaptationDecision(decision))throw new Error('Invalid adaptation decision.');return {decision,estimate};
 }
@@ -146,11 +148,16 @@ export function recordSupportSelection(memory:PrivateLearnerMemory,lesson:Lesson
   if(previous){if(previous.selectedVisualId!==selectedVisualId || previous.at!==at)throw new Error('An existing private selection cannot be rewritten.');return memory;}
   const asset=lesson.visualAssets?.find(a=>a.id===selectedVisualId && a.conceptId===conceptId);
   if(!asset)throw new Error('Only selected approved support may be recorded.');
-  const {decision:selected,estimate}=supportSelection(memory,lesson,knowledge,conceptId,at,explicit,model);
+  const selectionEvidenceId=lessonId+':'+selectionId;
+  const context={...memory,evidence:memory.evidence.filter(e=>e.id!==selectionId && e.id!==selectionEvidenceId)};
+  const {decision:selected,estimate}=supportSelection(context,lesson,knowledge,conceptId,at,explicit,model);
+  const matches=selected.visualAssetId===selectedVisualId;
+  const explicitAlternative=explicit!==undefined && (explicit==='steps'?asset.id.includes('steps'):!asset.id.includes('steps'));
+  const basis=matches?selected.basis:explicitAlternative?'explicit-choice':'default';
+  const reason=matches?selected.reason:explicitAlternative?'Use this approved visual for your chosen representation: '+asset.title+'.':'Use this teacher-approved alternative: '+asset.title+'.';
   const record:StudentDecision={schemaVersion:'1.0.0',id:'decision-'+selectionId,selectionId,learnerId:memory.learnerId,lessonId,subjectKey:knowledge.subjectKey,
-    knowledgeKey:knowledge.concepts.find(c=>c.conceptId===conceptId)!.knowledgeKey,conceptId,selectedVisualId,basis:selected.basis,
-    reason:selected.visualAssetId===selectedVisualId?selected.reason:'Use this existing teacher-approved alternative selected in the current interaction.',
-    at,simulated:true,model:estimate,evidenceIds:[...new Set([...selected.evidenceIds,selectionId])],sourceRefs:[...asset.sourceRefs]};
+    knowledgeKey:knowledge.concepts.find(c=>c.conceptId===conceptId)!.knowledgeKey,conceptId,selectedVisualId,basis,reason,
+    at,simulated:true,model:estimate,evidenceIds:matches?selected.evidenceIds:[],sourceRefs:[...asset.sourceRefs]};
   const next=pruneEvidence({...memory,decisions:[...(memory.decisions??[]),record]},at);
   if(!validPrivateMemory(next))throw new Error('Invalid private support decision.');return next;
 }
