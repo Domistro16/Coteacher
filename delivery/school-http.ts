@@ -304,6 +304,9 @@ export function schoolHttp(
         if (path === '/api/v1/learner/withdraw' && request.method === 'POST') {
           send(200, await options.learners.withdraw(actor)); return true;
         }
+        if(path==='/api/v1/learner/improvement/withdraw' && request.method==='POST'){
+          send(200,await options.learners.withdrawImprovement(actor));return true;
+        }
         if (path === '/api/v1/learner/guardian' && request.method === 'POST') {
           send(201, await options.learners.requestGuardian(actor, data)); return true;
         }

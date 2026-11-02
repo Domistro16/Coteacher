@@ -14,6 +14,10 @@ export interface LearnerProfile {
     essential: boolean;
     personalization: boolean;
     externalAI: boolean;
+    /**
+     * Separate optional permission to use de-identified learning interactions to improve Coteacher. Missing means declined; collection/export remain disabled.
+     */
+    improvementData?: boolean;
   };
   answers: {
     preferredName?: string;
@@ -74,6 +78,10 @@ export interface LearnerProfile {
       essential: boolean;
       personalization: boolean;
       externalAI: boolean;
+      /**
+       * Missing/legacy guardian scopes never authorize improvement use.
+       */
+      improvementData?: boolean;
     };
     status: "pending" | "verified" | "approved" | "rejected" | "withdrawn";
     schoolId?: string;
@@ -84,7 +92,14 @@ export interface LearnerProfile {
     reason?: string;
     deliveryMethod?: "simulated-link" | "email";
     verificationMethod?: "simulated-token" | "email-token";
+    /**
+     * Missing means the legacy learning authorization purpose.
+     */
+    purpose?: "learning" | "improvementData";
+    improvementNoticeVersion?: string;
   }[];
   withdrawnAt?: string;
   optionalClearedAt?: string;
+  improvementNoticeVersion?: string;
+  improvementAcceptedAt?: string;
 }

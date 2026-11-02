@@ -8,6 +8,9 @@ import { LocalPrivateStorage } from "../delivery/private-storage";
 import { SchoolLessons } from "../delivery/school-lessons";
 import { schoolFixture, schoolRecording } from "./school-fixture";
 import { LearnerService } from '../delivery/learner-service';
+import {improvementDataNoticeVersion} from '../packages/shared/src/improvement-data';
+import {sealServer} from '../delivery/server-encryption';
+import {createHash} from 'node:crypto';
 describe("encrypted school backup and restoration", { timeout: 20000 }, () => {
   let folder: string;
   beforeEach(async () => {
@@ -24,7 +27,8 @@ describe("encrypted school backup and restoration", { timeout: 20000 }, () => {
       lessons = new SchoolLessons(school, storage);
     const f = await schoolFixture(school);
     const learnerSecret='fictional-stable-backup-profile-key-123';
-    await new LearnerService(school,learnerSecret).update(f.student.id,{revision:0,ageBand:'adult',permissions:{essential:true,personalization:true,externalAI:false},answers:{interests:['football']}});
+    await new LearnerService(school,learnerSecret).update(f.student.id,{revision:0,ageBand:'adult',permissions:{essential:true,personalization:true,externalAI:false,improvementData:true},improvementNoticeVersion:improvementDataNoticeVersion,answers:{interests:['football']}});
+    await school.repository.transaction(s=>{s.privateLearners[0].improvementFeaturesEnvelope=sealServer({schoolId:f.school.id,counts:[1]},createHash('sha256').update('learner-profile-v1:'+learnerSecret).digest(),'learner-improvement-features-v1:'+f.student.id);});
     const p = await lessons.publish(
       f.teacher.id,
       f.offerings[0].id,
@@ -52,7 +56,10 @@ describe("encrypted school backup and restoration", { timeout: 20000 }, () => {
     ).rejects.toThrow();
     await restoreSchool(destination, destinationObjects, backup, key);
     const restored = new SchoolService(destination);
-    expect((await new LearnerService(restored,learnerSecret).get(f.student.id)).answers.interests).toEqual(['football']);
+    const learner=new LearnerService(restored,learnerSecret),profile=await learner.get(f.student.id);
+    expect(profile.answers.interests).toEqual(['football']);expect(profile.personalizationAllowed).toBe(true);expect(profile.improvementDataAllowed).toBe(false);
+    const privateRow=await destination.transaction(s=>s.privateLearners[0]);expect(privateRow.improvementExcludedAt).toBeTruthy();expect(privateRow.improvementFeaturesEnvelope).toBeUndefined();expect(privateRow.improvementAuthorizationRequestId).toBeUndefined();
+    await expect(learner.update(f.student.id,{revision:profile.revision,permissions:{...profile.permissions,improvementData:true}})).rejects.toThrow('notice');
     expect((await destination.transaction((s) => s.loginSessions)).length).toBe(
       0,
     );

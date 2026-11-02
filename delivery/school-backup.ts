@@ -133,6 +133,9 @@ export async function restoreSchool(
   state.loginSessions = [];
   state.uploads = [];
   state.retiredObjects = [];
+  // A historical backup must never reinstate improvement permission or features.
+  // Private personalization/lesson records retain their existing restore behavior.
+  for(const row of state.privateLearners){row.improvementExcludedAt=new Date().toISOString();delete row.improvementFeaturesEnvelope;delete row.improvementAuthorizationRequestId;}
   await repository.transaction((s) => {
     if (s.accounts.length || s.schools.length)
       throw new Error("Restore target changed.");

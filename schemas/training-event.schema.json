@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/training-event.schema.json",
+  "title": "ImprovementTrainingEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "description": "Allowlisted fictional improvement-event contract only. No collector, feature producer or export is enabled. Identifiers must be tenant-scoped pseudonyms; this shape alone is not an anonymity guarantee.",
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "simulated": {
+      "const": true
+    },
+    "kind": {
+      "const": "check-answered"
+    },
+    "schoolId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+    },
+    "learnerKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "School-scoped keyed pseudonym, never an account ID, name or globally shared learner ID."
+    },
+    "eventKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "School-scoped event pseudonym; not a raw progress event ID."
+    },
+    "conceptKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "School-scoped reference to the approved concept mapping, not its title or question text."
+    },
+    "assessmentKey": {
+      "type": "string",
+      "pattern": "^assessed-content-v2:[a-f0-9]{16}$"
+    },
+    "occurredOn": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "description": "UTC day only; no exact interaction timestamp."
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "correct": {
+      "type": "boolean"
+    },
+    "classLevelBand": {
+      "enum": [
+        "primary",
+        "junior-secondary",
+        "senior-secondary",
+        "unknown"
+      ],
+      "description": "Optional approved school-placement context; never copied from questionnaire answers."
+    },
+    "languageCode": {
+      "type": "string",
+      "pattern": "^[a-z]{2,3}(-[A-Z]{2})?$",
+      "description": "Optional approved lesson language code, not a learner questionnaire answer."
+    },
+    "connectivity": {
+      "enum": [
+        "online",
+        "offline",
+        "unknown"
+      ],
+      "description": "Optional measured interaction context, not reported home connectivity."
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "simulated",
+    "kind",
+    "schoolId",
+    "learnerKey",
+    "eventKey",
+    "conceptKey",
+    "assessmentKey",
+    "occurredOn",
+    "attempt",
+    "correct"
+  ]
+}

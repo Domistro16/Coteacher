@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { accountApi as api, type AccountSnapshot } from '../../shared/account-api';
 import type { LearnerProfile } from '../../../packages/shared/src/learner-profile';
 import type { LearnerService } from '../../../delivery/learner-service';
+import {improvementDataNoticeVersion} from '../../../packages/shared/src/improvement-data';
 import './learning-preferences.css';
 type Profile = Awaited<ReturnType<LearnerService['get']>>;
 type Answers = LearnerProfile['answers'];
@@ -30,7 +31,7 @@ export function LearningPreferences({state, onClose,onPrivacyClear}: {state: Acc
   const [busy,setBusy] = useState(false);
   const [guardianLink,setGuardianLink] = useState('');
   const [newSubject,setNewSubject]=useState(''),[newInterest,setNewInterest]=useState('');
-  const [scopes,setScopes] = useState({essential:false,personalization:false,externalAI:false});
+  const [scopes,setScopes] = useState<LearnerProfile['permissions']>({essential:false,personalization:false,externalAI:false,improvementData:false});
   const activeGroup = state.groups.find(g=>state.placements.some(x=>x.active && x.groupId===g.id));
   function initialAnswers(value:Profile):Answers {
     if(!value.personalizationAllowed)return value.answers;
@@ -58,6 +59,8 @@ export function LearningPreferences({state, onClose,onPrivacyClear}: {state: Acc
     <label><input type="checkbox" checked={scopes.essential} onChange={e=>setScopes(s=>({...s,essential:e.target.checked}))}/>Authorize essential account and learning processing</label>
     <label><input type="checkbox" checked={scopes.personalization} onChange={e=>setScopes(s=>({...s,personalization:e.target.checked}))}/>Use my optional answers and learning evidence to personalize support</label>
     <label><input type="checkbox" checked={scopes.externalAI} onChange={e=>setScopes(s=>({...s,externalAI:e.target.checked}))}/>Allow connected AI to receive my questions and relevant teaching preferences</label>
+    <label><input type="checkbox" checked={scopes.improvementData??false} disabled={p?.ageBand==='under-18' && p.essentialReady && !p.improvementDataAllowed} onChange={e=>setScopes(s=>({...s,improvementData:e.target.checked}))}/>Allow de-identified learning interactions to improve Coteacher (optional)</label>
+    <p>Improvement-data collection is currently off; saving this choice does not start it. This choice is separate from personalization and connected AI. Improvement events exclude raw questions, voice recordings, names and questionnaire answers. You can withdraw this permission at any time. Notice {improvementDataNoticeVersion}.</p>
     <p>Connected AI may receive explanation preferences, interests and relevant confidence/study-support signals. Names, age, guardian details and private comfort scores are excluded from structured profile context. Details you include in a question may still be sent. Lesson conversations remain visible to authorized teachers. Basic approved learning remains available if you decline optional processing.</p>
   </>;
   const pickMany=(key:'subjects'|'interests',value:string,checked:boolean)=>setAnswers(a=>({...a,[key]:checked?[...(a[key]??[]),value]:(a[key]??[]).filter(x=>x!==value)}));
@@ -77,10 +80,10 @@ export function LearningPreferences({state, onClose,onPrivacyClear}: {state: Acc
       </div> : <>
         {!p.essentialReady && <div className="authorization-card"><h2>{p.ageBand==='adult'?'Your choices':'Guardian authorization'}</h2>
           {permissionFields}
-          {p.ageBand==='adult' ? <button className="primary" disabled={busy || !scopes.essential} onClick={()=>void run(async()=>{const value=await api('learner/profile',{revision:p.revision,permissions:scopes});setP(value);setAnswers(initialAnswers(value));})}>Save authorization choices</button>
+          {p.ageBand==='adult' ? <button className="primary" disabled={busy || !scopes.essential} onClick={()=>void run(async()=>{const value=await api('learner/profile',{revision:p.revision,permissions:scopes,...(scopes.improvementData?{improvementNoticeVersion:improvementDataNoticeVersion}:{})});setP(value);setScopes(value.permissions);setAnswers(initialAnswers(value));})}>Save authorization choices</button>
           : <>
             <form onSubmit={e=>{e.preventDefault();const email=new FormData(e.currentTarget).get('email');void run(async()=>{
-              const value=await api('learner/guardian',{email,scopes});setP(value.profile);setGuardianLink(value.verificationToken?location.origin+'/#guardian='+value.verificationToken:'');setMessage(value.delivery==='email-accepted'?'The email service accepted this verification request. Check the guardian mailbox; delivery is not yet confirmed.':'Simulated link created. No email was sent.');
+              const value=await api('learner/guardian',{email,scopes,...(scopes.improvementData?{improvementNoticeVersion:improvementDataNoticeVersion}:{})});setP(value.profile);setGuardianLink(value.verificationToken?location.origin+'/#guardian='+value.verificationToken:'');setMessage(value.delivery==='email-accepted'?'The email service accepted this verification request. Check the guardian mailbox; delivery is not yet confirmed.':'Simulated link created. No email was sent.');
             });}}><label>Guardian email<input name="email" type="email" autoComplete="off" required maxLength={200}/></label>
               <button disabled={busy || !scopes.essential}>Create fictional guardian review request</button>
             </form>
@@ -92,8 +95,25 @@ export function LearningPreferences({state, onClose,onPrivacyClear}: {state: Acc
         </div>}
         {p.essentialReady && <>
           <details><summary>Processing choices</summary>{permissionFields}<button disabled={busy} onClick={()=>void run(async()=>{
-            const value:Profile=await api('learner/profile',{revision:p.revision,permissions:scopes});if(!value.personalizationAllowed)await onPrivacyClear();setP(value);setAnswers(value.answers);
+            const value:Profile=await api('learner/profile',{revision:p.revision,permissions:scopes,...(scopes.improvementData?{improvementNoticeVersion:improvementDataNoticeVersion}:{})});if(!value.personalizationAllowed)await onPrivacyClear();setP(value);setScopes(value.permissions);setAnswers(value.answers);
           })}>Update processing choices</button></details>
+          <section aria-label="Improvement-data permission">
+            <p>Improvement permission: {p.improvementDataAllowed?'recorded':'not granted'}. Improvement-data collection and export remain off.</p>
+            {p.ageBand==='under-18' && !p.improvementDataAllowed && <form onSubmit={e=>{e.preventDefault();const email=new FormData(e.currentTarget).get('email');void run(async()=>{
+              const value=await api('learner/guardian',{email,purpose:'improvementData',improvementNoticeVersion:improvementDataNoticeVersion,scopes:{essential:false,personalization:false,externalAI:false,improvementData:true}});
+              setP(value.profile);setScopes(value.profile.permissions);setGuardianLink(value.verificationToken?location.origin+'/#guardian='+value.verificationToken:'');setMessage('Separate improvement review requested. Existing learning permissions are unchanged. '+(value.delivery==='email-accepted'?'The email service accepted the request; delivery is not confirmed.':'Simulated link only; no email was sent.'));
+            });}}>
+              <p>A guardian and independent relationship reviewer must approve this separate purpose. Existing learning permissions stay unchanged.</p>
+              <label>Guardian email for improvement permission<input name="email" type="email" required maxLength={200} autoComplete="off"/></label>
+              <button disabled={busy}>Request separate improvement review</button>
+            </form>}
+            {p.ageBand==='under-18' && <>
+              {guardianLink && <p><a href={guardianLink} target="_blank" rel="noreferrer">Open simulated improvement guardian link</a></p>}
+              {p.requests.filter(r=>r.purpose==='improvementData').map(r=><p key={r.id}>Improvement review: {r.expired?'expired':r.status}.</p>)}
+              <button disabled={busy} onClick={()=>void run(load)}>Check improvement authorization</button>
+            </>}
+            <button disabled={busy} onClick={()=>void run(async()=>{const value:Profile=await api('learner/improvement/withdraw',{});setP(value);setScopes(value.permissions);setGuardianLink('');setMessage('Improvement permission withdrawn. Future improvement use is excluded and improvement features removed. Your separate learning choices are unchanged.');})}>Withdraw improvement-data permission</button>
+          </section>
           {!p.personalizationAllowed ? <div><p>Optional personalization is off. Approved basic lessons remain available. You can still choose display and audio settings.</p>
             <button disabled={busy} onClick={()=>void run(async()=>{const value=await api('learner/profile',{revision:p.revision,complete:true});setP(value);setStep(4);})}>Continue with basic learning</button></div>
           : <>
@@ -146,13 +166,14 @@ export function LearningPreferences({state, onClose,onPrivacyClear}: {state: Acc
 
 export function GuardianVerification() {
   const [message,setMessage]=useState(''); const [done,setDone]=useState(false);
-  const [details,setDetails]=useState<{scopes:LearnerProfile['permissions'];noticeVersion:string;deliveryMethod?:'email'|'simulated-link'}>();
+  const [details,setDetails]=useState<{scopes:LearnerProfile['permissions'];noticeVersion:string;deliveryMethod?:'email'|'simulated-link';purpose?:'learning'|'improvementData';improvementNoticeVersion?:string}>();
   useEffect(()=>{
     const inspect=()=>{if(!location.hash.startsWith('#guardian='))return;setDone(false);setDetails(undefined);setMessage('');void api('guardian/details',{token:location.hash.slice('#guardian='.length)}).then(setDetails).catch(e=>setMessage(e.message));};
     inspect();window.addEventListener('hashchange',inspect);return()=>window.removeEventListener('hashchange',inspect);
   },[]);
   return <main className="student-app student-content"><section className="content-card learning-preferences"><h1>Guardian authorization</h1><p>Fictional verification demo. Mailbox verification alone does not establish parental authority. Independent relationship review follows.</p>
-    {details && <><p>Notice {details.noticeVersion}. Essential processing: {details.scopes.essential?'requested':'declined'}. Optional personalization: {details.scopes.personalization?'requested':'declined'}. External AI: {details.scopes.externalAI?'requested':'declined'}.</p><p>Personalization uses questionnaire answers and learning evidence. Connected AI receives questions, relevant teaching preferences and permitted confidence/study-support signals; structured profile fields exclude identity, age, guardian details and private comfort scores, but details included in questions may still be sent. You may decline by leaving this request unapproved. Basic approved learning remains available.</p></>}
+    {details && <>{details.purpose==='improvementData'?<p>Separate improvement-data permission, notice {details.improvementNoticeVersion}. Existing essential, personalization and connected-AI choices are unchanged.</p>:<><p>Notice {details.noticeVersion}. Essential processing: {details.scopes.essential?'requested':'declined'}. Optional personalization: {details.scopes.personalization?'requested':'declined'}. External AI: {details.scopes.externalAI?'requested':'declined'}.</p><p>Personalization uses questionnaire answers and learning evidence. Connected AI receives questions, relevant teaching preferences and permitted confidence/study-support signals; structured profile fields exclude identity, age, guardian details and private comfort scores, but details included in questions may still be sent. You may decline by leaving this request unapproved. Basic approved learning remains available.</p></>}
+      <p>Improvement data: {details.scopes.improvementData?'requested':'declined'}. De-identified learning interactions may improve Coteacher; raw questions, audio, names and questionnaire answers are excluded. Collection and export are currently off. This is optional and separate from learning personalization and external AI.</p></>}
     <form onSubmit={e=>{e.preventDefault();void api('guardian/verify',{token:location.hash.slice('#guardian='.length),authorityDeclared:true}).then(v=>{setMessage(v.message);setDone(true);history.replaceState(null,'',location.pathname);}).catch(e=>setMessage(e.message));}}>
       <label><input type="checkbox" required disabled={done || !details}/>I am the parent or authorized guardian and have authority to make these choices.</label><button disabled={done || !details}>{details?.deliveryMethod==='email'?'Verify mailbox and declaration':'Verify simulated token and declaration'}</button>
     </form>{message && <p role="status">{message}</p>}</section></main>;

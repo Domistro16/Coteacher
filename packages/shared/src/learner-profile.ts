@@ -1,6 +1,7 @@
 import Ajv from 'ajv/dist/2020.js';
 import schema from '../../../schemas/learner-profile.schema.json' with { type: 'json' };
 import type { LearnerProfile } from './generated/learner-profile';
+import {improvementDataNoticeVersion} from './improvement-data';
 export type { LearnerProfile } from './generated/learner-profile';
 export const learningNoticeVersion = 'fictional-learning-v1';
 const profileShape = new Ajv({ strict: true }).compile<LearnerProfile>(schema);
@@ -12,15 +13,17 @@ export function validLearnerProfile(value:unknown):value is LearnerProfile {
 }
 export function initialLearnerProfile(accountId: string, now: string): LearnerProfile {
   return { schemaVersion: '1.0.0', accountId, simulated: true, revision: 0, ageBand: 'unknown', step: 0, complete: false,
-    noticeVersion: learningNoticeVersion, updatedAt: now, permissions: { essential: false, personalization: false, externalAI: false }, answers: {}, requests: [] };
+    noticeVersion: learningNoticeVersion, updatedAt: now, permissions: { essential: false, personalization: false, externalAI: false,improvementData:false }, answers: {}, requests: [] };
 }
 export function essentialReady(profile: LearnerProfile): boolean {
   return profile.permissions.essential && profile.ageBand !== 'unknown' &&
     (profile.ageBand === 'adult' || profile.requests.some(r => r.status === 'approved' && r.scopes.essential && r.noticeVersion === profile.noticeVersion));
 }
-export function optionalAllowed(profile: LearnerProfile, scope: 'personalization' | 'externalAI'): boolean {
-  return essentialReady(profile) && profile.permissions[scope] && (profile.ageBand === 'adult' ||
-    profile.requests.some(r => r.status === 'approved' && r.scopes[scope] && r.noticeVersion === profile.noticeVersion));
+export function optionalAllowed(profile: LearnerProfile, scope: 'personalization' | 'externalAI'|'improvementData'): boolean {
+  return essentialReady(profile) && profile.permissions[scope]===true &&
+    (scope!=='improvementData' || profile.improvementNoticeVersion===improvementDataNoticeVersion) && (profile.ageBand === 'adult' ||
+    profile.requests.some(r => r.status === 'approved' && r.scopes[scope] && r.noticeVersion === profile.noticeVersion &&
+      (scope!=='improvementData' || r.improvementNoticeVersion===improvementDataNoticeVersion)));
 }
 /** Explicit allowlist. Identity, guardian, comfort and precise routines never cross this boundary. */
 export function teachingPreferences(profile: LearnerProfile, subject: string,target:'external'|'local'='external') {

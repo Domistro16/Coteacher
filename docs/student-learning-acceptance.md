@@ -14,8 +14,10 @@ The earlier statement that all combined-plan milestones were complete was too br
   and broader outbound-payload assertions implemented. The detailed evidence,
   mocked dependencies and regression record are in
   [Batch 2 privacy acceptance](student-learning-batch2-acceptance.md).
-- Batch 3: improvement-data consent and allowlisted training-event schema await
-  review. Improvement-data collection and export are not enabled.
+- Batch 3: independent improvement-data consent, withdrawal exclusions/feature
+  clearing and the allowlisted training-event contract are implemented. Verification
+  and review status are in [Batch 3 acceptance](student-learning-batch3-acceptance.md).
+  Improvement-data collection, feature production and export remain disabled.
 - Evaluation harness, speech evaluation, broader interface refactor and further
   local-model work have not started and require separate approval.
 
@@ -105,8 +107,9 @@ fixture edits or env-file edits were made. The acceptance build/harness bypasses
 private env-file loading and external configured storage/identity. This batch did
 not restart or migrate configured services. Batches 2/3 and all separately gated
 evaluation/refactor work remained unstarted at that checkpoint. Batch 2 now has
-its separate [verification record](student-learning-batch2-acceptance.md); Batch 3
-and the separately gated milestones remain unstarted.
+its separate [verification record](student-learning-batch2-acceptance.md). Batch 3
+has its own [implementation/review record](student-learning-batch3-acceptance.md);
+the separately gated milestones remain unstarted.
 
 ## Earlier real integration evidence (not rerun by Batch 1)
 

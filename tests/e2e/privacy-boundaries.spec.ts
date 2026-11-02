@@ -34,7 +34,7 @@ test('managed browser sessions enforce teacher/admin/other-school private endpoi
   const rows:unknown[]=[];
   for(const identity of ['teacher','admin','owner','other-teacher','other-owner']){
     await login(page,identity);
-    const requests:[string,unknown?][]=[['learner/profile'],['learner/profile',{revision:v.profile.body.revision,accountId:account('student').id,answers:{preferredName:'attacker'}}],['learner/withdraw',{accountId:account('student').id}],['learner/guardian',{accountId:account('student').id,email:'attacker@fictional.invalid'}],[`lessons/${v.id}/learning`],[`lessons/${v.id}/learning`,{completed:true,studentId:account('student').id}]];
+    const requests:[string,unknown?][]=[['learner/profile'],['learner/profile',{revision:v.profile.body.revision,accountId:account('student').id,answers:{preferredName:'attacker'}}],['learner/withdraw',{accountId:account('student').id}],['learner/improvement/withdraw',{accountId:account('student').id}],['learner/guardian',{accountId:account('student').id,email:'attacker@fictional.invalid'}],[`lessons/${v.id}/learning`],[`lessons/${v.id}/learning`,{completed:true,studentId:account('student').id}]];
     for(const [path,data] of requests){const r=await api(page,path,data);expect(r.status,identity+' '+path).toBe(403);expect(r.cache).toBe('no-store');expect(JSON.stringify(r.body)).not.toContain(privateMarker);rows.push({identity,path,method:data?'POST':'GET',status:r.status});}
     const snapshot=await api(page,'me');expect(JSON.stringify(snapshot.body)).not.toMatch(/PRIVATE-QUESTIONNAIRE|memoryEnvelope|privateLearners|decisions/);
   }
@@ -74,7 +74,7 @@ test('guardian review metadata is school-scoped and cannot disclose private answ
     expect((await api(page,'guardian/reviews',{studentId:account('minor-student').id,id,approved:true,reason:'Fictional review'})).status).toBe(403);
   }
   await login(page,'admin');const reviews=await api(page,'guardian/reviews');expect(reviews.status).toBe(200);expect(reviews.cache).toBe('no-store');expect(reviews.body).toHaveLength(1);
-  expect(Object.keys(reviews.body[0]).sort()).toEqual(['authorityDeclared','expiresAt','guardianEmail','id','mailboxVerified','schoolId','scopes','simulated','status','studentId','tokenVerified'].sort());
+  expect(Object.keys(reviews.body[0]).sort()).toEqual(['authorityDeclared','expiresAt','guardianEmail','id','mailboxVerified','purpose','schoolId','scopes','simulated','status','studentId','tokenVerified'].sort());
   expect(JSON.stringify(reviews.body)).not.toMatch(/answers|PRIVATE-QUESTIONNAIRE|memory|decision|tokenHash/);
   // No simulated guardian declaration is promoted into a relationship approval.
   expect((await api(page,'guardian/reviews',{studentId:account('minor-student').id,id,approved:true,reason:'Fictional review'})).status).toBe(409);
