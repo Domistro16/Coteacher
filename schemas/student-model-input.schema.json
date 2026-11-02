@@ -1,0 +1,116 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0.0"
+    },
+    "learnerId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "schoolId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "subjectKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "knowledgeKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "conceptId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "lessonId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "lessonRevision": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "asOf": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+    },
+    "personalization": {
+      "type": "boolean"
+    },
+    "simulated": {
+      "const": true
+    },
+    "assessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evidenceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+          },
+          "assessmentKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 250
+          },
+          "subjectKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "knowledgeKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT.*Z$"
+          },
+          "correct": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "evidenceId",
+          "assessmentKey",
+          "subjectKey",
+          "knowledgeKey",
+          "at",
+          "correct"
+        ]
+      },
+      "maxItems": 1000
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "learnerId",
+    "schoolId",
+    "subjectKey",
+    "knowledgeKey",
+    "conceptId",
+    "lessonId",
+    "lessonRevision",
+    "asOf",
+    "personalization",
+    "simulated",
+    "assessments"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://coteacher.local/schemas/student-model-input.schema.json",
+  "title": "StudentModelInput"
+}

@@ -409,3 +409,31 @@ Chromium can report a seek requested at 1003 ms as 1002.999 ms; this must not
 restore the preceding chapter. The audio element remains the playback clock;
 there is no independent visual timer. The shared cue matcher retains its strict
 boundary behavior for already-specified timestamps.
+
+## Student-model foundation, Batch 1
+
+`student-model-input.schema.json` and `student-model-output.schema.json` define
+the synchronous TypeScript StudentModel boundary. The input is scoped to one
+learner, school/subject, mapped concept and lesson revision, with an as-of time
+and selected assessment outcomes. It is private inference input, not a consented
+training-event format. Output carries understanding/next-check estimates, evidence
+adequacy confidence, explanation, model version, evidence IDs, calibration status
+and explicit abstention. The baseline is Beta(1,1) plus eligible distinct first
+attempts; its two estimates are the same response-evidence proxy.
+Confidence is always oriented so a larger value means greater support for using
+the estimate. A future uncertainty-based implementation must convert uncertainty
+to that confidence convention; callers must not interpret this score as a
+calibrated probability that the estimate is correct.
+
+`student-decision.schema.json` records actual approved support selections and
+their associated model output. The compatible optional `decisions` and
+`evidence.assessmentKey` fields extend `learner-memory` 1.0.0. Old records without
+these fields remain readable; legacy assessments without item provenance do not
+increase model confidence. No progress, lesson or teacher DTO field is added.
+The private IndexedDB memory row durably stores the device ledger; reconnect merges
+retain it locally, without a new server-upload API. Retention/withdrawal applies
+to decisions as well as evidence. Rendering and media timers do not create records.
+
+The selectApprovedSupport adapter preserves the original AdaptationDecision shape.
+The broader Brain interface refactor, training consent/event export and evaluation
+harness remain outside Batch 1. See student-model-roadmap.md for replacement gates.

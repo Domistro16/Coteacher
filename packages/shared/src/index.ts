@@ -39,4 +39,5 @@ export * from './tutor-memory';
 export * from './tutor-speech';
 export * from './learner-profile';
 export * from './learning-engine';
+export * from './student-model';
 export * from './preparation';

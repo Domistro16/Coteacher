@@ -12,6 +12,21 @@ non-disclosure. Voluntary details in questions/conversations can reach the provi
 and authorized teacher oversight. Optional withdrawal removes answers
 and derived summaries; disconnected copies clear on their next participation.
 
+Private profile and lesson-learning APIs are scoped to the signed-in student;
+school reviewers receive separate, narrow guardian-review metadata. Their JSON
+success/error responses use `Cache-Control: no-store`. The student service worker
+bypasses `/api/` cache lookup so a stale static-cache entry cannot substitute for
+current server authorization. This does not protect against malicious same-origin
+code or delete disconnected copies remotely.
+
+External tutor serializers explicitly project approved context and permitted
+teaching preferences. Check requests exclude private decision reasons and evidence
+IDs; live setup limits lesson metadata to concept, objective and class level.
+Question/history text, audio and SDP remain intentionally supplied content, not
+de-identified data. Batch 2 boundary tests use mocked issuer/provider transports;
+see [verification scope](student-learning-batch2-acceptance.md). The optional local
+adapter has not received this external-payload hardening and awaits separate review.
+
 ## Content
 - Every explanation, question-bank answer, quiz item and Try it activity has `sourceRefs` pointing to entries in `sources`.
 - The sprint assembles supplied, manually prepared instructional content. Source-ID
@@ -140,3 +155,21 @@ Complete downloaded learning does not require a server session. Public operation
 requires provider configuration; real student accounts remain disabled by default
 until consent, retention and operational release checks pass. Fixtures and
 local account registration remain fictional-data-only. See school-registration.md.
+
+## Student-model baseline and decisions
+
+The TypeScript evidence-count baseline is an unvalidated engineering estimate.
+It is not mastery, a diagnosis, a learner type or a calibrated prediction. Only
+first attempts at distinct assessed items contribute; help/pauses/questionnaire
+ratings do not become correctness evidence. Its confidence reports evidence
+adequacy. Predictions abstain when confidence is low; approved defaults, explicit
+choices and direct incorrect-answer scaffolding remain available.
+
+Selected-support decision records stay in the learner's PIN-encrypted private
+device memory. They are excluded from lesson/progress exports, teacher memory
+and language-provider requests. They are not currently uploaded as a new server
+ledger; server backups do not reconstruct a lost device-only decision history.
+Records expire after 90 days or outside the last five completed lessons, with
+current unfinished work retained within 90 days, capped at 1,000 records.
+Personalization withdrawal clears the private ledger when the device participates.
+This is not improvement-data consent or a training export. Those remain disabled.

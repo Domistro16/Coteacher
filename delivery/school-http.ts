@@ -320,6 +320,7 @@ export function schoolHttp(
           else if(request.method==='POST')send(200,data.action==='approve'?await options.preparation.approve(actor,publicationId,data):data.action==='generate'?await options.preparation.generate(actor,publicationId):await options.preparation.draft(actor,publicationId));
           else throw new SchoolError(405,'Method not allowed.');
         }else{
+          if(snapshot.account.role!=='student')throw new SchoolError(403,'Student account required.');
           const support=await options.preparation.current(actor,publicationId);
           if(request.method==='GET')send(200,{memory:await options.learners.learningContext(actor),support});
           else if(request.method==='POST' && support){

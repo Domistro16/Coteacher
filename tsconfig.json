@@ -29,6 +29,7 @@
     "tests/**/*.ts",
     "vitest.config.ts",
     "playwright.config.ts",
-    "playwright.school.config.ts"
+    "playwright.school.config.ts",
+    "playwright.privacy.config.ts"
   ]
 }

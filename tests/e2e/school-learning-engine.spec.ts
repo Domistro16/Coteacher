@@ -38,6 +38,12 @@ async function signOut(page:Page){
   const loaded=page.waitForEvent('load');
   await page.getByRole('button',{name:'Sign out',exact:true}).click();expect((await response).ok()).toBe(true);await loaded;
 }
+async function privateDecisions(page:Page,learnerId:string,pin:string){
+  const envelope=await page.evaluate(id=>new Promise<unknown>((resolve,reject)=>{const opening=indexedDB.open('coteacher-sprint');opening.onsuccess=()=>{const db=opening.result,q=db.transaction('learning').objectStore('learning').get(id);q.onsuccess=()=>{db.close();resolve(q.result);};q.onerror=()=>reject(q.error);};}),learnerId);
+  if(!envelope)return [];
+  const memory=await decryptPayload(envelope,pin) as {decisions?:{id:string;learnerId:string;selectedVisualId:string;model:{modelVersion:string;status:string;confidence:number;sampleCount:number;calibration:string}}[]};
+  return memory.decisions??[];
+}
 async function selectRecommended(page:Page){
   const alternatives=page.locator('details.companion-more').filter({has:page.getByText('Approved alternatives',{exact:true})});
   if(!await alternatives.evaluate(node=>node.hasAttribute('open')))await alternatives.getByText('Approved alternatives',{exact:true}).click();
@@ -72,6 +78,11 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   await expect(page.locator('[data-recommended-visual-id]')).toHaveAttribute('data-recommended-visual-id','refraction-steps');
   await selectRecommended(page);
   await expect(page.getByText('Saved on this device',{exact:true})).toBeVisible();
+  await expect.poll(async()=>(await privateDecisions(page,learnerA,'111111')).length).toBe(1);
+  const firstDecision=(await privateDecisions(page,learnerA,'111111'))[0];
+  expect(firstDecision).toMatchObject({learnerId:learnerA,selectedVisualId:'refraction-steps',model:{modelVersion:'bayesian-evidence-count-v1',status:'abstain',sampleCount:1,calibration:'unvalidated'}});
+  expect(firstDecision.model.confidence).toBeCloseTo(1/11);
+  await expect(page.locator('body')).not.toContainText('bayesian-evidence-count-v1');
   await page.getByRole('button',{name:'Return to recorded lesson',exact:true}).click();
   await page.getByRole('button',{name:'Finish this lesson',exact:true}).click();await page.getByRole('button',{name:'Dismiss preference prompt'}).click();
   await expect(page.getByText('Saved on this device',{exact:true})).toBeVisible();
@@ -93,6 +104,7 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   await selectRecommended(page);
   await page.getByRole('button',{name:'Return to recorded lesson',exact:true}).click();
   await expect(page.getByText('Saved on this device',{exact:true})).toBeVisible();
+  const beforeOfflineDecisions=await privateDecisions(page,learnerA,'111111');expect(beforeOfflineDecisions.length).toBeGreaterThanOrEqual(2);
   // Offline collection/reopening is a real browser interaction. The audio fixture and preparation provider are simulated.
   await context.addInitScript(()=>{
     (window as any).__offlineApiCalls=0;const original=window.fetch.bind(window);
@@ -103,6 +115,7 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   await second.getByLabel('Device PIN',{exact:true}).fill('111111');await second.getByRole('button',{name:'Unlock saved lesson'}).click();
   const audio=page.locator('.recorded-lesson audio');await expect.poll(()=>audio.evaluate((a:HTMLAudioElement)=>Number.isFinite(a.duration))).toBe(true);
   await audio.evaluate((a:HTMLAudioElement)=>a.play());await expect.poll(()=>audio.evaluate((a:HTMLAudioElement)=>a.currentTime)).toBeGreaterThan(.2);await audio.evaluate((a:HTMLAudioElement)=>a.pause());
+  expect((await privateDecisions(page,learnerA,'111111')).map(d=>d.id)).toEqual(beforeOfflineDecisions.map(d=>d.id));
   await help(page);await expect(page.locator('svg[data-reduced-motion=true]').first()).toBeVisible();
   const candidate='What should I understand about refraction at the water surface?';
   const prepared=await page.evaluate(async()=>{const r=indexedDB.open('coteacher-sprint');return await new Promise<number>(resolve=>{r.onsuccess=()=>{const db=r.result;const q=db.transaction('profiles').objectStore('profiles').count();q.onsuccess=()=>{db.close();resolve(q.result);};};});});expect(prepared).toBe(4);
@@ -128,6 +141,8 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   const contextResult=await page.request.get(`http://127.0.0.1:4273/api/v1/lessons/${active.lessonId}/learning`);expect(contextResult.ok()).toBe(true);
   const learning=await contextResult.json();
   expect(new Set(learning.memory.evidence.map((e:any)=>e.id)).size).toBe(learning.memory.evidence.length);
+  const afterReconnectDecisions=await privateDecisions(page,learnerA,'111111');
+  expect(afterReconnectDecisions.some(d=>d.id===firstDecision.id)).toBe(true);
   const envelope=await page.evaluate(key=>new Promise<unknown>((resolve,reject)=>{const opening=indexedDB.open('coteacher-sprint');opening.onsuccess=()=>{const db=opening.result,r=db.transaction('profiles').objectStore('profiles').get(key);r.onsuccess=()=>{db.close();resolve(r.result);};r.onerror=()=>reject(r.error);};}),active.key);
   const stored=await decryptPayload(envelope,'111111') as {learning:{memoryRef:{learnerId:string};memory?:unknown};progress:{events:unknown[]}};
   expect(stored.learning.memory).toBeUndefined();expect(stored.learning.memoryRef.learnerId).toBe(learnerA);
@@ -141,6 +156,7 @@ test('two fictional learners adapt across two reviewed lessons, reopen offline, 
   await expect(page.locator('.watch-page')).not.toHaveClass(/larger-learning-text/);await help(page);
   await expect(page.locator('[data-recommended-visual-id]')).toHaveAttribute('data-recommended-visual-id','refraction-steps');
   await expect(page.locator('[data-recommended-visual-id]')).toContainText('you chose');
+  expect(await privateDecisions(page,learnerA,'111111')).toEqual([]);
   await expect(page.locator('.player-questions')).toContainText('How does a rainbow form above a city?');expect(await page.evaluate(()=>(window as any).__offlineApiCalls)).toBe(0);
   const report={simulated:true,result:'PASS',createdAt:new Date().toISOString(),learners:2,lessons:2,downloadedProfiles:prepared,offlineApiCalls:0,sharedDeviceIsolation:'PASS',assessmentDrivenCrossLessonSupport:'PASS',preparedGeneratedAnswer:'PASS',unsupportedQuestionQueued:'PASS',reconnectReceipt:'PASS',optionalMemoryClearedOnThisDevice:true,otherLearnerMemoryRetained:true,lessonAndProgressRetainedAfterWithdrawal:true,deduplicatedEvidence:learning.memory.evidence.length,preparedSupportBytes:Buffer.byteLength(JSON.stringify(learning.support)),externalProviderCalls:0,recording:'Synthetic Opus fixture; not human microphone verification',generation:'Mocked source-checked provider; real local/provider results are separate'};
   await writeFile('docs/student-learning-browser-evidence.json',JSON.stringify(report,null,2)+'\n');

@@ -309,3 +309,17 @@ exercise the same domain services with fictional data. Public mode rejects legac
 demo endpoints and requires provider configuration. Live release checks remain
 mandatory. Fixtures and
 local account registration remain fictional-data-only. See school-registration.md.
+
+## Private student-model adapter (Batch 1)
+
+The network-free StudentModel TypeScript interface sits behind the existing
+selectApprovedSupport function. The Bayesian evidence-count implementation uses
+validated first attempts only. It returns unvalidated probabilities and evidence
+adequacy confidence; low-confidence predictions abstain. Questionnaire settings,
+explicit choices and direct correction rules remain separate from that estimate.
+
+SchoolStudy records actual visual selections in the existing encrypted learner
+memory row. Render-time recommendations and media ticks do not append decisions.
+The ledger is device-local; it is not a new analytics/server export. Existing
+server envelopes can read the compatible memory fields, but no client ledger
+upload route is added. See contracts.md and student-model-roadmap.md.
